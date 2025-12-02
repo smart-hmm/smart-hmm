@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	domain "github.com/smart-hmm/smart-hmm/internal/modules/user/domain"
+	"github.com/smart-hmm/smart-hmm/internal/modules/user/domain"
 	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
 )
 
