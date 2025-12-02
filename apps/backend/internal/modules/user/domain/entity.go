@@ -1,6 +1,11 @@
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type UserRole string
 
@@ -21,4 +26,27 @@ type User struct {
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func NewUser(email, hashedPassword string, role UserRole, employeeID *string) (*User, error) {
+	if email == "" {
+		return nil, errors.New("email required")
+	}
+
+	now := time.Now()
+
+	return &User{
+		ID:           uuid.NewString(),
+		Email:        email,
+		PasswordHash: hashedPassword,
+		Role:         role,
+		EmployeeID:   employeeID,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}, nil
+}
+
+func (u *User) ChangePassword(newHash string) {
+	u.PasswordHash = newHash
+	u.UpdatedAt = time.Now()
 }

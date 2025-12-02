@@ -2,7 +2,6 @@ package attendanceusecase
 
 import (
 	"context"
-	"time"
 
 	"github.com/smart-hmm/smart-hmm/internal/modules/attendance/domain"
 	attendancerepository "github.com/smart-hmm/smart-hmm/internal/modules/attendance/repository"
@@ -17,10 +16,9 @@ func NewClockOutUsecase(repo attendancerepository.AttendanceRepository) *ClockOu
 }
 
 func (uc *ClockOutUsecase) Execute(ctx context.Context, record *domain.AttendanceRecord) error {
-	now := time.Now()
-
-	record.ClockOut = &now
-	record.TotalHours = now.Sub(record.ClockIn).Hours()
+	if err := record.ClockOutNow(); err != nil {
+		return err
+	}
 
 	return uc.repo.Update(record)
 }

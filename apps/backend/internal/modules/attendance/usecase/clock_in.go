@@ -2,9 +2,7 @@ package attendanceusecase
 
 import (
 	"context"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/smart-hmm/smart-hmm/internal/modules/attendance/domain"
 	attendancerepository "github.com/smart-hmm/smart-hmm/internal/modules/attendance/repository"
 )
@@ -17,15 +15,11 @@ func NewClockInUsecase(repo attendancerepository.AttendanceRepository) *ClockInU
 	return &ClockInUsecase{repo: repo}
 }
 
-func (uc *ClockInUsecase) Execute(ctx context.Context, employeeID string, method domain.ClockMethod) (*domain.AttendanceRecord, error) {
-	record := &domain.AttendanceRecord{
-		ID:         uuid.NewString(),
-		EmployeeID: employeeID,
-		ClockIn:    time.Now(),
-		Method:     method,
-		Note:       nil,
+func (uc *ClockInUsecase) Execute(ctx context.Context, employeeID string, method domain.ClockMethod, note *string) (*domain.AttendanceRecord, error) {
+	record, err := domain.NewClockIn(employeeID, method, note)
+	if err != nil {
+		return nil, err
 	}
 
-	err := uc.repo.Create(record)
-	return record, err
+	return record, uc.repo.Create(record)
 }

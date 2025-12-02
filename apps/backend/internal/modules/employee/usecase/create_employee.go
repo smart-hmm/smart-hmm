@@ -2,9 +2,7 @@ package employeeusecase
 
 import (
 	"context"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/smart-hmm/smart-hmm/internal/modules/employee/domain"
 	employeerepository "github.com/smart-hmm/smart-hmm/internal/modules/employee/repository"
 )
@@ -18,8 +16,9 @@ func NewCreateEmployeeUsecase(repo employeerepository.EmployeeRepository) *Creat
 }
 
 func (uc *CreateEmployeeUsecase) Execute(ctx context.Context, e *domain.Employee) (*domain.Employee, error) {
-	e.ID = uuid.NewString()
-	e.CreatedAt = time.Now()
-	e.UpdatedAt = time.Now()
-	return e, uc.repo.Create(e)
+	newEmp, err := domain.NewEmployee(e.Code, e.FirstName, e.LastName, e.Email, e.BaseSalary)
+	if err != nil {
+		return nil, err
+	}
+	return newEmp, uc.repo.Create(newEmp)
 }

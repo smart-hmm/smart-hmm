@@ -1,6 +1,11 @@
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type EmploymentType string
 type EmploymentStatus string
@@ -40,4 +45,32 @@ type Employee struct {
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func NewEmployee(code, firstName, lastName, email string, base float64) (*Employee, error) {
+	if code == "" || firstName == "" || email == "" {
+		return nil, errors.New("missing required fields")
+	}
+	if base < 0 {
+		return nil, errors.New("base salary cannot be negative")
+	}
+
+	now := time.Now()
+
+	return &Employee{
+		ID:         uuid.NewString(),
+		Code:       code,
+		FirstName:  firstName,
+		LastName:   lastName,
+		Email:      email,
+		BaseSalary: base,
+		JoinDate:   now,
+		CreatedAt:  now,
+		UpdatedAt:  now,
+	}, nil
+}
+
+func (e *Employee) UpdatePosition(pos string) {
+	e.Position = pos
+	e.UpdatedAt = time.Now()
 }

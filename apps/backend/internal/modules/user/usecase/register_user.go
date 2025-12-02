@@ -2,9 +2,7 @@ package userusecase
 
 import (
 	"context"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/smart-hmm/smart-hmm/internal/modules/user/domain"
 	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
 )
@@ -17,15 +15,10 @@ func NewRegisterUserUsecase(repo userrepository.UserRepository) *RegisterUserUse
 	return &RegisterUserUsecase{repo: repo}
 }
 
-func (uc *RegisterUserUsecase) Execute(ctx context.Context, email, hashedPwd, role string, employeeID *string) (*domain.User, error) {
-	u := &domain.User{
-		ID:           uuid.NewString(),
-		Email:        email,
-		PasswordHash: hashedPwd,
-		Role:         domain.UserRole(role),
-		EmployeeID:   employeeID,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+func (uc *RegisterUserUsecase) Execute(ctx context.Context, email, hashedPwd string, role domain.UserRole, employeeID *string) (*domain.User, error) {
+	newUser, err := domain.NewUser(email, hashedPwd, role, employeeID)
+	if err != nil {
+		return nil, err
 	}
-	return u, uc.repo.Create(u)
+	return newUser, uc.repo.Create(newUser)
 }
