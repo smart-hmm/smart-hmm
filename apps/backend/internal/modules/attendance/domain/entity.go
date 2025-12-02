@@ -14,6 +14,14 @@ const (
 	ClockMethodDevice ClockMethod = "DEVICE"
 )
 
+func (m ClockMethod) IsValid() bool {
+	switch m {
+	case ClockMethodManual, ClockMethodDevice:
+		return true
+	}
+	return false
+}
+
 type AttendanceRecord struct {
 	ID         string `json:"id"`
 	EmployeeID string `json:"employee_id"`
