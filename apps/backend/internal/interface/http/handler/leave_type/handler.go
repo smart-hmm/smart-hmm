@@ -1,11 +1,12 @@
-package leavehandler
+package leavetypehandler
 
 import (
 	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	leavehandlerdto "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave/dto"
+	leavehandlerdto "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type/dto"
+	leavetypehandlerdto "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type/dto"
 	"github.com/smart-hmm/smart-hmm/internal/modules/leave/domain"
 	leaverepo "github.com/smart-hmm/smart-hmm/internal/modules/leave/repository"
 	leavetypesusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave/usecase"
@@ -56,7 +57,7 @@ func (h *LeaveTypeHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *LeaveTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
-	var body leavehandlerdto.UpdateLeaveTypeRequest
+	var body leavetypehandlerdto.UpdateLeaveTypeRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid json", http.StatusBadRequest)
 		return

@@ -1,4 +1,4 @@
-package leavehandler
+package leavetypehandler
 
 import "github.com/go-chi/chi/v5"
 
