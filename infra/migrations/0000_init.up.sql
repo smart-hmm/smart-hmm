@@ -107,7 +107,7 @@ CREATE TABLE attendance_records (
     clock_out TIMESTAMPTZ,
     total_hours NUMERIC(8,2),
 
-    method clock_method NOT NULL DEFAULT 'WEB',
+    method clock_method NOT NULL DEFAULT 'DEVICE',
     note TEXT,
 
     created_at TIMESTAMPTZ DEFAULT NOW(),
