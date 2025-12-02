@@ -1,0 +1,139 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/smart-hmm/smart-hmm/internal/modules/employee/domain"
+	employeerepository "github.com/smart-hmm/smart-hmm/internal/modules/employee/repository"
+)
+
+type EmployeePostgresRepository struct {
+	db *pgxpool.Pool
+}
+
+func NewEmployeePostgresRepository(db *pgxpool.Pool) employeerepository.EmployeeRepository {
+	return &EmployeePostgresRepository{db: db}
+}
+
+func (r *EmployeePostgresRepository) Create(e *domain.Employee) error {
+	_, err := r.db.Exec(context.Background(),
+		`INSERT INTO employees
+		 (id, code, first_name, last_name, email, phone, date_of_birth,
+		  department_id, manager_id, position, employment_type, employment_status,
+		  join_date, base_salary)
+		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+		e.ID, e.Code, e.FirstName, e.LastName, e.Email, e.Phone, e.DateOfBirth,
+		e.DepartmentID, e.ManagerID, e.Position, e.EmploymentType, e.EmploymentStatus,
+		e.JoinDate, e.BaseSalary)
+	return err
+}
+
+func (r *EmployeePostgresRepository) Update(e *domain.Employee) error {
+	_, err := r.db.Exec(context.Background(),
+		`UPDATE employees SET
+		 code=$1, first_name=$2, last_name=$3, email=$4, phone=$5,
+		 date_of_birth=$6, department_id=$7, manager_id=$8, position=$9,
+		 employment_type=$10, employment_status=$11,
+		 join_date=$12, base_salary=$13
+		 WHERE id=$14`,
+		e.Code, e.FirstName, e.LastName, e.Email, e.Phone,
+		e.DateOfBirth, e.DepartmentID, e.ManagerID, e.Position,
+		e.EmploymentType, e.EmploymentStatus, e.JoinDate, e.BaseSalary,
+		e.ID)
+	return err
+}
+
+func scanEmployee(row pgx.Row) (*domain.Employee, error) {
+	var e domain.Employee
+	err := row.Scan(
+		&e.ID, &e.Code, &e.FirstName, &e.LastName, &e.Email, &e.Phone,
+		&e.DateOfBirth, &e.DepartmentID, &e.ManagerID, &e.Position,
+		&e.EmploymentType, &e.EmploymentStatus, &e.JoinDate, &e.BaseSalary,
+		&e.CreatedAt, &e.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+func (r *EmployeePostgresRepository) FindByID(id string) (*domain.Employee, error) {
+	return scanEmployee(
+		r.db.QueryRow(context.Background(),
+			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
+			        department_id, manager_id, position, employment_type,
+			        employment_status, join_date, base_salary,
+			        created_at, updated_at
+			       FROM employees WHERE id=$1`, id),
+	)
+}
+
+func (r *EmployeePostgresRepository) FindByEmail(email string) (*domain.Employee, error) {
+	return scanEmployee(
+		r.db.QueryRow(context.Background(),
+			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
+			        department_id, manager_id, position, employment_type,
+			        employment_status, join_date, base_salary,
+			        created_at, updated_at
+			       FROM employees WHERE email=$1`, email),
+	)
+}
+
+func (r *EmployeePostgresRepository) FindByCode(code string) (*domain.Employee, error) {
+	return scanEmployee(
+		r.db.QueryRow(context.Background(),
+			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
+			        department_id, manager_id, position, employment_type,
+			        employment_status, join_date, base_salary,
+			        created_at, updated_at
+			       FROM employees WHERE code=$1`, code),
+	)
+}
+
+func (r *EmployeePostgresRepository) ListAll() ([]*domain.Employee, error) {
+	rows, err := r.db.Query(context.Background(),
+		`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
+		        department_id, manager_id, position, employment_type,
+		        employment_status, join_date, base_salary,
+		        created_at, updated_at
+		   FROM employees`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*domain.Employee
+	for rows.Next() {
+		e, err := scanEmployee(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, e)
+	}
+	return result, nil
+}
+
+func (r *EmployeePostgresRepository) ListByDepartment(deptID string) ([]*domain.Employee, error) {
+	rows, err := r.db.Query(context.Background(),
+		`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
+		        department_id, manager_id, position, employment_type,
+		        employment_status, join_date, base_salary,
+		        created_at, updated_at
+		   FROM employees WHERE department_id=$1`, deptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*domain.Employee
+	for rows.Next() {
+		e, err := scanEmployee(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, e)
+	}
+	return result, nil
+}
