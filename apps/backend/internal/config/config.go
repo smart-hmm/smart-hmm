@@ -15,6 +15,7 @@ type Config struct {
 type Database struct {
 	Host     string `envconfig:"HOST" validate:"required"`
 	Port     int    `envconfig:"PORT" validate:"required,gt=0"`
+	Name     string `envconfig:"NAME" validate:"required"`
 	User     string `envconfig:"USER" validate:"required" default:"postgres"`
 	Password string `envconfig:"PASSWORD" validate:"required" default:"postgres"`
 }
@@ -31,7 +32,7 @@ func Load() (*Config, error) {
 	}
 
 	if err := validate.Struct(cfg); err != nil {
-		return nil, fmt.Errorf("validate config: %w", err)
+		return nil, fmt.Errorf("validate config: %w")
 	}
 
 	return &cfg, nil
