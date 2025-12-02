@@ -1,8 +1,6 @@
+```mermaid
 erDiagram
 
-  %% ========================
-  %% USERS
-  %% ========================
   users ||--o| employees : "employee_id"
   users {
     UUID id PK
@@ -14,9 +12,6 @@ erDiagram
     timestamp updated_at
   }
 
-  %% ========================
-  %% EMPLOYEES & DEPARTMENTS
-  %% ========================
   departments ||--o{ employees : "has many"
   employees ||--o| employees : "manager_id"
   employees {
@@ -46,9 +41,6 @@ erDiagram
     timestamp updated_at
   }
 
-  %% ========================
-  %% ATTENDANCE
-  %% ========================
   employees ||--o{ attendance_records : "attendance"
   attendance_records {
     UUID id PK
@@ -62,9 +54,6 @@ erDiagram
     timestamp updated_at
   }
 
-  %% ========================
-  %% LEAVE TYPES & REQUESTS
-  %% ========================
   leave_types ||--o{ leave_requests : "defines"
   employees ||--o{ leave_requests : "requests"
   users ||--o{ leave_requests : "approved_by"
@@ -92,11 +81,7 @@ erDiagram
     timestamp updated_at
   }
 
-  %% ========================
-  %% PAYROLL
-  %% ========================
   employees ||--o{ payroll_records : "payroll"
-
   payroll_records {
     UUID id PK
     UUID employee_id FK
@@ -108,11 +93,9 @@ erDiagram
     timestamp generated_at
   }
 
-  %% ========================
-  %% SYSTEM SETTINGS
-  %% ========================
   system_settings {
     text key PK
     JSON value
     timestamp updated_at
   }
+```
