@@ -13,34 +13,39 @@ import (
 )
 
 type Usecases struct {
-	ClockIn             *attendanceusecase.ClockInUsecase
-	ClockOut            *attendanceusecase.ClockOutUsecase
-	GeneratePayroll     *payrollusecase.GeneratePayrollUsecase
-	CreateDepartment    *departmentusecase.CreateDepartmentUsecase
-	UpdateDepartment    *departmentusecase.UpdateDepartmentUsecase
-	CreateEmployee      *employeeusecase.CreateEmployeeUsecase
-	UpdateEmployee      *employeeusecase.UpdateEmployeeUsecase
-	DeleteEmployee      *employeeusecase.DeleteEmployeeUsecase
-	OnboardEmployee     *employeeusecase.OnboardEmployeeUsecase
-	CreateLeaveRequest  *leaverequestusecase.CreateLeaveRequestUsecase
-	GetLeaveRequest     *leaverequestusecase.GetLeaveRequest
-	ListLeaveByEmployee *leaverequestusecase.ListByEmployee
-	ListLeaveByStatus   *leaverequestusecase.ListByStatus
-	ApproveLeaveRequest *leaverequestusecase.ApproveLeaveUsecase
-	RejectLeaveRequest  *leaverequestusecase.RejectLeaveUsecase
-	ListLeaveTypes      *leavetypeusecase.ListAllLeaveTypesUsecase
-	GetLeaveType        *leavetypeusecase.GetLeaveTypeUsecase
-	CreateLeaveType     *leavetypeusecase.CreateLeaveTypeUsecase
-	UpdateLeaveType     *leavetypeusecase.UpdateLeaveTypeUsecase
-	SoftDeleteLeaveType *leavetypeusecase.SoftDeleteLeaveTypeUsecase
-	CreateEmailTemplate *emailtemplateusecase.CreateEmailTemplateUsecase
-	UpdateEmailTemplate *emailtemplateusecase.UpdateEmailTemplateUsecase
-	SoftDeleteTemplate  *emailtemplateusecase.SoftDeleteEmailTemplateUsecase
-	GetSetting          *systemsettingsusecase.GetSettingUsecase
-	ListSettings        *systemsettingsusecase.ListSettingsUsecase
-	UpdateSetting       *systemsettingsusecase.UpdateSettingUsecase
-	DeleteSetting       *systemsettingsusecase.DeleteSettingUsecase
-	RegisterUserUsecase *userusecase.RegisterUserUsecase
+	ClockIn                 *attendanceusecase.ClockInUsecase
+	ClockOut                *attendanceusecase.ClockOutUsecase
+	GeneratePayroll         *payrollusecase.GeneratePayrollUsecase
+	CreateDepartment        *departmentusecase.CreateDepartmentUsecase
+	UpdateDepartment        *departmentusecase.UpdateDepartmentUsecase
+	CreateEmployee          *employeeusecase.CreateEmployeeUsecase
+	UpdateEmployee          *employeeusecase.UpdateEmployeeUsecase
+	DeleteEmployee          *employeeusecase.DeleteEmployeeUsecase
+	OnboardEmployee         *employeeusecase.OnboardEmployeeUsecase
+	CreateLeaveRequest      *leaverequestusecase.CreateLeaveRequestUsecase
+	GetLeaveRequest         *leaverequestusecase.GetLeaveRequest
+	ListLeaveByEmployee     *leaverequestusecase.ListByEmployee
+	ListLeaveByStatus       *leaverequestusecase.ListByStatus
+	ApproveLeaveRequest     *leaverequestusecase.ApproveLeaveUsecase
+	RejectLeaveRequest      *leaverequestusecase.RejectLeaveUsecase
+	ListLeaveTypes          *leavetypeusecase.ListAllLeaveTypesUsecase
+	GetLeaveType            *leavetypeusecase.GetLeaveTypeUsecase
+	CreateLeaveType         *leavetypeusecase.CreateLeaveTypeUsecase
+	UpdateLeaveType         *leavetypeusecase.UpdateLeaveTypeUsecase
+	SoftDeleteLeaveType     *leavetypeusecase.SoftDeleteLeaveTypeUsecase
+	CreateTemplate          *emailtemplateusecase.CreateTemplateUsecase
+	CreateTemplateVersion   *emailtemplateusecase.CreateTemplateVersionUsecase
+	ActivateTemplateVersion *emailtemplateusecase.ActivateTemplateVersionUsecase
+	CreateTemplateVariable  *emailtemplateusecase.CreateTemplateVariableUsecase
+	UpdateTemplateVariable  *emailtemplateusecase.UpdateTemplateVariableUsecase
+	DeleteTemplateVariable  *emailtemplateusecase.DeleteTemplateVariableUsecase
+	ListTemplateVariables   *emailtemplateusecase.ListTemplateVariablesUsecase
+	PreviewTemplate         *emailtemplateusecase.PreviewTemplateUsecase
+	GetSetting              *systemsettingsusecase.GetSettingUsecase
+	ListSettings            *systemsettingsusecase.ListSettingsUsecase
+	UpdateSetting           *systemsettingsusecase.UpdateSettingUsecase
+	DeleteSetting           *systemsettingsusecase.DeleteSettingUsecase
+	RegisterUserUsecase     *userusecase.RegisterUserUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -50,33 +55,38 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 	registerUser := userusecase.NewRegisterUserUsecase(repo.User)
 
 	return Usecases{
-		ClockIn:             attendanceusecase.NewClockInUsecase(repo.Attendance),
-		ClockOut:            attendanceusecase.NewClockOutUsecase(repo.Attendance),
-		GeneratePayroll:     payrollusecase.NewGeneratePayrollUsecase(repo.Payroll),
-		CreateDepartment:    departmentusecase.NewCreateDepartmentUsecase(repo.Department),
-		UpdateDepartment:    departmentusecase.NewUpdateDepartmentUsecase(repo.Department),
-		CreateEmployee:      createEmployee,
-		UpdateEmployee:      updateEmployee,
-		DeleteEmployee:      deleteEmployee,
-		OnboardEmployee:     employeeusecase.NewOnboardEmployeeUsecase(createEmployee, deleteEmployee, registerUser, infras.QueueService),
-		CreateLeaveRequest:  leaverequestusecase.NewCreateLeaveRequestUsecase(repo.LeaveRequest),
-		GetLeaveRequest:     leaverequestusecase.NewGetLeaveRequest(repo.LeaveRequest),
-		ListLeaveByEmployee: leaverequestusecase.NewListByEmployee(repo.LeaveRequest),
-		ListLeaveByStatus:   leaverequestusecase.NewListByStatus(repo.LeaveRequest),
-		ApproveLeaveRequest: leaverequestusecase.NewApproveLeaveUsecase(repo.LeaveRequest),
-		RejectLeaveRequest:  leaverequestusecase.NewRejectLeaveUsecase(repo.LeaveRequest),
-		ListLeaveTypes:      leavetypeusecase.NewListLeaveTypesUsecase(repo.LeaveType),
-		GetLeaveType:        leavetypeusecase.NewGetLeaveTypeUsecase(repo.LeaveType),
-		CreateLeaveType:     leavetypeusecase.NewCreateLeaveTypeUsecase(repo.LeaveType),
-		UpdateLeaveType:     leavetypeusecase.NewUpdateLeaveTypeUsecase(repo.LeaveType),
-		SoftDeleteLeaveType: leavetypeusecase.NewSoftDeleteLeaveTypeUsecase(repo.LeaveType),
-		CreateEmailTemplate: emailtemplateusecase.NewCreateEmailTemplateUsecase(repo.EmailTemplate),
-		UpdateEmailTemplate: emailtemplateusecase.NewUpdateEmailTemplateUsecase(repo.EmailTemplate),
-		SoftDeleteTemplate:  emailtemplateusecase.NewSoftDeleteEmailTemplateUsecase(repo.EmailTemplate),
-		GetSetting:          systemsettingsusecase.NewGetSettingUsecase(repo.SystemSettings),
-		ListSettings:        systemsettingsusecase.NewListSettingsUsecase(repo.SystemSettings),
-		UpdateSetting:       systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),
-		DeleteSetting:       systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
-		RegisterUserUsecase: registerUser,
+		ClockIn:                 attendanceusecase.NewClockInUsecase(repo.Attendance),
+		ClockOut:                attendanceusecase.NewClockOutUsecase(repo.Attendance),
+		GeneratePayroll:         payrollusecase.NewGeneratePayrollUsecase(repo.Payroll),
+		CreateDepartment:        departmentusecase.NewCreateDepartmentUsecase(repo.Department),
+		UpdateDepartment:        departmentusecase.NewUpdateDepartmentUsecase(repo.Department),
+		CreateEmployee:          createEmployee,
+		UpdateEmployee:          updateEmployee,
+		DeleteEmployee:          deleteEmployee,
+		OnboardEmployee:         employeeusecase.NewOnboardEmployeeUsecase(createEmployee, deleteEmployee, registerUser, infras.QueueService),
+		CreateLeaveRequest:      leaverequestusecase.NewCreateLeaveRequestUsecase(repo.LeaveRequest),
+		GetLeaveRequest:         leaverequestusecase.NewGetLeaveRequest(repo.LeaveRequest),
+		ListLeaveByEmployee:     leaverequestusecase.NewListByEmployee(repo.LeaveRequest),
+		ListLeaveByStatus:       leaverequestusecase.NewListByStatus(repo.LeaveRequest),
+		ApproveLeaveRequest:     leaverequestusecase.NewApproveLeaveUsecase(repo.LeaveRequest),
+		RejectLeaveRequest:      leaverequestusecase.NewRejectLeaveUsecase(repo.LeaveRequest),
+		ListLeaveTypes:          leavetypeusecase.NewListLeaveTypesUsecase(repo.LeaveType),
+		GetLeaveType:            leavetypeusecase.NewGetLeaveTypeUsecase(repo.LeaveType),
+		CreateLeaveType:         leavetypeusecase.NewCreateLeaveTypeUsecase(repo.LeaveType),
+		UpdateLeaveType:         leavetypeusecase.NewUpdateLeaveTypeUsecase(repo.LeaveType),
+		SoftDeleteLeaveType:     leavetypeusecase.NewSoftDeleteLeaveTypeUsecase(repo.LeaveType),
+		CreateTemplate:          emailtemplateusecase.NewCreateTemplateUsecase(repo.EmailTemplate),
+		CreateTemplateVersion:   emailtemplateusecase.NewCreateTemplateVersionUsecase(repo.EmailTemplate),
+		ActivateTemplateVersion: emailtemplateusecase.NewActivateTemplateVersionUsecase(repo.EmailTemplate),
+		CreateTemplateVariable:  emailtemplateusecase.NewCreateTemplateVariableUsecase(repo.EmailTemplate),
+		UpdateTemplateVariable:  emailtemplateusecase.NewUpdateTemplateVariableUsecase(repo.EmailTemplate),
+		DeleteTemplateVariable:  emailtemplateusecase.NewDeleteTemplateVariableUsecase(repo.EmailTemplate),
+		ListTemplateVariables:   emailtemplateusecase.NewListTemplateVariablesUsecase(repo.EmailTemplate),
+		PreviewTemplate:         emailtemplateusecase.NewPreviewTemplateUsecase(repo.EmailTemplate),
+		GetSetting:              systemsettingsusecase.NewGetSettingUsecase(repo.SystemSettings),
+		ListSettings:            systemsettingsusecase.NewListSettingsUsecase(repo.SystemSettings),
+		UpdateSetting:           systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),
+		DeleteSetting:           systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
+		RegisterUserUsecase:     registerUser,
 	}
 }

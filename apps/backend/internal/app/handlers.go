@@ -32,9 +32,14 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 		Department: departmenthandler.NewDepartmentHandler(uc.CreateDepartment, uc.UpdateDepartment, repo.Department),
 		Employee:   employeehandler.NewEmployeeHandler(uc.CreateEmployee, uc.UpdateEmployee, uc.OnboardEmployee, repo.Employee),
 		EmailTemplate: emailtemplatehandler.NewEmailTemplateHandler(
-			uc.CreateEmailTemplate,
-			uc.UpdateEmailTemplate,
-			uc.SoftDeleteTemplate,
+			uc.CreateTemplate,
+			uc.CreateTemplateVersion,
+			uc.ActivateTemplateVersion,
+			uc.CreateTemplateVariable,
+			uc.UpdateTemplateVariable,
+			uc.DeleteTemplateVariable,
+			uc.ListTemplateVariables,
+			uc.PreviewTemplate,
 			repo.EmailTemplate,
 		),
 		LeaveRequest: leaverequesthandler.NewLeaveRequestHandler(
