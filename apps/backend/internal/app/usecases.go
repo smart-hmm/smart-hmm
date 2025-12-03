@@ -19,6 +19,8 @@ type Usecases struct {
 	UpdateDepartment    *departmentusecase.UpdateDepartmentUsecase
 	CreateEmployee      *employeeusecase.CreateEmployeeUsecase
 	UpdateEmployee      *employeeusecase.UpdateEmployeeUsecase
+	DeleteEmployee      *employeeusecase.DeleteEmployeeUsecase
+	OnboardEmployee     *employeeusecase.OnboardEmployeeUsecase
 	CreateLeaveRequest  *leaverequestusecase.CreateLeaveRequestUsecase
 	GetLeaveRequest     *leaverequestusecase.GetLeaveRequest
 	ListLeaveByEmployee *leaverequestusecase.ListByEmployee
@@ -37,15 +39,21 @@ type Usecases struct {
 	RegisterUserUsecase *userusecase.RegisterUserUsecase
 }
 
-func buildUsecases(repo Repositories) Usecases {
+func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
+	createEmployee := employeeusecase.NewCreateEmployeeUsecase(repo.Employee)
+	updateEmployee := employeeusecase.NewUpdateEmployeeUsecase(repo.Employee)
+	deleteEmployee := employeeusecase.NewDeleteEmployeeUsecase(repo.Employee)
+	registerUser := userusecase.NewRegisterUserUsecase(repo.User)
+
 	return Usecases{
 		ClockIn:             attendanceusecase.NewClockInUsecase(repo.Attendance),
 		ClockOut:            attendanceusecase.NewClockOutUsecase(repo.Attendance),
 		GeneratePayroll:     payrollusecase.NewGeneratePayrollUsecase(repo.Payroll),
 		CreateDepartment:    departmentusecase.NewCreateDepartmentUsecase(repo.Department),
 		UpdateDepartment:    departmentusecase.NewUpdateDepartmentUsecase(repo.Department),
-		CreateEmployee:      employeeusecase.NewCreateEmployeeUsecase(repo.Employee),
-		UpdateEmployee:      employeeusecase.NewUpdateEmployeeUsecase(repo.Employee),
+		CreateEmployee:      createEmployee,
+		UpdateEmployee:      updateEmployee,
+		OnboardEmployee:     employeeusecase.NewOnboardEmployeeUsecase(createEmployee, deleteEmployee, registerUser, infras.QueueService),
 		CreateLeaveRequest:  leaverequestusecase.NewCreateLeaveRequestUsecase(repo.LeaveRequest),
 		GetLeaveRequest:     leaverequestusecase.NewGetLeaveRequest(repo.LeaveRequest),
 		ListLeaveByEmployee: leaverequestusecase.NewListByEmployee(repo.LeaveRequest),
@@ -61,6 +69,6 @@ func buildUsecases(repo Repositories) Usecases {
 		ListSettings:        systemsettingsusecase.NewListSettingsUsecase(repo.SystemSettings),
 		UpdateSetting:       systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),
 		DeleteSetting:       systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
-		RegisterUserUsecase: userusecase.NewRegisterUserUsecase(repo.User),
+		RegisterUserUsecase: registerUser,
 	}
 }

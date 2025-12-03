@@ -14,9 +14,10 @@ import (
 )
 
 type EmployeeHandler struct {
-	CreateUC *employeeusecase.CreateEmployeeUsecase
-	UpdateUC *employeeusecase.UpdateEmployeeUsecase
-	Repo     employeerepository.EmployeeRepository
+	CreateUC  *employeeusecase.CreateEmployeeUsecase
+	UpdateUC  *employeeusecase.UpdateEmployeeUsecase
+	OnboardUC *employeeusecase.OnboardEmployeeUsecase
+	Repo      employeerepository.EmployeeRepository
 }
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
@@ -24,12 +25,14 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 func NewEmployeeHandler(
 	createUC *employeeusecase.CreateEmployeeUsecase,
 	updateUC *employeeusecase.UpdateEmployeeUsecase,
+	onboardUC *employeeusecase.OnboardEmployeeUsecase,
 	repo employeerepository.EmployeeRepository,
 ) *EmployeeHandler {
 	return &EmployeeHandler{
-		CreateUC: createUC,
-		UpdateUC: updateUC,
-		Repo:     repo,
+		CreateUC:  createUC,
+		UpdateUC:  updateUC,
+		OnboardUC: onboardUC,
+		Repo:      repo,
 	}
 }
 
@@ -99,6 +102,37 @@ func (h *EmployeeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *EmployeeHandler) Onboard(w http.ResponseWriter, r *http.Request) {
+	var body employeehandlerdto.OnboardEmployeeRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
+	}
+
+	if err := validate.Struct(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.OnboardUC.Execute(r.Context(), employeeusecase.OnboardEmployeeInput{
+		Code:       body.Code,
+		FirstName:  body.FirstName,
+		LastName:   body.LastName,
+		Email:      body.Email,
+		BaseSalary: body.BaseSalary,
+		CreateUser: body.CreateUser,
+		UserEmail:  body.UserEmail,
+		Password:   body.Password,
+		Role:       body.Role,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *EmployeeHandler) Get(w http.ResponseWriter, r *http.Request) {

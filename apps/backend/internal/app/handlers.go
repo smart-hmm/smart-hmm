@@ -28,7 +28,7 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 		Attendance: attendancehandler.NewAttendanceHandler(uc.ClockIn, uc.ClockOut, repo.Attendance),
 		Payroll:    payrollhandler.NewPayrollHandler(uc.GeneratePayroll, repo.Payroll),
 		Department: departmenthandler.NewDepartmentHandler(uc.CreateDepartment, uc.UpdateDepartment, repo.Department),
-		Employee:   employeehandler.NewEmployeeHandler(uc.CreateEmployee, uc.UpdateEmployee, repo.Employee),
+		Employee:   employeehandler.NewEmployeeHandler(uc.CreateEmployee, uc.UpdateEmployee, uc.OnboardEmployee, repo.Employee),
 		LeaveRequest: leaverequesthandler.NewLeaveRequestHandler(
 			uc.CreateLeaveRequest,
 			uc.GetLeaveRequest,

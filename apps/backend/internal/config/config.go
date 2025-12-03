@@ -13,6 +13,7 @@ type Config struct {
 	Database Database `validate:"required"`
 	Resend   Resend   `validate:"required"`
 	Redis    Redis    `validate:"required"`
+	RabbitMQ RabbitMQ `validate:"required"`
 }
 
 type App struct {
@@ -35,6 +36,10 @@ type Resend struct {
 	ApiKey string `envconfig:"API_KEY" validate:"required"`
 }
 
+type RabbitMQ struct {
+	DSN string `envconfig:"DSN" validate:"required"`
+}
+
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
 func Load() (*Config, error) {
@@ -53,6 +58,9 @@ func Load() (*Config, error) {
 	}
 	if err := envconfig.Process("RESEND", &cfg.Resend); err != nil {
 		return nil, fmt.Errorf("load RESEND config: %w", err)
+	}
+	if err := envconfig.Process("RABBITMQ", &cfg.RabbitMQ); err != nil {
+		return nil, fmt.Errorf("load RABBITMQ config: %w", err)
 	}
 
 	if err := validate.Struct(cfg); err != nil {

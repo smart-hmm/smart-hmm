@@ -20,5 +20,10 @@ func (uc *CreateEmployeeUsecase) Execute(ctx context.Context, e *domain.Employee
 	if err != nil {
 		return nil, err
 	}
-	return newEmp, uc.repo.Create(newEmp)
+	newEmpID, err := uc.repo.Create(newEmp)
+	if err != nil {
+		return nil, err
+	}
+	newEmp.ID = newEmpID
+	return newEmp, nil
 }

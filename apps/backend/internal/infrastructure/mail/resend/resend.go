@@ -35,6 +35,7 @@ func (r *ResendMailService) SendPlain(
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 

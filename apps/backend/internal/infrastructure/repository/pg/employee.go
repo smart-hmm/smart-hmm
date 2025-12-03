@@ -17,16 +17,29 @@ func NewEmployeePostgresRepository(db *pgxpool.Pool) employeerepository.Employee
 	return &EmployeePostgresRepository{db: db}
 }
 
-func (r *EmployeePostgresRepository) Create(e *domain.Employee) error {
-	_, err := r.db.Exec(context.Background(),
+func (r *EmployeePostgresRepository) Create(e *domain.Employee) (string, error) {
+	var id string
+	err := r.db.QueryRow(context.Background(),
 		`INSERT INTO employees
-		 (id, code, first_name, last_name, email, phone, date_of_birth,
-		  department_id, manager_id, position, employment_type, employment_status,
-		  join_date, base_salary)
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-		e.ID, e.Code, e.FirstName, e.LastName, e.Email, e.Phone, e.DateOfBirth,
-		e.DepartmentID, e.ManagerID, e.Position, e.EmploymentType, e.EmploymentStatus,
-		e.JoinDate, e.BaseSalary)
+	 (code, first_name, last_name, email, phone, date_of_birth, 
+	  position, employment_type, employment_status, join_date, base_salary)
+	 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+	 RETURNING id`,
+		e.Code, e.FirstName, e.LastName, e.Email, e.Phone, e.DateOfBirth,
+		"", domain.FullTime, domain.Active,
+		e.JoinDate, e.BaseSalary,
+	).Scan(&id)
+
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func (r *EmployeePostgresRepository) Delete(id string) error {
+	_, err := r.db.Exec(context.Background(),
+		`DELETE FROM employees WHERE id = $1`, id)
 	return err
 }
 

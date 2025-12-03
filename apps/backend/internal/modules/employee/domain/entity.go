@@ -3,8 +3,6 @@ package domain
 import (
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type EmploymentType string
@@ -58,7 +56,6 @@ func NewEmployee(code, firstName, lastName, email string, base float64) (*Employ
 	now := time.Now()
 
 	return &Employee{
-		ID:         uuid.NewString(),
 		Code:       code,
 		FirstName:  firstName,
 		LastName:   lastName,

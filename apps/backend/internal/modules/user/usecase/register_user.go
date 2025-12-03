@@ -27,7 +27,6 @@ func (uc *RegisterUserUsecase) Execute(
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
-
 	newUser, err := domain.NewUser(email, string(hashedPwd), role, employeeID)
 	if err != nil {
 		return err

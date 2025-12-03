@@ -20,9 +20,9 @@ func NewUserPostgresRepository(db *pgxpool.Pool) userrepository.UserRepository {
 func (r *UserPostgresRepository) Create(u *domain.User) error {
 	_, err := r.db.Exec(context.Background(),
 		`INSERT INTO users 
-		 (id, email, password_hash, role, employee_id)
-		 VALUES ($1, $2, $3, $4, $5)`,
-		u.ID, u.Email, u.PasswordHash, u.Role, u.EmployeeID,
+		 (email, password_hash, role, employee_id)
+		 VALUES ($1, $2, $3, $4)`,
+		u.Email, u.PasswordHash, u.Role, *u.EmployeeID,
 	)
 	return err
 }
