@@ -20,7 +20,7 @@ func main() {
 
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("load config error. Error: %v", err)
+		log.Fatalf("load config error. Error: %v", err)
 	}
 
 	sig := make(chan os.Signal, 1)
@@ -48,6 +48,7 @@ func main() {
 		RetryLimit:  5,
 	}
 
+	slog.Info("Consuming with workers...")
 	queue.ConsumeWithWorkers(ctx, worker.SendEmailTopic, emailWorker.Handle, opts)
 
 	<-ctx.Done()

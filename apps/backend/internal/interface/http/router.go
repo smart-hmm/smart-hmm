@@ -15,6 +15,7 @@ import (
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
 	userhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user"
 	"github.com/smart-hmm/smart-hmm/internal/interface/http/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Args struct {
@@ -37,6 +38,8 @@ func GetRouter(args Args) *chi.Mux {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
+
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	r.Route("/api/v1", func(cr chi.Router) {
 		cr.Use(middleware.JWTGuard(args.TokenService))

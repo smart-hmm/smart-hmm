@@ -1,0 +1,80 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "HRM system REST API",
+        "title": "SmartHRM API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/users": {
+            "post": {
+                "description": "Register an user's account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "User Data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/userhandlerdto.RegisterUserRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        }
+    },
+    "definitions": {
+        "domain.UserRole": {
+            "type": "string",
+            "enum": [
+                "ADMIN",
+                "HR",
+                "MANAGER",
+                "EMPLOYEE"
+            ],
+            "x-enum-varnames": [
+                "Admin",
+                "HR",
+                "Manager",
+                "Employee"
+            ]
+        },
+        "userhandlerdto.RegisterUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "employee_id",
+                "password",
+                "role"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "employee_id": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/domain.UserRole"
+                }
+            }
+        }
+    }
+}

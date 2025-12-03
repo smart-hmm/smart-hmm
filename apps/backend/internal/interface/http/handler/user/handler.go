@@ -26,6 +26,14 @@ func NewUserHandler(registerUC *userusecase.RegisterUserUsecase, repo userreposi
 	}
 }
 
+// CreateUser godoc
+// @Summary Register
+// @Description Register an user's account
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param body body userhandlerdto.RegisterUserRequest true "User Data"
+// @Router /users [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var body userhandlerdto.RegisterUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {

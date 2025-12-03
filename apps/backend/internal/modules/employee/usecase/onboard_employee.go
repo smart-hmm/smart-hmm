@@ -54,6 +54,7 @@ type OnboardEmployeeInput struct {
 func (uc *OnboardEmployeeUsecase) Execute(
 	ctx context.Context,
 	input OnboardEmployeeInput,
+	isSendMail bool,
 ) error {
 	newEmp, err := empDomain.NewEmployee(
 		input.Code, input.FirstName,
@@ -102,17 +103,19 @@ func (uc *OnboardEmployeeUsecase) Execute(
 		return err
 	}
 
-	payload := worker.SendEmailPayload{
-		To:      input.UserEmail,
-		Subject: "Welcome to SmartHRM 🎉",
-		Body:    htmlBody,
+	if isSendMail {
+		payload := worker.SendEmailPayload{
+			To:      input.UserEmail,
+			Subject: "Welcome to SmartHRM 🎉",
+			Body:    htmlBody,
+		}
+
+		data, _ := json.Marshal(payload)
+
+		err = uc.queueSvc.Publish(ctx, worker.SendEmailTopic, queueports.Message{
+			Body: data,
+		})
 	}
-
-	data, _ := json.Marshal(payload)
-
-	err = uc.queueSvc.Publish(ctx, worker.SendEmailTopic, queueports.Message{
-		Body: data,
-	})
 
 	if err != nil {
 		log.Default().Print(err)

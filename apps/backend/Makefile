@@ -27,7 +27,10 @@ migrate-down-to:
 migrate-down-all:
 	goose down
 
+swag-gen:
+	swag init -g cmd/api/main.go
+
 install-tools:
 	go install github.com/pressly/goose/v3/cmd/goose@latest
-
+	go install github.com/swaggo/swag/cmd/swag@latest
 

@@ -1,0 +1,18 @@
+employees:
+  - email: hoangvule.183@gmail.com
+    password: admin
+    role: ADMIN
+    code: EMP_0000001
+    first_name: Admin
+    last_name: Admin
+    phone: 0949661867
+    position: Admin
+
+  - email: hvudj18@gmail.com
+    password: HR
+    role: HR
+    code: EMP_0000002
+    first_name: HR
+    last_name: HR
+    phone: 09495548223
+    position: HR

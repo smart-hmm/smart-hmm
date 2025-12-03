@@ -1,0 +1,56 @@
+basePath: /api/v1
+definitions:
+  domain.UserRole:
+    enum:
+    - ADMIN
+    - HR
+    - MANAGER
+    - EMPLOYEE
+    type: string
+    x-enum-varnames:
+    - Admin
+    - HR
+    - Manager
+    - Employee
+  userhandlerdto.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      employee_id:
+        type: string
+      password:
+        type: string
+      role:
+        $ref: '#/definitions/domain.UserRole'
+    required:
+    - email
+    - employee_id
+    - password
+    - role
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: HRM system REST API
+  title: SmartHRM API
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Register an user's account
+      parameters:
+      - description: User Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/userhandlerdto.RegisterUserRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Register
+      tags:
+      - Users
+swagger: "2.0"

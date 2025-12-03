@@ -65,8 +65,9 @@ func (r *RabbitMQ) ConsumeWithWorkers(
 
 				err := handler(ctx, payload)
 				if err != nil {
-					retry := getRetryCount(msg)
 
+					retry := getRetryCount(msg)
+					log.Default().Print(retry)
 					if retry >= opts.RetryLimit {
 						log.Printf("DLQ after %d retries\n", retry)
 						msg.Nack(false, false) // send to DLQ
@@ -74,7 +75,23 @@ func (r *RabbitMQ) ConsumeWithWorkers(
 					}
 
 					incrementRetry(&msg)
-					msg.Nack(false, true) // requeue
+					err := r.channel.Publish(
+						"",
+						msg.RoutingKey,
+						false,
+						false,
+						amqp.Publishing{
+							ContentType: "application/json",
+							Headers:     msg.Headers,
+							Body:        msg.Body,
+						},
+					)
+					if err != nil {
+						log.Println("republish failed:", err)
+						msg.Nack(false, true) // fallback
+						continue
+					}
+					msg.Ack(false)
 					continue
 				}
 
