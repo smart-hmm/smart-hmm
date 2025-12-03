@@ -48,7 +48,7 @@ func main() {
 		RetryLimit:  5,
 	}
 
-	queue.ConsumeWithWorkers(ctx, "send_email", emailWorker.Handle, opts)
+	queue.ConsumeWithWorkers(ctx, worker.SendEmailTopic, emailWorker.Handle, opts)
 
 	<-ctx.Done()
 	log.Println("worker exited safely")

@@ -3,10 +3,12 @@ package employeeusecase
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	queueports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/queue"
 	empDomain "github.com/smart-hmm/smart-hmm/internal/modules/employee/domain"
+	emailstemplates "github.com/smart-hmm/smart-hmm/internal/templates/emails"
 	"github.com/smart-hmm/smart-hmm/internal/worker"
 
 	userDomain "github.com/smart-hmm/smart-hmm/internal/modules/user/domain"
@@ -39,6 +41,8 @@ type OnboardEmployeeInput struct {
 	FirstName  string
 	LastName   string
 	Email      string
+	Phone      string
+	Position   string
 	BaseSalary float64
 
 	CreateUser bool
@@ -51,7 +55,10 @@ func (uc *OnboardEmployeeUsecase) Execute(
 	ctx context.Context,
 	input OnboardEmployeeInput,
 ) error {
-	newEmp, err := empDomain.NewEmployee(input.Code, input.FirstName, input.LastName, input.Email, input.BaseSalary)
+	newEmp, err := empDomain.NewEmployee(
+		input.Code, input.FirstName,
+		input.LastName, input.Email, input.Phone,
+		input.Position, input.BaseSalary)
 	if err != nil {
 		return err
 	}
@@ -75,15 +82,35 @@ func (uc *OnboardEmployeeUsecase) Execute(
 		}
 	}
 
+	htmlBody, err := emailstemplates.RenderOnboardingEmail(emailstemplates.OnboardingEmailData{
+		CompanyName:       "SmartHMM",
+		CompanyAddress:    "Ho Chi Minh City, Vietnam",
+		EmployeeName:      fmt.Sprintf("%s %s", input.FirstName, input.LastName),
+		JobTitle:          input.Position,
+		Department:        "Engineering",
+		StartDate:         "2025-12-10",
+		WorkspaceInfo:     "Remote",
+		ManagerName:       "Nguyen Van A",
+		ManagerEmail:      "manager@smarthrm.io",
+		WorkEmail:         input.Email,
+		TemporaryPassword: input.Password,
+		CheckinTime:       "09:00 AM",
+		PortalURL:         "https://hr.smarthrm.io/login",
+		HrEmail:           "hr@smarthrm.io",
+	})
+	if err != nil {
+		return err
+	}
+
 	payload := worker.SendEmailPayload{
 		To:      input.UserEmail,
-		Subject: "Welcome!",
-		Body:    "<h1>Hello</h1>",
+		Subject: "Welcome to SmartHRM 🎉",
+		Body:    htmlBody,
 	}
 
 	data, _ := json.Marshal(payload)
 
-	err = uc.queueSvc.Publish(ctx, "send_email", queueports.Message{
+	err = uc.queueSvc.Publish(ctx, worker.SendEmailTopic, queueports.Message{
 		Body: data,
 	})
 

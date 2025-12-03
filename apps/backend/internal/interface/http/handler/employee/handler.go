@@ -126,6 +126,8 @@ func (h *EmployeeHandler) Onboard(w http.ResponseWriter, r *http.Request) {
 		UserEmail:  body.UserEmail,
 		Password:   body.Password,
 		Role:       body.Role,
+		Phone:      body.Phone,
+		Position:   body.Position,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

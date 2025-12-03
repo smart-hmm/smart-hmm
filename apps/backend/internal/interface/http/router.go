@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
+	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
 	leaverequesthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_request"
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
@@ -20,6 +21,7 @@ type Args struct {
 	PayrollHandler        *payrollhandler.PayrollHandler
 	DepartmentHandler     *departmenthandler.DepartmentHandler
 	EmployeeHandler       *employeehandler.EmployeeHandler
+	EmailTemplateHandler  *emailtemplatehandler.EmailTemplateHandler
 	LeaveRequestHandler   *leaverequesthandler.LeaveRequestHandler
 	LeaveTypeHandler      *leavetypehandler.LeaveTypeHandler
 	SystemSettingsHandler *systemsettingshandler.SystemSettingsHandler
@@ -39,6 +41,7 @@ func GetRouter(args Args) *chi.Mux {
 		cr.Route("/payrolls", args.PayrollHandler.Routes)
 		cr.Route("/departments", args.DepartmentHandler.Routes)
 		cr.Route("/employees", args.EmployeeHandler.Routes)
+		cr.Route("/email-templates", args.EmailTemplateHandler.Routes)
 		cr.Route("/leave-requests", args.LeaveRequestHandler.Routes)
 		cr.Route("/leave-types", args.LeaveTypeHandler.Routes)
 		cr.Route("/system-settings", args.SystemSettingsHandler.Routes)

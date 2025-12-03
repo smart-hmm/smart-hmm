@@ -3,6 +3,7 @@ package app
 import (
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
+	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
 	leaverequesthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_request"
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
@@ -17,6 +18,7 @@ type Handlers struct {
 	Payroll        *payrollhandler.PayrollHandler
 	Department     *departmenthandler.DepartmentHandler
 	Employee       *employeehandler.EmployeeHandler
+	EmailTemplate  *emailtemplatehandler.EmailTemplateHandler
 	LeaveRequest   *leaverequesthandler.LeaveRequestHandler
 	LeaveType      *leavetypehandler.LeaveTypeHandler
 	SystemSettings *systemsettingshandler.SystemSettingsHandler
@@ -29,6 +31,12 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 		Payroll:    payrollhandler.NewPayrollHandler(uc.GeneratePayroll, repo.Payroll),
 		Department: departmenthandler.NewDepartmentHandler(uc.CreateDepartment, uc.UpdateDepartment, repo.Department),
 		Employee:   employeehandler.NewEmployeeHandler(uc.CreateEmployee, uc.UpdateEmployee, uc.OnboardEmployee, repo.Employee),
+		EmailTemplate: emailtemplatehandler.NewEmailTemplateHandler(
+			uc.CreateEmailTemplate,
+			uc.UpdateEmailTemplate,
+			uc.SoftDeleteTemplate,
+			repo.EmailTemplate,
+		),
 		LeaveRequest: leaverequesthandler.NewLeaveRequestHandler(
 			uc.CreateLeaveRequest,
 			uc.GetLeaveRequest,

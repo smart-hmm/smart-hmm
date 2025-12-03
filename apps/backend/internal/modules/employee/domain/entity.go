@@ -45,7 +45,7 @@ type Employee struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewEmployee(code, firstName, lastName, email string, base float64) (*Employee, error) {
+func NewEmployee(code, firstName, lastName, email, phone, position string, base float64) (*Employee, error) {
 	if code == "" || firstName == "" || email == "" {
 		return nil, errors.New("missing required fields")
 	}
@@ -62,6 +62,8 @@ func NewEmployee(code, firstName, lastName, email string, base float64) (*Employ
 		Email:      email,
 		BaseSalary: base,
 		JoinDate:   now,
+		Position:   position,
+		Phone:      phone,
 		CreatedAt:  now,
 		UpdatedAt:  now,
 	}, nil

@@ -16,7 +16,7 @@ func NewCreateEmployeeUsecase(repo employeerepository.EmployeeRepository) *Creat
 }
 
 func (uc *CreateEmployeeUsecase) Execute(ctx context.Context, e *domain.Employee) (*domain.Employee, error) {
-	newEmp, err := domain.NewEmployee(e.Code, e.FirstName, e.LastName, e.Email, e.BaseSalary)
+	newEmp, err := domain.NewEmployee(e.Code, e.FirstName, e.LastName, e.Email, e.Phone, e.Position, e.BaseSalary)
 	if err != nil {
 		return nil, err
 	}

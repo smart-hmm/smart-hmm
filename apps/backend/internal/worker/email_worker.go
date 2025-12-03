@@ -10,6 +10,8 @@ import (
 	queueports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/queue"
 )
 
+const SendEmailTopic = "send_mail"
+
 type SendEmailPayload struct {
 	To      string `json:"to"`
 	Subject string `json:"subject"`

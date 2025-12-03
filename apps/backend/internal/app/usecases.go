@@ -3,6 +3,7 @@ package app
 import (
 	attendanceusecase "github.com/smart-hmm/smart-hmm/internal/modules/attendance/usecase"
 	departmentusecase "github.com/smart-hmm/smart-hmm/internal/modules/department/usecase"
+	emailtemplateusecase "github.com/smart-hmm/smart-hmm/internal/modules/email_template/usecase"
 	employeeusecase "github.com/smart-hmm/smart-hmm/internal/modules/employee/usecase"
 	leaverequestusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_request/usecase"
 	leavetypeusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/usecase"
@@ -32,6 +33,9 @@ type Usecases struct {
 	CreateLeaveType     *leavetypeusecase.CreateLeaveTypeUsecase
 	UpdateLeaveType     *leavetypeusecase.UpdateLeaveTypeUsecase
 	SoftDeleteLeaveType *leavetypeusecase.SoftDeleteLeaveTypeUsecase
+	CreateEmailTemplate *emailtemplateusecase.CreateEmailTemplateUsecase
+	UpdateEmailTemplate *emailtemplateusecase.UpdateEmailTemplateUsecase
+	SoftDeleteTemplate  *emailtemplateusecase.SoftDeleteEmailTemplateUsecase
 	GetSetting          *systemsettingsusecase.GetSettingUsecase
 	ListSettings        *systemsettingsusecase.ListSettingsUsecase
 	UpdateSetting       *systemsettingsusecase.UpdateSettingUsecase
@@ -53,6 +57,7 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		UpdateDepartment:    departmentusecase.NewUpdateDepartmentUsecase(repo.Department),
 		CreateEmployee:      createEmployee,
 		UpdateEmployee:      updateEmployee,
+		DeleteEmployee:      deleteEmployee,
 		OnboardEmployee:     employeeusecase.NewOnboardEmployeeUsecase(createEmployee, deleteEmployee, registerUser, infras.QueueService),
 		CreateLeaveRequest:  leaverequestusecase.NewCreateLeaveRequestUsecase(repo.LeaveRequest),
 		GetLeaveRequest:     leaverequestusecase.NewGetLeaveRequest(repo.LeaveRequest),
@@ -65,6 +70,9 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		CreateLeaveType:     leavetypeusecase.NewCreateLeaveTypeUsecase(repo.LeaveType),
 		UpdateLeaveType:     leavetypeusecase.NewUpdateLeaveTypeUsecase(repo.LeaveType),
 		SoftDeleteLeaveType: leavetypeusecase.NewSoftDeleteLeaveTypeUsecase(repo.LeaveType),
+		CreateEmailTemplate: emailtemplateusecase.NewCreateEmailTemplateUsecase(repo.EmailTemplate),
+		UpdateEmailTemplate: emailtemplateusecase.NewUpdateEmailTemplateUsecase(repo.EmailTemplate),
+		SoftDeleteTemplate:  emailtemplateusecase.NewSoftDeleteEmailTemplateUsecase(repo.EmailTemplate),
 		GetSetting:          systemsettingsusecase.NewGetSettingUsecase(repo.SystemSettings),
 		ListSettings:        systemsettingsusecase.NewListSettingsUsecase(repo.SystemSettings),
 		UpdateSetting:       systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),

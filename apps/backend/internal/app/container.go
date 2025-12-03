@@ -38,6 +38,7 @@ func Build(ctx context.Context, cfg *config.Config) (*Container, error) {
 			PayrollHandler:        handlers.Payroll,
 			DepartmentHandler:     handlers.Department,
 			EmployeeHandler:       handlers.Employee,
+			EmailTemplateHandler:  handlers.EmailTemplate,
 			LeaveRequestHandler:   handlers.LeaveRequest,
 			LeaveTypeHandler:      handlers.LeaveType,
 			SystemSettingsHandler: handlers.SystemSettings,

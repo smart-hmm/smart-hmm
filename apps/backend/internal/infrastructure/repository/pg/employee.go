@@ -26,7 +26,7 @@ func (r *EmployeePostgresRepository) Create(e *domain.Employee) (string, error) 
 	 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
 	 RETURNING id`,
 		e.Code, e.FirstName, e.LastName, e.Email, e.Phone, e.DateOfBirth,
-		"", domain.FullTime, domain.Active,
+		e.Position, domain.FullTime, domain.Active,
 		e.JoinDate, e.BaseSalary,
 	).Scan(&id)
 
