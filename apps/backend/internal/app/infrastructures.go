@@ -10,8 +10,10 @@ import (
 	"github.com/smart-hmm/smart-hmm/internal/infrastructure/database"
 	resendmail "github.com/smart-hmm/smart-hmm/internal/infrastructure/mail/resend"
 	rabbitmqqueue "github.com/smart-hmm/smart-hmm/internal/infrastructure/queue/rabbitmq"
+	jwtservice "github.com/smart-hmm/smart-hmm/internal/infrastructure/token/jwt"
 	mailports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/mail"
 	queueports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/queue"
+	tokenports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/token"
 	"github.com/smart-hmm/smart-hmm/internal/pkg/logger"
 )
 
@@ -20,6 +22,7 @@ type Infrastructures struct {
 
 	MailService  mailports.MailService
 	QueueService queueports.QueueService
+	TokenService tokenports.Service
 
 	Redis *rediscache.RedisService
 }
@@ -53,11 +56,19 @@ func buildInfrastructures(ctx context.Context, cfg *config.Config) (*Infrastruct
 		return nil, err
 	}
 
+	tokenSvc := jwtservice.New(
+		cfg.JWT.AccessSecret,
+		cfg.JWT.RefreshSecret,
+		time.Duration(cfg.JWT.AccessTTLMinutes)*time.Minute,
+		time.Duration(cfg.JWT.RefreshTTLHours)*time.Hour,
+	)
+
 	infras := &Infrastructures{
 		MailService:  mailSvc,
 		DB:           db.Pool(),
 		Redis:        redis,
 		QueueService: queue,
+		TokenService: tokenSvc,
 	}
 
 	if infras.QueueService == nil {

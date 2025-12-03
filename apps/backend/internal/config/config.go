@@ -14,6 +14,7 @@ type Config struct {
 	Resend   Resend   `validate:"required"`
 	Redis    Redis    `validate:"required"`
 	RabbitMQ RabbitMQ `validate:"required"`
+	JWT      JWT      `validate:"required"`
 }
 
 type App struct {
@@ -40,6 +41,13 @@ type RabbitMQ struct {
 	DSN string `envconfig:"DSN" validate:"required"`
 }
 
+type JWT struct {
+	AccessSecret     string `envconfig:"ACCESS_SECRET" validate:"required"`
+	RefreshSecret    string `envconfig:"REFRESH_SECRET" validate:"required"`
+	AccessTTLMinutes int    `envconfig:"ACCESS_TTL_MINUTES" validate:"required,gt=0" default:"15"`
+	RefreshTTLHours  int    `envconfig:"REFRESH_TTL_HOURS" validate:"required,gt=0" default:"168"`
+}
+
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
 func Load() (*Config, error) {
@@ -61,6 +69,9 @@ func Load() (*Config, error) {
 	}
 	if err := envconfig.Process("RABBITMQ", &cfg.RabbitMQ); err != nil {
 		return nil, fmt.Errorf("load RABBITMQ config: %w", err)
+	}
+	if err := envconfig.Process("JWT", &cfg.JWT); err != nil {
+		return nil, fmt.Errorf("load JWT config: %w", err)
 	}
 
 	if err := validate.Struct(cfg); err != nil {
