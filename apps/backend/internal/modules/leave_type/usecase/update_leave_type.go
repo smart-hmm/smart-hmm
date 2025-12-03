@@ -1,11 +1,11 @@
-package leavetypesusecase
+package leavetypeusecase
 
 import (
 	"context"
 	"time"
 
-	"github.com/smart-hmm/smart-hmm/internal/modules/leave/domain"
-	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave/repository"
+	"github.com/smart-hmm/smart-hmm/internal/modules/leave_type/domain"
+	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
 )
 
 type UpdateLeaveTypeUsecase struct {

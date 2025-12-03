@@ -1,0 +1,38 @@
+package app
+
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+	pgrepository "github.com/smart-hmm/smart-hmm/internal/infrastructure/repository/pg"
+	attendancerepository "github.com/smart-hmm/smart-hmm/internal/modules/attendance/repository"
+	departmentrepository "github.com/smart-hmm/smart-hmm/internal/modules/department/repository"
+	employeerepository "github.com/smart-hmm/smart-hmm/internal/modules/employee/repository"
+	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave_request/repository"
+	leaverepositorytype "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
+	payrollrepository "github.com/smart-hmm/smart-hmm/internal/modules/payroll/repository"
+	systemsettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/system/repository"
+	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
+)
+
+type Repositories struct {
+	Attendance     attendancerepository.AttendanceRepository
+	Payroll        payrollrepository.PayrollRepository
+	Department     departmentrepository.DepartmentRepository
+	Employee       employeerepository.EmployeeRepository
+	LeaveRequest   leaverepository.LeaveRequestRepository
+	LeaveType      leaverepositorytype.LeaveTypeRepository
+	SystemSettings systemsettingrepository.SystemSettingRepository
+	User           userrepository.UserRepository
+}
+
+func buildRepositories(pool *pgxpool.Pool) Repositories {
+	return Repositories{
+		Attendance:     pgrepository.NewAttendancePostgresRepository(pool),
+		Payroll:        pgrepository.NewPayrollPostgresRepository(pool),
+		Department:     pgrepository.NewDepartmentPostgresRepository(pool),
+		Employee:       pgrepository.NewEmployeePostgresRepository(pool),
+		LeaveRequest:   pgrepository.NewLeaveRequestPostgresRepository(pool),
+		LeaveType:      pgrepository.NewLeaveTypePostgresRepository(pool),
+		SystemSettings: pgrepository.NewSystemSettingPostgresRepository(pool),
+		User:           pgrepository.NewUserPostgresRepository(pool),
+	}
+}

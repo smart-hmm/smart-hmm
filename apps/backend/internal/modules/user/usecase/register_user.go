@@ -2,9 +2,11 @@ package userusecase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/smart-hmm/smart-hmm/internal/modules/user/domain"
 	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type RegisterUserUsecase struct {
@@ -15,10 +17,26 @@ func NewRegisterUserUsecase(repo userrepository.UserRepository) *RegisterUserUse
 	return &RegisterUserUsecase{repo: repo}
 }
 
-func (uc *RegisterUserUsecase) Execute(ctx context.Context, email, hashedPwd string, role domain.UserRole, employeeID *string) (*domain.User, error) {
-	newUser, err := domain.NewUser(email, hashedPwd, role, employeeID)
+func (uc *RegisterUserUsecase) Execute(
+	ctx context.Context,
+	email, password string,
+	role domain.UserRole,
+	employeeID *string,
+) error {
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to hash password: %w", err)
 	}
-	return newUser, uc.repo.Create(newUser)
+
+	newUser, err := domain.NewUser(email, string(hashedPwd), role, employeeID)
+	if err != nil {
+		return err
+	}
+
+	err = uc.repo.Create(newUser)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

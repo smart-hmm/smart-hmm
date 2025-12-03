@@ -43,7 +43,7 @@ func (h *SystemSettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, s)
+	httpx.WriteJSON(w, s, http.StatusOK)
 }
 
 func (h *SystemSettingsHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func (h *SystemSettingsHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, settings)
+	httpx.WriteJSON(w, settings, http.StatusOK)
 }
 
 func (h *SystemSettingsHandler) Update(w http.ResponseWriter, r *http.Request) {

@@ -1,17 +1,44 @@
 package main
 
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/smart-hmm/smart-hmm/internal/app"
+	"github.com/smart-hmm/smart-hmm/internal/config"
+	"github.com/smart-hmm/smart-hmm/internal/pkg/logger"
+)
+
 func main() {
-	// cfg, err := config.Load()
-	// if err != nil {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	cfg, err := config.Load()
+	if err != nil {
+		panic(fmt.Sprintf("error loading config. Error: %v", err))
+	}
 
-	// }
-	// db := database.NewPostgresDatabase(cfg)
+	slog := logger.GetSugaredLogger(cfg)
 
-	// pool, err := db.Open(context.Background())
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	container, err := app.Build(ctx, cfg)
+	if err != nil {
+		slog.Panicf("build container: %w", err)
+	}
 
-	// userRepo := repository.NewUserPostgresRepository(pool)
-	// employeeRepo := repository.NewEmployeePostgresRepository(pool)
+	srv := app.StartServer(cfg, container.Router)
+
+	<-ctx.Done()
+	slog.Info("shutdown signal received")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.Errorf("server shutdown failed: %v", err)
+	}
+
+	slog.Info("http server stopped")
+	slog.Info("shutdown completed")
 }

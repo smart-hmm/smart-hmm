@@ -1,9 +1,9 @@
-package leavetypesusecase
+package leavetypeusecase
 
 import (
 	"context"
 
-	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave/repository"
+	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
 )
 
 type ListAllLeaveTypesUsecase struct {

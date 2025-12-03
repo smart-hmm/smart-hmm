@@ -15,16 +15,6 @@ const (
 	Rejected LeaveStatus = "REJECTED"
 )
 
-type LeaveType struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	DefaultDays int    `json:"default_days"`
-	IsPaid      bool   `json:"is_paid"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
 type LeaveRequest struct {
 	ID          string `json:"id"`
 	EmployeeID  string `json:"employee_id"`
@@ -38,44 +28,12 @@ type LeaveRequest struct {
 	ApprovedBy *string     `json:"approved_by,omitempty"`
 	ApprovedAt *time.Time  `json:"approved_at,omitempty"`
 
+	RejectedBy     *string
+	RejectedReason *string
+	RejectedAt     *time.Time
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func NewLeaveType(name string, defaultDays int, isPaid bool) (*LeaveType, error) {
-	if name == "" {
-		return nil, errors.New("leave type name required")
-	}
-	if defaultDays < 0 {
-		return nil, errors.New("default days cannot be negative")
-	}
-
-	now := time.Now()
-
-	return &LeaveType{
-		ID:          uuid.NewString(),
-		Name:        name,
-		DefaultDays: defaultDays,
-		IsPaid:      isPaid,
-		CreatedAt:   now,
-		UpdatedAt:   now,
-	}, nil
-}
-
-func (t *LeaveType) Update(name string, defaultDays int, isPaid bool) error {
-	if name == "" {
-		return errors.New("leave type name required")
-	}
-	if defaultDays < 0 {
-		return errors.New("default days cannot be negative")
-	}
-
-	t.Name = name
-	t.DefaultDays = defaultDays
-	t.IsPaid = isPaid
-	t.UpdatedAt = time.Now()
-
-	return nil
 }
 
 func NewLeaveRequest(empID, leaveTypeID, reason string, start, end time.Time) (*LeaveRequest, error) {
@@ -100,7 +58,7 @@ func NewLeaveRequest(empID, leaveTypeID, reason string, start, end time.Time) (*
 	}, nil
 }
 
-func (r *LeaveRequest) Approve(adminID string) error {
+func (r *LeaveRequest) ApproveLeaveRequest(adminID string) error {
 	if r.Status != Pending {
 		return errors.New("request is not pending")
 	}
@@ -113,5 +71,27 @@ func (r *LeaveRequest) Approve(adminID string) error {
 	r.ApprovedBy = &adminID
 	r.ApprovedAt = &now
 	r.UpdatedAt = now
+	return nil
+}
+
+func (r *LeaveRequest) RejectLeaveRequest(adminID string, reason string) error {
+	if r.Status != Pending {
+		return errors.New("leave request must be pending to be rejected")
+	}
+	if adminID == "" {
+		return errors.New("approver/admin ID is required")
+	}
+	if reason == "" {
+		return errors.New("rejection reason is required")
+	}
+
+	now := time.Now()
+
+	r.Status = Rejected
+	r.RejectedBy = &adminID
+	r.RejectedReason = &reason
+	r.RejectedAt = &now
+	r.UpdatedAt = now
+
 	return nil
 }

@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/smart-hmm/smart-hmm/internal/modules/leave/domain"
-	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave/repository"
+	"github.com/smart-hmm/smart-hmm/internal/modules/leave_request/domain"
+	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave_request/repository"
 )
 
 type LeaveRequestPostgresRepository struct {

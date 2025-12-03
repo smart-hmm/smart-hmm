@@ -63,6 +63,7 @@ erDiagram
     text name
     int default_days
     bool is_paid
+    timestamp deleted_at
     timestamp created_at
     timestamp updated_at
   }
@@ -77,6 +78,9 @@ erDiagram
     enum status
     UUID approved_by FK
     timestamp approved_at
+    UUID rejected_by FK
+    text rejected_reason
+    timestamp rejected_at
     timestamp created_at
     timestamp updated_at
   }

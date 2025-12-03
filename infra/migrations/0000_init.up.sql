@@ -129,7 +129,8 @@ CREATE TABLE leave_types (
     is_paid BOOLEAN NOT NULL DEFAULT TRUE,
 
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
 );
 
 ------------------------------------------------------------
@@ -147,8 +148,13 @@ CREATE TABLE leave_requests (
     reason TEXT,
 
     status leave_status NOT NULL DEFAULT 'PENDING',
+
     approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
     approved_at TIMESTAMPTZ,
+
+    rejected_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    rejected_reason TEXT,
+    rejected_at TIMESTAMPTZ,
 
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()

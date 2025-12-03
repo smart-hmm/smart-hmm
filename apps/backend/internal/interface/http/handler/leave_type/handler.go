@@ -5,36 +5,43 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	leavehandlerdto "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type/dto"
 	leavetypehandlerdto "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type/dto"
-	"github.com/smart-hmm/smart-hmm/internal/modules/leave/domain"
-	leaverepo "github.com/smart-hmm/smart-hmm/internal/modules/leave/repository"
-	leavetypesusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave/usecase"
+	"github.com/smart-hmm/smart-hmm/internal/modules/leave_type/domain"
+	leaverepo "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
+	leavetypeusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/usecase"
 	"github.com/smart-hmm/smart-hmm/internal/pkg/httpx"
 )
 
 type LeaveTypeHandler struct {
-	ListAllUC *leavetypesusecase.ListAllLeaveTypesUsecase
-	GetUC     *leavetypesusecase.GetLeaveTypeUsecase
-	CreateUC  *leavetypesusecase.CreateLeaveTypeUsecase
-	UpdateUC  *leavetypesusecase.UpdateLeaveTypeUsecase
+	ListAllUC    *leavetypeusecase.ListAllLeaveTypesUsecase
+	GetUC        *leavetypeusecase.GetLeaveTypeUsecase
+	CreateUC     *leavetypeusecase.CreateLeaveTypeUsecase
+	UpdateUC     *leavetypeusecase.UpdateLeaveTypeUsecase
+	SoftDeleteUC *leavetypeusecase.SoftDeleteLeaveTypeUsecase
 
 	Repo leaverepo.LeaveTypeRepository
 }
 
+var validate = validator.New(validator.WithRequiredStructEnabled())
+
 func NewLeaveTypeHandler(
-	listAllUC *leavetypesusecase.ListAllLeaveTypesUsecase,
-	getUC *leavetypesusecase.GetLeaveTypeUsecase,
-	createUC *leavetypesusecase.CreateLeaveTypeUsecase,
-	updateUC *leavetypesusecase.UpdateLeaveTypeUsecase,
+	listAllUC *leavetypeusecase.ListAllLeaveTypesUsecase,
+	getUC *leavetypeusecase.GetLeaveTypeUsecase,
+	createUC *leavetypeusecase.CreateLeaveTypeUsecase,
+	updateUC *leavetypeusecase.UpdateLeaveTypeUsecase,
+	softDeleteUC *leavetypeusecase.SoftDeleteLeaveTypeUsecase,
 	repo leaverepo.LeaveTypeRepository,
 ) *LeaveTypeHandler {
 	return &LeaveTypeHandler{
-		ListAllUC: listAllUC,
-		GetUC:     getUC,
-		CreateUC:  createUC,
-		UpdateUC:  updateUC,
-		Repo:      repo,
+		ListAllUC:    listAllUC,
+		GetUC:        getUC,
+		CreateUC:     createUC,
+		UpdateUC:     updateUC,
+		SoftDeleteUC: softDeleteUC,
+
+		Repo: repo,
 	}
 }
 
@@ -51,7 +58,7 @@ func (h *LeaveTypeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, lt)
+	httpx.WriteJSON(w, lt, http.StatusOK)
 }
 
 func (h *LeaveTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -60,6 +67,11 @@ func (h *LeaveTypeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var body leavetypehandlerdto.UpdateLeaveTypeRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid json", http.StatusBadRequest)
+		return
+	}
+
+	if err := validate.Struct(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -93,6 +105,11 @@ func (h *LeaveTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req leavehandlerdto.CreateLeaveTypeRequest
 	json.NewDecoder(r.Body).Decode(&req)
 
+	if err := validate.Struct(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	result, err := h.CreateUC.Execute(r.Context(), req.Name, req.DefaultDays, req.IsPaid)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -100,4 +117,16 @@ func (h *LeaveTypeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(result)
+}
+
+func (h *LeaveTypeHandler) SoftDelete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	err := h.SoftDeleteUC.Execute(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

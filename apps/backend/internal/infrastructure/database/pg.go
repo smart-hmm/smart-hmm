@@ -7,12 +7,15 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/smart-hmm/smart-hmm/internal/config"
+	databaseport "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/database"
 )
 
 type PostgresDatabase struct {
 	DSN  string
 	pool *pgxpool.Pool
 }
+
+var _ databaseport.Database = (*PostgresDatabase)(nil)
 
 func NewPostgresDatabase(cfg *config.Config) *PostgresDatabase {
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
@@ -27,10 +30,10 @@ func NewPostgresDatabase(cfg *config.Config) *PostgresDatabase {
 	}
 }
 
-func (db *PostgresDatabase) Open(ctx context.Context) (*pgxpool.Pool, error) {
+func (db *PostgresDatabase) Open(ctx context.Context) error {
 	cfg, err := pgxpool.ParseConfig(db.DSN)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse dsn: %w", err)
+		return fmt.Errorf("failed to parse dsn: %w", err)
 	}
 
 	// Optional: pool tuning
@@ -40,17 +43,18 @@ func (db *PostgresDatabase) Open(ctx context.Context) (*pgxpool.Pool, error) {
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect: %w", err)
+		return fmt.Errorf("failed to connect: %w", err)
 	}
 
 	db.pool = pool
-	return pool, nil
+	return nil
 }
 
-func (db *PostgresDatabase) Close() {
+func (db *PostgresDatabase) Close(ctx context.Context) error {
 	if db.pool != nil {
 		db.pool.Close()
 	}
+	return nil
 }
 
 func (db *PostgresDatabase) Ping(ctx context.Context) error {
@@ -61,6 +65,6 @@ func (db *PostgresDatabase) Ping(ctx context.Context) error {
 	return db.pool.Ping(ctx)
 }
 
-func buildDSN() {
-
+func (db *PostgresDatabase) Pool() *pgxpool.Pool {
+	return db.pool
 }

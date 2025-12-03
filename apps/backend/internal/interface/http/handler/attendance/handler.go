@@ -51,7 +51,7 @@ func (h *AttendanceHandler) ClockIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, record)
+	httpx.WriteJSON(w, record, http.StatusCreated)
 }
 
 func (h *AttendanceHandler) ClockOut(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +82,7 @@ func (h *AttendanceHandler) ClockOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, open)
+	httpx.WriteJSON(w, open, http.StatusOK)
 }
 
 func (h *AttendanceHandler) ListByEmployee(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +94,7 @@ func (h *AttendanceHandler) ListByEmployee(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	httpx.WriteJSON(w, records)
+	httpx.WriteJSON(w, records, http.StatusOK)
 }
 
 func (h *AttendanceHandler) GetOne(w http.ResponseWriter, r *http.Request) {
@@ -110,5 +110,5 @@ func (h *AttendanceHandler) GetOne(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.WriteJSON(w, rec)
+	httpx.WriteJSON(w, rec, http.StatusOK)
 }

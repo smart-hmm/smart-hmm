@@ -1,7 +1,9 @@
 package databaseport
 
+import "context"
+
 type Database interface {
-	Open() error
-	Close() error
-	Ping() error
+	Open(ctx context.Context) error
+	Close(ctx context.Context) error
+	Ping(ctx context.Context) error
 }

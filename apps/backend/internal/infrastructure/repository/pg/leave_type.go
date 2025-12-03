@@ -5,8 +5,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/smart-hmm/smart-hmm/internal/modules/leave/domain"
-	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave/repository"
+	"github.com/smart-hmm/smart-hmm/internal/modules/leave_type/domain"
+	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
 )
 
 type LeaveTypePostgresRepository struct {
@@ -37,22 +37,6 @@ func (r *LeaveTypePostgresRepository) Update(t *domain.LeaveType) error {
 		t.Name, t.DefaultDays, t.IsPaid, t.ID,
 	)
 	return err
-}
-
-func scanLeaveType(row pgx.Row) (*domain.LeaveType, error) {
-	var t domain.LeaveType
-	err := row.Scan(
-		&t.ID,
-		&t.Name,
-		&t.DefaultDays,
-		&t.IsPaid,
-		&t.CreatedAt,
-		&t.UpdatedAt,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return &t, nil
 }
 
 func (r *LeaveTypePostgresRepository) FindByID(id string) (*domain.LeaveType, error) {
@@ -95,4 +79,29 @@ func (r *LeaveTypePostgresRepository) ListAll() ([]*domain.LeaveType, error) {
 	}
 
 	return results, nil
+}
+
+func (r *LeaveTypePostgresRepository) SoftDelete(id string) error {
+	_, err := r.db.Exec(
+		context.Background(),
+		"UPDATE leave_types SET deleted_at = NULL WHERE id = $1",
+		id,
+	)
+	return err
+}
+
+func scanLeaveType(row pgx.Row) (*domain.LeaveType, error) {
+	var t domain.LeaveType
+	err := row.Scan(
+		&t.ID,
+		&t.Name,
+		&t.DefaultDays,
+		&t.IsPaid,
+		&t.CreatedAt,
+		&t.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
