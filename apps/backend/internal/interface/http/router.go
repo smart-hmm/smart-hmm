@@ -2,8 +2,11 @@ package httprouter
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	cm "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	tokenports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/token"
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
@@ -33,6 +36,21 @@ type Args struct {
 
 func GetRouter(args Args) *chi.Mux {
 	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
+	r.Use(cm.RequestID)
+	r.Use(cm.RealIP)
+	r.Use(cm.Recoverer)
+	r.Use(cm.Logger)
+	r.Use(cm.Timeout(60 * time.Second))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
 
 class BaseAxios {
   private static instance: AxiosInstance;
@@ -6,8 +6,8 @@ class BaseAxios {
   private constructor() {}
 
   static getInstance(): AxiosInstance {
-    if (!this.instance) {
-      this.instance = axios.create({
+    if (!BaseAxios.instance) {
+      BaseAxios.instance = axios.create({
         baseURL: "",
         timeout: 10000,
         withCredentials: true,
@@ -16,8 +16,8 @@ class BaseAxios {
         },
       });
     }
-
-    return this.instance;
+    
+    return BaseAxios.instance;
   }
 }
 
