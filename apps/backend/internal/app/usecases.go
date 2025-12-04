@@ -9,6 +9,7 @@ import (
 	leaverequestusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_request/usecase"
 	leavetypeusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/usecase"
 	payrollusecase "github.com/smart-hmm/smart-hmm/internal/modules/payroll/usecase"
+	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
 	systemsettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/system/usecase"
 	userusecase "github.com/smart-hmm/smart-hmm/internal/modules/user/usecase"
 )
@@ -48,6 +49,8 @@ type Usecases struct {
 	DeleteSetting           *systemsettingsusecase.DeleteSettingUsecase
 	RegisterUserUsecase     *userusecase.RegisterUserUsecase
 	LoginUsecase            *authusecase.LoginUsecase
+	MeUsecase               *authusecase.MeUsecase
+	RefreshToken            *authusecase.RefreshTokenUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -55,6 +58,8 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 	updateEmployee := employeeusecase.NewUpdateEmployeeUsecase(repo.Employee)
 	deleteEmployee := employeeusecase.NewDeleteEmployeeUsecase(repo.Employee)
 	registerUser := userusecase.NewRegisterUserUsecase(repo.User)
+	createRefreshToken := refreshtokenusecase.NewCreateRefreshTokenUsecase(repo.RefreshToken)
+	rotateRefreshToken := refreshtokenusecase.NewRotateRefreshTokenUsecase(repo.RefreshToken)
 
 	return Usecases{
 		ClockIn:                 attendanceusecase.NewClockInUsecase(repo.Attendance),
@@ -90,6 +95,8 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		UpdateSetting:           systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),
 		DeleteSetting:           systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
 		RegisterUserUsecase:     registerUser,
-		LoginUsecase:            authusecase.NewLoginUsecase(repo.User, infras.TokenService),
+		LoginUsecase:            authusecase.NewLoginUsecase(repo.User, infras.TokenService, createRefreshToken),
+		MeUsecase:               authusecase.NewMeUsecase(repo.User),
+		RefreshToken:            authusecase.NewRefreshTokenUsecase(repo.RefreshToken, infras.TokenService, rotateRefreshToken),
 	}
 }

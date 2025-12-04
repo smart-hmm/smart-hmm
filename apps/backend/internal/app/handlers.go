@@ -68,6 +68,8 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 		),
 		Auth: authhandler.NewAuthHandler(
 			uc.LoginUsecase,
+			uc.MeUsecase,
+			uc.RefreshToken,
 		),
 	}
 }

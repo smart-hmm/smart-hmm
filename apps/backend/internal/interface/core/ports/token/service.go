@@ -3,10 +3,10 @@ package tokenports
 import "time"
 
 type Tokens struct {
-	AccessToken      string
-	AccessExpiresAt  time.Time
-	RefreshToken     string
-	RefreshExpiresAt time.Time
+	AccessToken      string    `json:"accessToken"`
+	AccessExpiresAt  time.Time `json:"accessExpiresAt"`
+	RefreshToken     string    `json:"refreshToken"`
+	RefreshExpiresAt time.Time `json:"refreshExpiresAt"`
 }
 
 type Service interface {

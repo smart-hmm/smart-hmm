@@ -61,21 +61,23 @@ func GetRouter(args Args) *chi.Mux {
 
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
-	r.Route("/api/v1", func(cr chi.Router) {
-		cr.Group(func(crr chi.Router) {
-			crr.Use(middleware.JWTGuard(args.TokenService))
-			crr.Route("/users", args.UserHandler.Routes)
-			crr.Route("/attendance", args.AttendanceHandler.Routes)
-			crr.Route("/payrolls", args.PayrollHandler.Routes)
-			crr.Route("/departments", args.DepartmentHandler.Routes)
-			crr.Route("/employees", args.EmployeeHandler.Routes)
-			crr.Route("/email-templates", args.EmailTemplateHandler.Routes)
-			crr.Route("/leave-requests", args.LeaveRequestHandler.Routes)
-			crr.Route("/leave-types", args.LeaveTypeHandler.Routes)
-			crr.Route("/system-settings", args.SystemSettingsHandler.Routes)
+	r.Route("/api/v1", func(api chi.Router) {
+		api.Route("/auth", func(ar chi.Router) {
+			args.AuthHandler.Routes(ar, args.TokenService)
 		})
-		cr.Group(func(crr chi.Router) {
-			crr.Route("/auth", args.AuthHandler.Routes)
+
+		api.Group(func(pr chi.Router) {
+			pr.Use(middleware.JWTGuard(args.TokenService))
+
+			pr.Route("/users", args.UserHandler.Routes)
+			pr.Route("/attendance", args.AttendanceHandler.Routes)
+			pr.Route("/payrolls", args.PayrollHandler.Routes)
+			pr.Route("/departments", args.DepartmentHandler.Routes)
+			pr.Route("/employees", args.EmployeeHandler.Routes)
+			pr.Route("/email-templates", args.EmailTemplateHandler.Routes)
+			pr.Route("/leave-requests", args.LeaveRequestHandler.Routes)
+			pr.Route("/leave-types", args.LeaveTypeHandler.Routes)
+			pr.Route("/system-settings", args.SystemSettingsHandler.Routes)
 		})
 	})
 
