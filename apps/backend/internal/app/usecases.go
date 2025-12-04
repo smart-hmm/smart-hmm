@@ -51,6 +51,8 @@ type Usecases struct {
 	LoginUsecase            *authusecase.LoginUsecase
 	MeUsecase               *authusecase.MeUsecase
 	RefreshToken            *authusecase.RefreshTokenUsecase
+	LogoutRefreshToken      *refreshtokenusecase.LogoutRefreshTokenUsecase
+	ForceLogoutAllUsecase   *refreshtokenusecase.ForceLogoutAllUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -98,5 +100,7 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		LoginUsecase:            authusecase.NewLoginUsecase(repo.User, infras.TokenService, createRefreshToken),
 		MeUsecase:               authusecase.NewMeUsecase(repo.User),
 		RefreshToken:            authusecase.NewRefreshTokenUsecase(repo.RefreshToken, infras.TokenService, rotateRefreshToken),
+		LogoutRefreshToken:      refreshtokenusecase.NewLogoutRefreshTokenUsecase(repo.RefreshToken),
+		ForceLogoutAllUsecase:   refreshtokenusecase.NewForceLogoutAllUsecase(repo.RefreshToken),
 	}
 }

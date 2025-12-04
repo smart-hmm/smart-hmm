@@ -70,6 +70,8 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.LoginUsecase,
 			uc.MeUsecase,
 			uc.RefreshToken,
+			uc.LogoutRefreshToken,
+			uc.ForceLogoutAllUsecase,
 		),
 	}
 }

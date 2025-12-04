@@ -4,7 +4,14 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"os"
 	"strings"
+	"time"
+)
+
+const (
+	AccessTokenCookieName  = "access_token"
+	RefreshTokenCookieName = "refresh_token"
 )
 
 func WriteJSON(w http.ResponseWriter, v any, status int) error {
@@ -39,4 +46,72 @@ func GetClientIP(r *http.Request) string {
 		return host
 	}
 	return r.RemoteAddr
+}
+
+func isSecure() bool {
+	return os.Getenv("APP_ENV") == "prod"
+}
+
+func baseCookie(name, value string, expires time.Time) *http.Cookie {
+	return &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   isSecure(),
+		SameSite: http.SameSiteStrictMode,
+		Expires:  expires,
+	}
+}
+
+func SetAccessTokenCookie(
+	w http.ResponseWriter,
+	token string,
+	expiresAt time.Time,
+) {
+	cookie := baseCookie(
+		AccessTokenCookieName,
+		token,
+		expiresAt,
+	)
+
+	http.SetCookie(w, cookie)
+}
+
+func SetRefreshTokenCookie(
+	w http.ResponseWriter,
+	token string,
+	expiresAt time.Time,
+) {
+	cookie := baseCookie(
+		RefreshTokenCookieName,
+		token,
+		expiresAt,
+	)
+
+	http.SetCookie(w, cookie)
+}
+
+func ClearAuthCookies(w http.ResponseWriter) {
+	expired := time.Unix(0, 0)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     AccessTokenCookieName,
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   isSecure(),
+		Expires:  expired,
+		MaxAge:   -1,
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     RefreshTokenCookieName,
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   isSecure(),
+		Expires:  expired,
+		MaxAge:   -1,
+	})
 }

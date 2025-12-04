@@ -3,32 +3,45 @@ package authhandler
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	authhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/auth/dto"
 	authusecase "github.com/smart-hmm/smart-hmm/internal/modules/auth/usecase"
+	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
 	"github.com/smart-hmm/smart-hmm/internal/pkg/authctx"
 	"github.com/smart-hmm/smart-hmm/internal/pkg/httpx"
 )
 
 type AuthHandler struct {
-	LoginUsecase        *authusecase.LoginUsecase
-	MeUsecase           *authusecase.MeUsecase
-	RefreshTokenUsecase *authusecase.RefreshTokenUsecase
+	LoginUsecase              *authusecase.LoginUsecase
+	MeUsecase                 *authusecase.MeUsecase
+	RefreshTokenUsecase       *authusecase.RefreshTokenUsecase
+	LogoutRefreshTokenUsecase *refreshtokenusecase.LogoutRefreshTokenUsecase
+	ForceLogoutAllUsecase     *refreshtokenusecase.ForceLogoutAllUsecase
 }
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
-func NewAuthHandler(loginUsecase *authusecase.LoginUsecase, meUsecase *authusecase.MeUsecase, refreshTokenUsecase *authusecase.RefreshTokenUsecase) *AuthHandler {
+func NewAuthHandler(
+	loginUsecase *authusecase.LoginUsecase,
+	meUsecase *authusecase.MeUsecase,
+	refreshTokenUsecase *authusecase.RefreshTokenUsecase,
+	logoutRefreshTokenUsecase *refreshtokenusecase.LogoutRefreshTokenUsecase,
+	forceLogoutAllUsecase *refreshtokenusecase.ForceLogoutAllUsecase,
+) *AuthHandler {
 	return &AuthHandler{
-		LoginUsecase:        loginUsecase,
-		MeUsecase:           meUsecase,
-		RefreshTokenUsecase: refreshTokenUsecase,
+		LoginUsecase:              loginUsecase,
+		MeUsecase:                 meUsecase,
+		RefreshTokenUsecase:       refreshTokenUsecase,
+		LogoutRefreshTokenUsecase: logoutRefreshTokenUsecase,
+		ForceLogoutAllUsecase:     forceLogoutAllUsecase,
 	}
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
 	var body authhandler.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid json", http.StatusBadRequest)
@@ -86,30 +99,12 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
 	refreshToken, err := r.Cookie("refresh_token")
 	if err != nil {
-		expired := time.Unix(0, 0)
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "access_token",
-			Value:    "",
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  expired,
-			SameSite: http.SameSiteNoneMode,
-			MaxAge:   -1,
-		})
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "refresh_token",
-			Value:    "",
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  expired,
-			SameSite: http.SameSiteNoneMode,
-			MaxAge:   -1,
-		})
-
+		httpx.ClearAuthCookies(w)
 		httpx.WriteJSON(w, map[string]any{
 			"error": "missing refresh token",
 		}, http.StatusUnauthorized)
@@ -120,28 +115,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	ipAddress := httpx.GetClientIP(r)
 	result, err := h.RefreshTokenUsecase.Execute(r.Context(), refreshToken.Value, userAgent, ipAddress)
 	if err != nil {
-		expired := time.Unix(0, 0)
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "access_token",
-			Value:    "",
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  expired,
-			SameSite: http.SameSiteNoneMode,
-			MaxAge:   -1,
-		})
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "refresh_token",
-			Value:    "",
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  expired,
-			SameSite: http.SameSiteNoneMode,
-			MaxAge:   -1,
-		})
-
+		httpx.ClearAuthCookies(w)
 		httpx.WriteJSON(w, map[string]any{
 			"error": "failed to refresh token",
 		}, http.StatusInternalServerError)
@@ -160,5 +134,64 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, map[string]any{
 		"accessToken":     result.AccessToken,
 		"accessExpiresAt": result.AccessExpiresAt,
+	}, http.StatusOK)
+}
+
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
+	refreshCookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		httpx.ClearAuthCookies(w)
+		httpx.WriteJSON(w, map[string]any{
+			"message": "already logged out",
+		}, http.StatusOK)
+		return
+	}
+
+	if err := h.LogoutRefreshTokenUsecase.Execute(
+		r.Context(),
+		refreshCookie.Value,
+	); err != nil {
+		httpx.ClearAuthCookies(w)
+		httpx.WriteJSON(w, map[string]any{
+			"error": "failed to logout",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	httpx.ClearAuthCookies(w)
+
+	httpx.WriteJSON(w, map[string]any{
+		"message": "logged out successfully",
+	}, http.StatusOK)
+}
+
+func (h *AuthHandler) LogoutAll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("Pragma", "no-cache")
+
+	userID, ok := authctx.UserID(r.Context())
+	if !ok {
+		httpx.ClearAuthCookies(w)
+		httpx.WriteJSON(w, map[string]any{
+			"error": "unauthorized",
+		}, http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.ForceLogoutAllUsecase.Execute(r.Context(), userID); err != nil {
+		httpx.ClearAuthCookies(w)
+		httpx.WriteJSON(w, map[string]any{
+			"error": "failed to logout all devices",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	httpx.ClearAuthCookies(w)
+
+	httpx.WriteJSON(w, map[string]any{
+		"message": "logged out from all devices successfully",
 	}, http.StatusOK)
 }
