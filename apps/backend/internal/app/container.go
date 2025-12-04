@@ -42,6 +42,7 @@ func Build(ctx context.Context, cfg *config.Config) (*Container, error) {
 			LeaveRequestHandler:   handlers.LeaveRequest,
 			LeaveTypeHandler:      handlers.LeaveType,
 			SystemSettingsHandler: handlers.SystemSettings,
+			AuthHandler:           handlers.Auth,
 			TokenService:          infras.TokenService,
 		}),
 	}, nil

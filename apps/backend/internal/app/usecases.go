@@ -2,6 +2,7 @@ package app
 
 import (
 	attendanceusecase "github.com/smart-hmm/smart-hmm/internal/modules/attendance/usecase"
+	authusecase "github.com/smart-hmm/smart-hmm/internal/modules/auth/usecase"
 	departmentusecase "github.com/smart-hmm/smart-hmm/internal/modules/department/usecase"
 	emailtemplateusecase "github.com/smart-hmm/smart-hmm/internal/modules/email_template/usecase"
 	employeeusecase "github.com/smart-hmm/smart-hmm/internal/modules/employee/usecase"
@@ -46,6 +47,7 @@ type Usecases struct {
 	UpdateSetting           *systemsettingsusecase.UpdateSettingUsecase
 	DeleteSetting           *systemsettingsusecase.DeleteSettingUsecase
 	RegisterUserUsecase     *userusecase.RegisterUserUsecase
+	LoginUsecase            *authusecase.LoginUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -88,5 +90,6 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		UpdateSetting:           systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),
 		DeleteSetting:           systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
 		RegisterUserUsecase:     registerUser,
+		LoginUsecase:            authusecase.NewLoginUsecase(repo.User, infras.TokenService),
 	}
 }

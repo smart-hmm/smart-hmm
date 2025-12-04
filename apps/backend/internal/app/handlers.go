@@ -2,6 +2,7 @@ package app
 
 import (
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
+	authhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/auth"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
 	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
@@ -22,6 +23,7 @@ type Handlers struct {
 	LeaveRequest   *leaverequesthandler.LeaveRequestHandler
 	LeaveType      *leavetypehandler.LeaveTypeHandler
 	SystemSettings *systemsettingshandler.SystemSettingsHandler
+	Auth           *authhandler.AuthHandler
 }
 
 func buildHandlers(uc Usecases, repo Repositories) Handlers {
@@ -63,6 +65,9 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.ListSettings,
 			uc.UpdateSetting,
 			uc.DeleteSetting,
+		),
+		Auth: authhandler.NewAuthHandler(
+			uc.LoginUsecase,
 		),
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/cors"
 	tokenports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/token"
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
+	authhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/auth"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
 	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
@@ -31,6 +32,7 @@ type Args struct {
 	LeaveRequestHandler   *leaverequesthandler.LeaveRequestHandler
 	LeaveTypeHandler      *leavetypehandler.LeaveTypeHandler
 	SystemSettingsHandler *systemsettingshandler.SystemSettingsHandler
+	AuthHandler           *authhandler.AuthHandler
 	TokenService          tokenports.Service
 }
 
@@ -60,16 +62,21 @@ func GetRouter(args Args) *chi.Mux {
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	r.Route("/api/v1", func(cr chi.Router) {
-		cr.Use(middleware.JWTGuard(args.TokenService))
-		cr.Route("/users", args.UserHandler.Routes)
-		cr.Route("/attendance", args.AttendanceHandler.Routes)
-		cr.Route("/payrolls", args.PayrollHandler.Routes)
-		cr.Route("/departments", args.DepartmentHandler.Routes)
-		cr.Route("/employees", args.EmployeeHandler.Routes)
-		cr.Route("/email-templates", args.EmailTemplateHandler.Routes)
-		cr.Route("/leave-requests", args.LeaveRequestHandler.Routes)
-		cr.Route("/leave-types", args.LeaveTypeHandler.Routes)
-		cr.Route("/system-settings", args.SystemSettingsHandler.Routes)
+		cr.Group(func(crr chi.Router) {
+			crr.Use(middleware.JWTGuard(args.TokenService))
+			crr.Route("/users", args.UserHandler.Routes)
+			crr.Route("/attendance", args.AttendanceHandler.Routes)
+			crr.Route("/payrolls", args.PayrollHandler.Routes)
+			crr.Route("/departments", args.DepartmentHandler.Routes)
+			crr.Route("/employees", args.EmployeeHandler.Routes)
+			crr.Route("/email-templates", args.EmailTemplateHandler.Routes)
+			crr.Route("/leave-requests", args.LeaveRequestHandler.Routes)
+			crr.Route("/leave-types", args.LeaveTypeHandler.Routes)
+			crr.Route("/system-settings", args.SystemSettingsHandler.Routes)
+		})
+		cr.Group(func(crr chi.Router) {
+			crr.Route("/auth", args.AuthHandler.Routes)
+		})
 	})
 
 	return r
