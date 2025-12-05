@@ -4,7 +4,6 @@ import { setCookie } from "@/services/cookies/cookies"
 import { persitStore } from "@/services/persit-store/store"
 import { useLogin } from "@/services/react-query/mutations/use-login"
 import type { AxiosError } from "axios"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { type SubmitHandler, useForm } from "react-hook-form"
 import { toast } from "react-toastify"
@@ -29,7 +28,6 @@ const LoginPage = () => {
     const { mutateAsync: login, isPending: isPendingLogin } = useLogin()
     const email = watch("email");
     const password = watch("password");
-    const router = useRouter()
 
     useEffect(() => {
         if (isRemember) {
@@ -50,7 +48,7 @@ const LoginPage = () => {
             if (!result) return;
             const { accessToken, accessExpiresAt } = result
             await setCookie("access_token", accessToken, new Date(accessExpiresAt))
-            router.push("/")
+            window.location.reload()
         } catch (err) {
             const _err = err as AxiosError
             if (_err.response?.status === 404) {
