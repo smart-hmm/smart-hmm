@@ -70,6 +70,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Value:    result.RefreshToken,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 		Expires:  result.RefreshExpiresAt,
 	})
@@ -127,6 +128,7 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		Value:    result.RefreshToken,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 		Expires:  result.RefreshExpiresAt,
 	})

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -49,7 +48,7 @@ func GetClientIP(r *http.Request) string {
 }
 
 func isSecure() bool {
-	return os.Getenv("APP_ENV") == "prod"
+	return true
 }
 
 func baseCookie(name, value string, expires time.Time) *http.Cookie {

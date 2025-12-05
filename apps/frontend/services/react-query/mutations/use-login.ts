@@ -1,4 +1,5 @@
 import api from "@/lib/http";
+import type { AuthInfo } from "@/types";
 import { useMutation } from "@tanstack/react-query";
 
 const login = async (payload: { email: string; password: string }) => {
@@ -6,19 +7,18 @@ const login = async (payload: { email: string; password: string }) => {
     withCredentials: true,
   });
   const data = res.data;
-  return data as {
-    accessExpiresAt: string;
-    accessToken: string;
-  };
+
+  return data as AuthInfo
 };
 
 export const useLogin = () => {
-  const { mutateAsync } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: (payload: { email: string; password: string }) =>
       login(payload),
   });
 
   return {
-    mutateAsync
-  }
+    mutateAsync,
+    isPending,
+  };
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { toggleSideBar } from "@/services/redux/slices/appSlice";
+import { toggleSideBar } from "@/services/redux/slices/app-slice";
 import type { RootState } from "@/services/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 

@@ -22,10 +22,10 @@ type User struct {
 	PasswordHash string   `json:"-"`
 	Role         UserRole `json:"role"`
 
-	EmployeeID *string `json:"employee_id,omitempty"`
+	EmployeeID *string `json:"employeeID,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func NewUser(email, hashedPassword string, role UserRole, employeeID *string) (*User, error) {

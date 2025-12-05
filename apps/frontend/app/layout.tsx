@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import StoreProvider from "@/services/redux/provider";
-import ReactQueryProvider from "@/services/react-query/provider";
+import { ThemeToggle } from "../components/ui/theme-toggle";
+import { ToastContainer } from "react-toastify";
+import StoreProvider from "@/components/providers/store-provider";
+import ReactQueryProvider from "@/components/providers/query-provider";
+import AuthProvider from "@/components/providers/auth-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,12 +28,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" data-theme='light'>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ReactQueryProvider>
-          <StoreProvider>{children}</StoreProvider>
+          <StoreProvider>
+            <AuthProvider>
+              <div className="fixed top-2 right-2"><ThemeToggle /></div>
+              {children}
+              <ToastContainer />
+            </AuthProvider>
+          </StoreProvider>
         </ReactQueryProvider>
       </body>
     </html>

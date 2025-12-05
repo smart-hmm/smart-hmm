@@ -8,7 +8,7 @@ import (
 
 func (h *AuthHandler) Routes(r chi.Router, tokenService tokenports.Service) {
 	r.Post("/login", h.Login)
-	r.Get("/refresh", h.RefreshToken)
+	r.Post("/refresh", h.RefreshToken)
 	r.Post("/logout", h.Logout)
 	r.With(middleware.JWTGuard(tokenService)).Post("/logout-all", h.LogoutAll)
 	r.With(middleware.JWTGuard(tokenService)).Get("/me", h.Me)

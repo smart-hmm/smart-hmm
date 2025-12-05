@@ -11,6 +11,7 @@ const ReactQueryProvider: React.FC<Props> = ({ children }) => {
         defaultOptions: {
             queries: {
                 refetchOnWindowFocus: false,
+                retry: 1,
             }
         }
     })
