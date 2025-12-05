@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { ThemeToggle } from "../components/ui/theme-toggle";
 import { ToastContainer } from "react-toastify";
 import StoreProvider from "@/components/providers/store-provider";
@@ -7,14 +7,9 @@ import ReactQueryProvider from "@/components/providers/query-provider";
 import AuthProvider from "@/components/providers/auth-provider";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const poppins = Poppins({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -28,12 +23,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme='light'>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" data-theme="light">
+      <body className={`${poppins.variable} antialiased overflow-x-hidden`}>
         <ReactQueryProvider>
           <StoreProvider>
             <AuthProvider>
-              <div className="fixed top-2 right-2"><ThemeToggle /></div>
+              <div className="fixed top-2 right-2 z-4">
+                <ThemeToggle />
+              </div>
               {children}
               <ToastContainer />
             </AuthProvider>

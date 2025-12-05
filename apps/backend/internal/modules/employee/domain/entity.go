@@ -25,24 +25,24 @@ type Employee struct {
 	ID   string `json:"id"`
 	Code string `json:"code"`
 
-	FirstName   string     `json:"first_name"`
-	LastName    string     `json:"last_name"`
+	FirstName   string     `json:"firstName"`
+	LastName    string     `json:"lastName"`
 	Email       string     `json:"email"`
 	Phone       string     `json:"phone,omitempty"`
-	DateOfBirth *time.Time `json:"date_of_birth,omitempty"`
+	DateOfBirth *time.Time `json:"dateOfBirth,omitempty"`
 
-	DepartmentID string  `json:"department_id"`
-	ManagerID    *string `json:"manager_id"`
+	DepartmentID *string `json:"departmentID"`
+	ManagerID    *string `json:"managerID"`
 
 	Position         string           `json:"position"`
-	EmploymentType   EmploymentType   `json:"employment_type"`
-	EmploymentStatus EmploymentStatus `json:"employment_status"`
-	JoinDate         time.Time        `json:"join_date"`
+	EmploymentType   EmploymentType   `json:"employmentType"`
+	EmploymentStatus EmploymentStatus `json:"employmentStatus"`
+	JoinDate         time.Time        `json:"joinDate"`
 
-	BaseSalary float64 `json:"base_salary"`
+	BaseSalary float64 `json:"baseSalary"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func NewEmployee(code, firstName, lastName, email, phone, position string, base float64) (*Employee, error) {

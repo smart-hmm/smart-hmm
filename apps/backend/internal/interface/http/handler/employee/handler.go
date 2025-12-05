@@ -87,7 +87,7 @@ func (h *EmployeeHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Email:            body.Email,
 		Phone:            body.Phone,
 		DateOfBirth:      body.DateOfBirth,
-		DepartmentID:     body.DepartmentID,
+		DepartmentID:     &body.DepartmentID,
 		ManagerID:        body.ManagerID,
 		Position:         body.Position,
 		EmploymentType:   body.EmploymentType,

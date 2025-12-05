@@ -98,7 +98,7 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		DeleteSetting:           systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
 		RegisterUserUsecase:     registerUser,
 		LoginUsecase:            authusecase.NewLoginUsecase(repo.User, infras.TokenService, createRefreshToken),
-		MeUsecase:               authusecase.NewMeUsecase(repo.User),
+		MeUsecase:               authusecase.NewMeUsecase(repo.User, repo.Employee),
 		RefreshToken:            authusecase.NewRefreshTokenUsecase(repo.RefreshToken, infras.TokenService, rotateRefreshToken),
 		LogoutRefreshToken:      refreshtokenusecase.NewLogoutRefreshTokenUsecase(repo.RefreshToken),
 		ForceLogoutAllUsecase:   refreshtokenusecase.NewForceLogoutAllUsecase(repo.RefreshToken),

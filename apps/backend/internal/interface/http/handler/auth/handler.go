@@ -88,7 +88,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.MeUsecase.Execute(r.Context(), userID)
+	user, employee, err := h.MeUsecase.Execute(r.Context(), userID)
 	if err != nil {
 		if err == authusecase.UserNotFoundError {
 			httpx.WriteJSON(w, map[string]any{"error": authusecase.UserNotFoundError.Error()}, http.StatusNotFound)
@@ -96,7 +96,9 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	httpx.WriteJSON(w, user, http.StatusOK)
+	httpx.WriteJSON(w, map[string]any{
+		"user":     user,
+		"employee": employee}, http.StatusOK)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
