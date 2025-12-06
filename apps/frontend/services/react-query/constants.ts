@@ -1,0 +1,12 @@
+export enum QueryKey {
+  // User info
+  GET_ME = "GET_ME",
+
+  // Departments
+  GET_DEPARTMENT = "GET_DEPARTMENT",
+  GET_DEPARTMENTS = "GET_DEPARTMENTS",
+
+  // Employees
+  GET_EMPLOYEES = "GET_EMPLOYEES",
+  GET_EMPLOYEES_BY_DEPARTMENT_ID = "GET_EMPLOYEES_BY_DEPARTMENT_ID",
+}

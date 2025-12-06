@@ -1,6 +1,7 @@
 import api from "@/lib/http";
 import type { EmployeeInfo, UserInfo } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { QueryKey } from "../constants";
 
 const getMe = async () => {
   const resp = await api.get("/auth/me");
@@ -13,7 +14,7 @@ const getMe = async () => {
 
 export const useMe = () => {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["ME"],
+    queryKey: [QueryKey.GET_ME],
     queryFn: getMe,
   });
 

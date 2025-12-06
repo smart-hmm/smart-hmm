@@ -7,10 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-/* =======================
-   TYPES
-======================= */
-
 interface Booking {
   id: string;
   name: string;
@@ -35,10 +31,6 @@ interface CalendarDay {
   isToday: boolean;
   isWeekend: boolean;
 }
-
-/* =======================
-   FORM SCHEMA
-======================= */
 
 const bookingSchema = z
   .object({
@@ -82,10 +74,6 @@ const bookingSchema = z
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
 
-/* =======================
-   MOCK BOOKINGS
-======================= */
-
 const AVAILABLE_PEOPLE = [
   { name: "Nguyen Van A", email: "a.nguyen@company.com" },
   { name: "Tran Thi B", email: "b.tran@company.com" },
@@ -101,7 +89,7 @@ const INITIAL_BOOKINGS: Booking[] = [
     title: "HR Interview",
     date: "2025-12-05",
     startTime: "09:00",
-    endTime: "10:30", // exclusive
+    endTime: "10:30",
     invites: "hr@company.com",
 
     method: "office",
@@ -114,7 +102,7 @@ const INITIAL_BOOKINGS: Booking[] = [
     title: "Sprint Planning",
     date: "2025-12-05",
     startTime: "14:00",
-    endTime: "15:00", // exclusive
+    endTime: "15:00",
     invites: "team@company.com",
 
     method: "office",
@@ -123,13 +111,9 @@ const INITIAL_BOOKINGS: Booking[] = [
   },
 ];
 
-/* =======================
-   TIME SLOT HELPERS
-======================= */
-
 const WORK_TIME_CONFIG = {
-  start: "08:30", // work day start
-  end: "18:00", // work day end
+  start: "08:30",
+  end: "18:00",
 };
 
 function timeToMinutes(t: string): number {
@@ -163,7 +147,6 @@ function getNextSlot(slot: string, slots: string[]): string | null {
   return slots[idx + 1];
 }
 
-// A single slot is considered "inside" a booking if its start time is in [startTime, endTime)
 function isSlotBooked(
   date: Date,
   slot: string,
@@ -177,7 +160,6 @@ function isSlotBooked(
     bookings.find((b) => {
       if (b.date !== key) return false;
 
-      // ✅ Only block if SAME room + SAME branch (office only)
       if (
         b.method === "office" &&
         selectedRoom &&
@@ -193,11 +175,7 @@ function isSlotBooked(
   );
 }
 
-/* =======================
-   MAIN PAGE
-======================= */
-
-export default function CalendarBookingPage() {
+export default function BookingDashboard() {
   const router = useRouter();
   const [inviteQuery, setInviteQuery] = useState("");
   const [showInviteDropdown, setShowInviteDropdown] = useState(false);
@@ -209,7 +187,6 @@ export default function CalendarBookingPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  // rangeStart & rangeEnd are both INCLUSIVE slot labels
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [rangeEnd, setRangeEnd] = useState<string | null>(null);
 
@@ -221,10 +198,6 @@ export default function CalendarBookingPage() {
       ),
     []
   );
-
-  /* =======================
-     CALENDAR GENERATION
-  ======================= */
 
   const days = useMemo<CalendarDay[]>(() => {
     const today = new Date();
@@ -239,7 +212,6 @@ export default function CalendarBookingPage() {
 
     const result: CalendarDay[] = [];
 
-    // leading days from previous month
     for (let i = startWeekday - 1; i >= 0; i--) {
       const d = new Date(year, month, -i);
       result.push({
@@ -251,7 +223,6 @@ export default function CalendarBookingPage() {
       });
     }
 
-    // current month days
     for (let i = 1; i <= totalDays; i++) {
       const d = new Date(year, month, i);
       result.push({
@@ -270,10 +241,6 @@ export default function CalendarBookingPage() {
     const key = date.toISOString().slice(0, 10);
     return bookings.filter((b) => b.date === key);
   }
-
-  /* =======================
-     FORM
-  ======================= */
 
   const {
     register,
@@ -332,22 +299,7 @@ export default function CalendarBookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] p-6 space-y-6">
-      {/* ================= HEADER ================= */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-md hover:bg-[var(--color-muted)]"
-        >
-          <ArrowLeft className="w-6 h-6 text-[var(--color-primary)]" />
-        </button>
-
-        <h1 className="text-xl font-bold text-[var(--color-primary)]">
-          Meeting Room Booking
-        </h1>
-      </div>
-
-      {/* ================= MONTH CONTROLS ================= */}
+    <div className="min-h-screen bg-background p-6 space-y-6">
       <div className="flex items-center justify-between">
         <button
           onClick={() =>
@@ -359,7 +311,7 @@ export default function CalendarBookingPage() {
               )
             )
           }
-          className="px-4 py-2 rounded-md bg-[var(--color-primary)] text-white"
+          className="px-4 py-2 rounded-md bg-primary text-white"
         >
           ←
         </button>
@@ -381,22 +333,20 @@ export default function CalendarBookingPage() {
               )
             )
           }
-          className="px-4 py-2 rounded-md bg-[var(--color-primary)] text-white"
+          className="px-4 py-2 rounded-md bg-primary text-white"
         >
           →
         </button>
       </div>
 
-      {/* ================= WEEKDAYS ================= */}
       <div className="grid grid-cols-7 gap-3">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-xs font-bold">
+          <div key={d} className="text-center text-xs font-bold text-primary">
             {d}
           </div>
         ))}
       </div>
 
-      {/* ================= CALENDAR ================= */}
       <div className="grid grid-cols-7 gap-3">
         {days.map((day) => {
           const dailyBookings = getBookingsForDay(day.date);
@@ -416,18 +366,18 @@ export default function CalendarBookingPage() {
                 min-h-[120px] rounded-xl border border-muted p-2 text-sm cursor-pointer flex flex-col
                 ${
                   day.isWeekend
-                    ? "bg-[var(--color-accent)]/20 border-[var(--color-accent)]"
+                    ? "bg-accent/20 border-accent"
                     : day.isCurrentMonth
-                    ? "bg-background hover:bg-[var(--color-surface)]"
-                    : "bg-[var(--color-muted)]/40 opacity-50"
+                    ? "bg-background hover:bg-surface"
+                    : "bg-muted/40 opacity-50"
                 }
-                ${day.isToday ? "ring-2 ring-[var(--color-info)]" : ""}
+                ${day.isToday ? "ring-2 ring-info" : ""}
               `}
             >
-              <div className="flex justify-between mb-1 text-xs font-semibold">
+              <div className="flex justify-between mb-1 text-md text-primary font-semibold">
                 <span>{day.label}</span>
                 {dailyBookings.length > 0 && (
-                  <span className="text-[var(--color-primary)] font-bold">
+                  <span className="text-primary font-bold">
                     {dailyBookings.length}
                   </span>
                 )}
@@ -451,7 +401,6 @@ export default function CalendarBookingPage() {
         })}
       </div>
 
-      {/* ================= SLOT BOOKING MODAL ================= */}
       {isModalOpen && selectedDate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-5xl bg-background rounded-xl border border-muted p-6">
@@ -462,7 +411,6 @@ export default function CalendarBookingPage() {
               <button onClick={closeModal}>✕</button>
             </div>
 
-            {/* ================= TIME SLOT GRID ================= */}
             <div className="grid grid-cols-8 gap-2 mb-6">
               {timeSlots.map((slot) => {
                 const booked = isSlotBooked(
@@ -499,21 +447,18 @@ export default function CalendarBookingPage() {
                             slot <=
                               (rangeStart < rangeEnd ? rangeEnd : rangeStart)));
 
-                      // ✅ CLICKING A SELECTED SLOT → UNSELECT EVERYTHING
                       if (isSelected) {
                         setRangeStart(null);
                         setRangeEnd(null);
                         return;
                       }
 
-                      // ✅ FIRST CLICK → SET START
                       if (!rangeStart) {
                         setRangeStart(slot);
                         setRangeEnd(null);
                         return;
                       }
 
-                      // ✅ SECOND CLICK → SET END
                       if (!rangeEnd) {
                         if (slot === rangeStart) return;
 
@@ -542,7 +487,6 @@ export default function CalendarBookingPage() {
                         return;
                       }
 
-                      // ✅ THIRD CLICK (after full range exists) → START NEW RANGE
                       setRangeStart(slot);
                       setRangeEnd(null);
                     }}
@@ -574,7 +518,6 @@ export default function CalendarBookingPage() {
               })}
             </div>
 
-            {/* ================= FORM ================= */}
             <form
               onSubmit={handleSubmit(handleCreateBooking)}
               className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"
@@ -747,7 +690,7 @@ export default function CalendarBookingPage() {
                       <option value="Room 03">Room 03</option>
                     </select>
                     {errors.room && (
-                      <p className="text-xs text-[var(--color-danger)]">
+                      <p className="text-xs text-danger">
                         {errors.room.message}
                       </p>
                     )}
@@ -755,7 +698,6 @@ export default function CalendarBookingPage() {
                 </>
               )}
 
-              {/* ✅ Selected Time */}
               <div className="md:col-span-2 text-xs font-semibold text-foreground">
                 Selected Time:{" "}
                 {rangeStart && rangeEnd
@@ -763,7 +705,6 @@ export default function CalendarBookingPage() {
                   : "None"}
               </div>
 
-              {/* Actions */}
               <div className="md:col-span-2 flex justify-end gap-3 pt-4 text-foreground">
                 <button
                   type="button"

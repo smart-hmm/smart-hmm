@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Td, Th } from "@/components/ui/table";
+import useEmployees from "@/services/react-query/queries/use-employees";
+import Link from "next/link";
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,56 +28,19 @@ interface Employee extends EmployeeFormValues {
 
 const DEPARTMENTS = ["Human Resources", "Product", "Engineering", "Design"];
 
-function generateMockEmployees(count: number): Employee[] {
-  const positions = ["Manager", "Developer", "Designer", "Tester"];
-  const roles = ["HR", "Manager", "Employee"];
-
-  return Array.from({ length: count }).map((_, i) => ({
-    id: crypto.randomUUID(),
-    fullName: `Employee ${i + 1}`,
-    email: `employee${i + 1}@company.com`,
-    position: positions[i % positions.length],
-    department: DEPARTMENTS[i % DEPARTMENTS.length],
-    role: roles[i % roles.length],
-    status: "Active",
-    createdAt: `2025-12-${String((i % 28) + 1).padStart(2, "0")}`,
-  }));
-}
-
 export default function EmployeesPage() {
   const router = useRouter();
-
-  const [employees, setEmployees] = useState<Employee[]>(
-    generateMockEmployees(100)
-  );
+  const { data: employees, isLoading: isLoadingEmployees } = useEmployees();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
 
-  const filteredEmployees = useMemo(() => {
-    return employees.filter((emp) => {
-      const matchName = emp.fullName
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-      const matchDept =
-        departmentFilter === "" ? true : emp.department === departmentFilter;
-
-      return matchName && matchDept;
-    });
-  }, [employees, search, departmentFilter]);
-
   const pageSize = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(filteredEmployees.length / pageSize);
-
-  const pagedEmployees = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredEmployees.slice(start, start + pageSize);
-  }, [filteredEmployees, currentPage]);
+  const totalPages = Math.ceil(employees ? employees.length / pageSize : 0);
 
   const {
     register,
@@ -98,7 +63,6 @@ export default function EmployeesPage() {
       createdAt: new Date().toISOString().slice(0, 10),
     };
 
-    setEmployees((prev) => [newEmployee, ...prev]);
     reset();
     setIsModalOpen(false);
     setCurrentPage(1);
@@ -106,7 +70,6 @@ export default function EmployeesPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] p-6 space-y-6">
-      {/* ================= HEADER ================= */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
@@ -129,7 +92,6 @@ export default function EmployeesPage() {
         </button>
       </div>
 
-      {/* ================= SEARCH & FILTER ✅ ================= */}
       <div className="flex flex-col md:flex-row gap-4">
         <input
           value={search}
@@ -138,7 +100,7 @@ export default function EmployeesPage() {
             setCurrentPage(1);
           }}
           placeholder="Search by employee name..."
-          className="w-full bg-surface md:w-1/2 rounded-md border border-[var(--color-muted)] px-3 py-2 text-sm"
+          className="w-full bg-surface md:w-[300px] rounded-md border border-muted px-3 py-2 text-sm"
         />
 
         <select
@@ -147,7 +109,7 @@ export default function EmployeesPage() {
             setDepartmentFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="w-full md:w-1/3 rounded-md border border-[var(--color-muted)] px-3 py-2 text-sm bg-surface"
+          className="w-full md:w-[300px] rounded-md border border-muted px-3 py-2 text-sm bg-surface"
         >
           <option value="">All Departments</option>
           {DEPARTMENTS.map((dept) => (
@@ -158,23 +120,21 @@ export default function EmployeesPage() {
         </select>
       </div>
 
-      {/* ================= TABLE ================= */}
       <div className="bg-background border border-[var(--color-muted)] rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-[var(--color-surface)] border-b border-[var(--color-muted)]">
             <tr>
               <Th>Name</Th>
               <Th>Email</Th>
-              <Th>Position</Th>
               <Th>Department</Th>
-              <Th>Role</Th>
+              <Th>Position</Th>
               <Th>Status</Th>
               <Th>Created</Th>
             </tr>
           </thead>
 
           <tbody>
-            {pagedEmployees.length === 0 ? (
+            {!employees || employees.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}
@@ -184,19 +144,28 @@ export default function EmployeesPage() {
                 </td>
               </tr>
             ) : (
-              pagedEmployees.map((emp) => (
+              employees.map((emp) => (
                 <tr
                   key={emp.id}
                   className="border-t border-[var(--color-muted)] hover:bg-[var(--color-surface)]"
                 >
-                  <Td className="font-semibold">{emp.fullName}</Td>
+                  <Td className="font-semibold">
+                    {emp.firstName} {emp.lastName}
+                  </Td>
                   <Td>{emp.email}</Td>
+                  <Td>
+                    {emp.departmentName ? (
+                      <Link href={`/departments/${emp.departmentID}`}>
+                        {emp.departmentName}
+                      </Link>
+                    ) : (
+                      "-"
+                    )}
+                  </Td>
                   <Td>{emp.position}</Td>
-                  <Td>{emp.department}</Td>
-                  <Td>{emp.role}</Td>
                   <Td>
                     <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--color-success)]/20 text-[var(--color-success)]">
-                      {emp.status}
+                      Active
                     </span>
                   </Td>
                   <Td>{emp.createdAt}</Td>

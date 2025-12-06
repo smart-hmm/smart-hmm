@@ -6,6 +6,9 @@ import StoreProvider from "@/components/providers/store-provider";
 import ReactQueryProvider from "@/components/providers/query-provider";
 import AuthProvider from "@/components/providers/auth-provider";
 import "./globals.css";
+import RBACProvider from "@/components/providers/rbac-provider";
+import { Suspense, useContext } from "react";
+import Loading from "./loading";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -28,11 +31,13 @@ export default function RootLayout({
         <ReactQueryProvider>
           <StoreProvider>
             <AuthProvider>
-              <div className="fixed top-2 right-2 z-4">
-                <ThemeToggle />
-              </div>
-              {children}
-              <ToastContainer />
+              <RBACProvider>
+                <div className="fixed top-2 right-2 z-4">
+                  <ThemeToggle />
+                </div>
+                <Suspense fallback={<Loading />}>{children}</Suspense>
+                <ToastContainer />
+              </RBACProvider>
             </AuthProvider>
           </StoreProvider>
         </ReactQueryProvider>

@@ -4,16 +4,18 @@ import (
 	"errors"
 	"time"
 
-	"github.com/google/uuid"
+	empDomain "github.com/smart-hmm/smart-hmm/internal/modules/employee/domain"
 )
 
 type Department struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	ManagerID *string `json:"manager_id"`
+	ID             string              `json:"id"`
+	Name           string              `json:"name"`
+	ManagerID      *string             `json:"managerId,omitempty"`
+	Manager        *empDomain.Employee `json:"manager,omitempty"`
+	TotalEmployees *int                `json:"totalEmployees,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func NewDepartment(name string, managerID *string) (*Department, error) {
@@ -24,7 +26,6 @@ func NewDepartment(name string, managerID *string) (*Department, error) {
 	now := time.Now()
 
 	return &Department{
-		ID:        uuid.NewString(),
 		Name:      name,
 		ManagerID: managerID,
 		CreatedAt: now,

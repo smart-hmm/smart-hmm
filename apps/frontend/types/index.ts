@@ -34,9 +34,20 @@ export type EmployeeInfo = {
   departmentID: string | null;
   managerID: string | null;
   dateOfBirth?: string;
+  departmentName?: string;
 };
 
 export type AuthInfo = {
   accessExpiresAt: string;
   accessToken: string;
+};
+
+export type Department = {
+  id: string;
+  name: string;
+  managerId?: string;
+  manager?: EmployeeInfo;
+  totalEmployees?: number;
+  createdAt: string;
+  updatedAt: string;
 };

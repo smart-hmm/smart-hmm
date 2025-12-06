@@ -58,13 +58,13 @@ func (r *EmployeePostgresRepository) Update(e *domain.Employee) error {
 	return err
 }
 
-func scanEmployee(row pgx.Row) (*domain.Employee, error) {
+func ScanEmployee(row pgx.Row) (*domain.Employee, error) {
 	var e domain.Employee
 	err := row.Scan(
 		&e.ID, &e.Code, &e.FirstName, &e.LastName, &e.Email, &e.Phone,
 		&e.DateOfBirth, &e.DepartmentID, &e.ManagerID, &e.Position,
 		&e.EmploymentType, &e.EmploymentStatus, &e.JoinDate, &e.BaseSalary,
-		&e.CreatedAt, &e.UpdatedAt,
+		&e.CreatedAt, &e.UpdatedAt, &e.DepartmentName,
 	)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func scanEmployee(row pgx.Row) (*domain.Employee, error) {
 }
 
 func (r *EmployeePostgresRepository) FindByID(id string) (*domain.Employee, error) {
-	return scanEmployee(
+	return ScanEmployee(
 		r.db.QueryRow(context.Background(),
 			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
 			        department_id, manager_id, position, employment_type,
@@ -84,7 +84,7 @@ func (r *EmployeePostgresRepository) FindByID(id string) (*domain.Employee, erro
 }
 
 func (r *EmployeePostgresRepository) FindByEmail(email string) (*domain.Employee, error) {
-	return scanEmployee(
+	return ScanEmployee(
 		r.db.QueryRow(context.Background(),
 			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
 			        department_id, manager_id, position, employment_type,
@@ -95,7 +95,7 @@ func (r *EmployeePostgresRepository) FindByEmail(email string) (*domain.Employee
 }
 
 func (r *EmployeePostgresRepository) FindByCode(code string) (*domain.Employee, error) {
-	return scanEmployee(
+	return ScanEmployee(
 		r.db.QueryRow(context.Background(),
 			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
 			        department_id, manager_id, position, employment_type,
@@ -107,11 +107,13 @@ func (r *EmployeePostgresRepository) FindByCode(code string) (*domain.Employee, 
 
 func (r *EmployeePostgresRepository) ListAll() ([]*domain.Employee, error) {
 	rows, err := r.db.Query(context.Background(),
-		`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
-		        department_id, manager_id, position, employment_type,
+		`SELECT e.id, code, first_name, last_name, email, phone, date_of_birth,
+		        department_id, e.manager_id, position, employment_type,
 		        employment_status, join_date, base_salary,
-		        created_at, updated_at
-		   FROM employees`)
+		        e.created_at, e.updated_at, d.name
+		   FROM employees e 
+		   LEFT JOIN departments d 
+		   ON e.department_id = d.id`)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +121,7 @@ func (r *EmployeePostgresRepository) ListAll() ([]*domain.Employee, error) {
 
 	var result []*domain.Employee
 	for rows.Next() {
-		e, err := scanEmployee(rows)
+		e, err := ScanEmployee(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -130,11 +132,13 @@ func (r *EmployeePostgresRepository) ListAll() ([]*domain.Employee, error) {
 
 func (r *EmployeePostgresRepository) ListByDepartment(deptID string) ([]*domain.Employee, error) {
 	rows, err := r.db.Query(context.Background(),
-		`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
-		        department_id, manager_id, position, employment_type,
+		`SELECT e.id, code, first_name, last_name, email, phone, date_of_birth,
+		        department_id, e.manager_id, position, employment_type,
 		        employment_status, join_date, base_salary,
-		        created_at, updated_at
-		   FROM employees WHERE department_id=$1`, deptID)
+		        e.created_at, e.updated_at, d.name
+		   FROM employees e 
+		   LEFT JOIN departments d 
+		   ON e.department_id = d.id WHERE department_id=$1`, deptID)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +146,7 @@ func (r *EmployeePostgresRepository) ListByDepartment(deptID string) ([]*domain.
 
 	var result []*domain.Employee
 	for rows.Next() {
-		e, err := scanEmployee(rows)
+		e, err := ScanEmployee(rows)
 		if err != nil {
 			return nil, err
 		}
