@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -70,6 +72,87 @@ func ScanEmployee(row pgx.Row) (*domain.Employee, error) {
 		return nil, err
 	}
 	return &e, nil
+}
+
+func (r *EmployeePostgresRepository) Find(name, email, departmentID string,
+) ([]*domain.Employee, error) {
+
+	var (
+		orClauses  []string
+		andClauses []string
+		args       []any
+		idx        = 1
+	)
+
+	if name != "" {
+		orClauses = append(orClauses,
+			fmt.Sprintf(`
+				(
+					e.first_name ILIKE $%d OR 
+					e.last_name ILIKE $%d OR 
+					(e.first_name || ' ' || e.last_name) ILIKE $%d
+				)
+			`, idx, idx+1, idx+2),
+		)
+
+		pattern := "%" + name + "%"
+		args = append(args, pattern, pattern, pattern)
+		idx += 3
+	}
+
+	if email != "" {
+		orClauses = append(orClauses,
+			fmt.Sprintf("e.email ILIKE $%d", idx),
+		)
+		args = append(args, "%"+email+"%")
+		idx++
+	}
+
+	if len(orClauses) > 0 {
+		andClauses = append(andClauses, "("+strings.Join(orClauses, " OR ")+")")
+	}
+
+	if departmentID != "" {
+		andClauses = append(andClauses,
+			fmt.Sprintf("e.department_id = $%d", idx),
+		)
+		args = append(args, departmentID)
+		idx++
+	}
+
+	query := `
+		SELECT e.id, e.code, e.first_name, e.last_name, e.email, e.phone, e.date_of_birth,
+		       e.department_id, e.manager_id, e.position, e.employment_type,
+		       e.employment_status, e.join_date, e.base_salary,
+		       e.created_at, e.updated_at, d.name
+		FROM employees e
+		LEFT JOIN departments d ON e.department_id = d.id
+	`
+
+	if len(andClauses) > 0 {
+		query += " WHERE " + strings.Join(andClauses, " AND ")
+	}
+
+	rows, err := r.db.Query(context.Background(), query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*domain.Employee
+	for rows.Next() {
+		e, err := ScanEmployee(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, e)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (r *EmployeePostgresRepository) FindByID(id string) (*domain.Employee, error) {

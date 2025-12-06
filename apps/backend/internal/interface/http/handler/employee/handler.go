@@ -174,3 +174,17 @@ func (h *EmployeeHandler) ListByDepartment(w http.ResponseWriter, r *http.Reques
 
 	httpx.WriteJSON(w, employees, http.StatusOK)
 }
+
+func (h *EmployeeHandler) Find(w http.ResponseWriter, r *http.Request) {
+	deptID := r.URL.Query().Get("departmentId")
+	name := r.URL.Query().Get("name")
+	email := r.URL.Query().Get("email")
+
+	employees, err := h.Repo.Find(name, email, deptID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	httpx.WriteJSON(w, employees, http.StatusOK)
+}

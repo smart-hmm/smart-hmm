@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarRange, LayoutGrid, Users } from "lucide-react";
+import { CalendarRange, LayoutGrid, Settings2, Users } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -19,6 +19,21 @@ export default function Navbar() {
       </div>
 
       <nav className="flex flex-col gap-3 w-full px-2">
+        <Link
+          href="/company-settings"
+          className={`
+            flex flex-col items-center justify-center gap-1 py-3 rounded-xl text-xs font-semibold transition
+            ${
+              pathname.startsWith("/company-settings")
+                ? "bg-[var(--color-primary)] text-white"
+                : "text-[var(--color-foreground)]/70 hover:bg-[var(--color-muted)]"
+            }
+          `}
+        >
+          <Settings2 className="w-6 h-6" />
+          Settings
+        </Link>
+
         <Link
           href="/departments"
           className={`

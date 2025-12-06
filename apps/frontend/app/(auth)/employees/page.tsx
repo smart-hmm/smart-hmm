@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Td, Th } from "@/components/ui/table";
 import useEmployees from "@/services/react-query/queries/use-employees";
 import Link from "next/link";
+import useDepartments from "@/services/react-query/queries/use-departments";
+import { DateTime } from "luxon";
+import useDebounce from "@/hooks/use-debounce";
+import { SearchInput } from "@/components/ui/search-input";
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -26,16 +30,22 @@ interface Employee extends EmployeeFormValues {
   status: "Active" | "Inactive";
 }
 
-const DEPARTMENTS = ["Human Resources", "Product", "Engineering", "Design"];
-
 export default function EmployeesPage() {
+  const mirrorRef = useRef<HTMLSpanElement>(null);
   const router = useRouter();
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [search, setSearch] = useState("");
+  const [debounceSearch, setDebounceSearch] = useState("");
+  const { debounce } = useDebounce();
   const [departmentFilter, setDepartmentFilter] = useState("");
+  const { data: employees, isLoading: isLoadingEmployees } = useEmployees({
+    email: debounceSearch,
+    name: debounceSearch,
+    departmentId: departmentFilter,
+  });
+  const { data: departments, isLoading: isLoadingDepartments } =
+    useDepartments();
 
   const pageSize = 10;
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,6 +78,12 @@ export default function EmployeesPage() {
     setCurrentPage(1);
   };
 
+  useEffect(() => {
+    debounce(() => {
+      setDebounceSearch(search);
+    }, 250);
+  }, [search, debounce]);
+
   return (
     <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -93,15 +109,7 @@ export default function EmployeesPage() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <input
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-          placeholder="Search by employee name..."
-          className="w-full bg-surface md:w-[300px] rounded-md border border-muted px-3 py-2 text-sm"
-        />
+        <SearchInput search={search} setSearch={(value) => setSearch(value)} />
 
         <select
           value={departmentFilter}
@@ -112,11 +120,13 @@ export default function EmployeesPage() {
           className="w-full md:w-[300px] rounded-md border border-muted px-3 py-2 text-sm bg-surface"
         >
           <option value="">All Departments</option>
-          {DEPARTMENTS.map((dept) => (
-            <option key={dept} value={dept}>
-              {dept}
-            </option>
-          ))}
+          {departments &&
+            departments.length > 0 &&
+            departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
         </select>
       </div>
 
@@ -128,8 +138,9 @@ export default function EmployeesPage() {
               <Th>Email</Th>
               <Th>Department</Th>
               <Th>Position</Th>
+              <Th>Phone</Th>
               <Th>Status</Th>
-              <Th>Created</Th>
+              <Th>Join Date</Th>
             </tr>
           </thead>
 
@@ -163,12 +174,15 @@ export default function EmployeesPage() {
                     )}
                   </Td>
                   <Td>{emp.position}</Td>
+                  <Td>{emp.phone}</Td>
                   <Td>
                     <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--color-success)]/20 text-[var(--color-success)]">
                       Active
                     </span>
                   </Td>
-                  <Td>{emp.createdAt}</Td>
+                  <Td>
+                    {DateTime.fromISO(emp.joinDate).toFormat("dd/MM/yyyy")}
+                  </Td>
                 </tr>
               ))
             )}
@@ -176,7 +190,6 @@ export default function EmployeesPage() {
         </table>
       </div>
 
-      {/* ================= PAGINATION ================= */}
       <div className="flex items-center justify-between text-sm">
         <p className="text-[var(--color-foreground)]/60">
           Page {currentPage} of {totalPages || 1}
@@ -215,8 +228,6 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      {/* ================= CREATE MODAL (UNCHANGED FROM YOUR LAST STEP) ================= */}
-      {/* ================= CREATE MODAL ================= */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-lg bg-background rounded-xl shadow-lg border border-[var(--color-muted)] p-6">
