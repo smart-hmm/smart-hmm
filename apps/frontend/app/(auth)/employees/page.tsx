@@ -42,6 +42,7 @@ export default function EmployeesPage() {
   const { data: employees, isLoading: isLoadingEmployees } = useEmployees({
     email: debounceSearch,
     name: debounceSearch,
+    code: debounceSearch,
     departmentId: departmentFilter,
   });
   const { data: departments, isLoading: isLoadingDepartments } =
@@ -89,6 +90,7 @@ export default function EmployeesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => router.back()}
             className="p-2 rounded-md hover:bg-[var(--color-muted)]"
           >
@@ -101,6 +103,7 @@ export default function EmployeesPage() {
         </div>
 
         <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 rounded-md bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90"
         >
@@ -109,7 +112,9 @@ export default function EmployeesPage() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <SearchInput search={search} setSearch={(value) => setSearch(value)} />
+        <SearchInput 
+        placeHolder="Search by name, email or code"
+        search={search} setSearch={(value) => setSearch(value)} />
 
         <select
           value={departmentFilter}
@@ -135,6 +140,7 @@ export default function EmployeesPage() {
           <thead className="bg-[var(--color-surface)] border-b border-[var(--color-muted)]">
             <tr>
               <Th>Name</Th>
+              <Th>Code</Th>
               <Th>Email</Th>
               <Th>Department</Th>
               <Th>Position</Th>
@@ -163,6 +169,7 @@ export default function EmployeesPage() {
                   <Td className="font-semibold">
                     {emp.firstName} {emp.lastName}
                   </Td>
+                  <Td>{emp.code}</Td>
                   <Td>{emp.email}</Td>
                   <Td>
                     {emp.departmentName ? (
@@ -208,11 +215,10 @@ export default function EmployeesPage() {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === i + 1
-                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : ""
-              }`}
+              className={`px-3 py-1 rounded-md border ${currentPage === i + 1
+                ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+                : ""
+                }`}
             >
               {i + 1}
             </button>

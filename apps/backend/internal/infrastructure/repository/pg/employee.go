@@ -74,7 +74,7 @@ func ScanEmployee(row pgx.Row) (*domain.Employee, error) {
 	return &e, nil
 }
 
-func (r *EmployeePostgresRepository) Find(name, email, departmentID string,
+func (r *EmployeePostgresRepository) Find(name, email, code, departmentID string,
 ) ([]*domain.Employee, error) {
 
 	var (
@@ -105,6 +105,14 @@ func (r *EmployeePostgresRepository) Find(name, email, departmentID string,
 			fmt.Sprintf("e.email ILIKE $%d", idx),
 		)
 		args = append(args, "%"+email+"%")
+		idx++
+	}
+
+	if code != "" {
+		orClauses = append(orClauses,
+			fmt.Sprintf("e.code ILIKE $%d", idx),
+		)
+		args = append(args, "%"+code+"%")
 		idx++
 	}
 

@@ -2,10 +2,14 @@
 
 import useDepartment from "@/services/react-query/queries/use-department";
 import useEmployeesByDepartmentId from "@/services/react-query/queries/use-employees-by-department-id";
-import { EmployeeInfo } from "@/types";
+import type { EmployeeInfo } from "@/types";
 import { ArrowLeft } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useMemo, useState } from "react";
+
+/* =======================
+   TYPES
+======================= */
 
 interface DepartmentDocument {
   id: string;
@@ -17,12 +21,12 @@ interface DepartmentDocument {
 interface Department {
   id: string;
   name: string;
-  managerId: string; // top-level manager
+  managerId: string;
   employees: EmployeeInfo[];
   documents: DepartmentDocument[];
 }
 
-type EmployeeNode = EmployeeInfo & {
+export type EmployeeNode = EmployeeInfo & {
   children: EmployeeNode[];
 };
 
@@ -33,36 +37,99 @@ type EmployeeNode = EmployeeInfo & {
 function buildTree(employees: EmployeeInfo[]): EmployeeNode[] {
   const map = new Map<string, EmployeeNode>();
 
-  employees.forEach((emp) => {
+  for (const emp of employees) {
     map.set(emp.id, { ...emp, children: [] });
-  });
+  }
 
   const roots: EmployeeNode[] = [];
 
-  map.forEach((emp) => {
+  for (const [, emp] of map) {
     if (emp.managerID) {
       const parent = map.get(emp.managerID);
       parent?.children.push(emp);
     } else {
       roots.push(emp);
     }
-  });
+  }
 
   return roots;
 }
 
 /* =======================
-   RECURSIVE TREE NODE
+   TREE NODE (HOVER ACTIONS)
 ======================= */
+
+interface TreeNodeProps {
+  node: EmployeeNode;
+  selectedId?: string;
+  onSelect?: (node: EmployeeNode) => void;
+  onEdit?: (node: EmployeeNode) => void;
+  onAddChild?: (parent: EmployeeNode) => void;
+  onRemove?: (node: EmployeeNode) => void;
+}
 
 function TreeNode({
   node,
-}: {
-  node: EmployeeInfo & { children: EmployeeNode[] };
-}) {
+  selectedId,
+  onSelect,
+  onEdit,
+  onAddChild,
+  onRemove,
+}: TreeNodeProps) {
+  const isSelected = selectedId === node.id;
+
   return (
-    <div className="flex flex-col items-center relative">
-      <div className="w-60 rounded-xl border border-muted bg-surface p-4 text-center shadow-sm">
+    <div className="flex flex-col items-center relative group">
+      <div
+        onClick={() => onSelect?.(node)}
+        onKeyUp={() => onSelect?.(node)}
+        className={`relative w-60 rounded-xl border bg-surface p-4 text-center shadow-sm cursor-pointer transition ${isSelected
+          ? "border-primary ring-2 ring-primary/30"
+          : "border-muted hover:border-primary/50"
+          }`}
+      >
+        {isSelected &&
+        <div className="absolute top-2 right-2  flex gap-1 z-10">
+          {/* ADD CHILD */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddChild?.(node);
+            }}
+            className="w-6 h-6 flex items-center justify-center rounded bg-primary text-surface text-primary-foreground text-xs shadow hover:opacity-90"
+            title="Add Child"
+          >
+            +
+          </button>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove?.(node);
+            }}
+            className="w-6 h-6 flex items-center justify-center rounded bg-destructive text-destructive-foreground text-xs shadow hover:opacity-90"
+            title="Remove"
+          >
+            ×
+          </button>
+        </div>
+}
+
+        {isSelected && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(node);
+            }}
+            type="button"
+            className="absolute -top-2 -left-2 rounded-full bg-primary text-surface text-xs px-2 py-1 shadow"
+          >
+            Edit
+          </button>
+        )}
+
         <p className="font-semibold">
           {node.firstName}, {node.lastName}
         </p>
@@ -75,7 +142,15 @@ function TreeNode({
           <div className="w-px h-8 bg-muted" />
           <div className="flex gap-10 mt-4 relative">
             {node.children.map((child) => (
-              <TreeNode key={child.id} node={child} />
+              <TreeNode
+                key={child.id}
+                node={child}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                onEdit={onEdit}
+                onAddChild={onAddChild}
+                onRemove={onRemove}
+              />
             ))}
           </div>
         </>
@@ -99,11 +174,16 @@ export default function DepartmentDetailsPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabKey>("employees");
-  const { data: employees, isLoading: isLoadingEmployees } =
-    useEmployeesByDepartmentId(params.id);
-  const { data: department, isLoading: isLoadingDepartment } = useDepartment(
-    params.id
-  );
+
+  const [selectedNode, setSelectedNode] =
+    useState<EmployeeNode | null>(null);
+  const [editingNode, setEditingNode] =
+    useState<EmployeeNode | null>(null);
+  const [addingParent, setAddingParent] =
+    useState<EmployeeNode | null>(null);
+
+  const { data: employees } = useEmployeesByDepartmentId(params.id);
+  const { data: department } = useDepartment(params.id);
 
   const hierarchyTree = useMemo<EmployeeNode[]>(() => {
     if (!employees) return [];
@@ -113,10 +193,7 @@ export default function DepartmentDetailsPage() {
   if (!department) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2"
-        >
+        <button type="button" onClick={() => router.back()} className="flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
@@ -129,8 +206,10 @@ export default function DepartmentDetailsPage() {
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-6 text-foreground">
+      {/* HEADER */}
       <div className="flex items-center gap-3">
         <button
+          type="button"
           onClick={() => router.back()}
           className="p-2 rounded-md hover:bg-muted"
         >
@@ -145,22 +224,24 @@ export default function DepartmentDetailsPage() {
         </div>
       </div>
 
+      {/* TABS */}
       <div className="flex gap-6 border-b border-muted">
         {TABS.map((tab) => (
           <button
+            type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2 text-sm font-semibold capitalize ${
-              activeTab === tab
-                ? "border-b-2 border-primary text-primary"
-                : "text-muted-foreground"
-            }`}
+            className={`pb-2 text-sm font-semibold capitalize ${activeTab === tab
+              ? "border-b-2 border-primary text-primary"
+              : "text-muted-foreground"
+              }`}
           >
             {tab}
           </button>
         ))}
       </div>
 
+      {/* EMPLOYEES TABLE */}
       {activeTab === "employees" && employees && (
         <div className="rounded-xl border border-muted overflow-hidden">
           <table className="w-full text-sm">
@@ -173,59 +254,102 @@ export default function DepartmentDetailsPage() {
               </tr>
             </thead>
             <tbody>
-              {employees.map((emp) => (
-                <tr key={emp.id} className="border-t border-muted">
-                  <td className="px-4 py-3 font-medium">
-                    {emp.firstName}, {emp.lastName}
-                  </td>
-                  <td className="px-4 py-3">{emp.position}</td>
-                  <td className="px-4 py-3">{emp.email}</td>
-                  <td className="px-4 py-3">
-                    {employees.find((e) => e.id === emp.managerID)
-                      ? `${
-                          employees.find((e) => e.id === emp.managerID)
-                            ?.firstName
-                        }, ${
-                          employees.find((e) => e.id === emp.managerID)
-                            ?.lastName
-                        }`
-                      : "—"}
-                  </td>
-                </tr>
-              ))}
+              {employees.map((emp) => {
+                const manager = employees.find(
+                  (e) => e.id === emp.managerID
+                );
+
+                return (
+                  <tr key={emp.id} className="border-t border-muted">
+                    <td className="px-4 py-3 font-medium">
+                      {emp.firstName}, {emp.lastName}
+                    </td>
+                    <td className="px-4 py-3">{emp.position}</td>
+                    <td className="px-4 py-3">{emp.email}</td>
+                    <td className="px-4 py-3">
+                      {manager
+                        ? `${manager.firstName}, ${manager.lastName}`
+                        : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* ✅ DOCUMENTS */}
-      {/* {activeTab === "documents" && (
-        <div className="space-y-3">
-          {department.documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="flex items-center justify-between rounded-lg border border-muted p-4"
-            >
-              <div>
-                <p className="font-semibold">{doc.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {doc.type} • Uploaded {doc.uploadedAt}
-                </p>
-              </div>
-              <button className="px-3 py-1 text-xs rounded-md border">
-                View
-              </button>
-            </div>
-          ))}
-        </div>
-      )} */}
-
-      {/* ✅✅✅ AUTO TREE FROM managerId */}
+      {/* ✅ HIERARCHY */}
       {activeTab === "hierarchy" && (
         <div className="flex justify-center overflow-auto py-10">
           {hierarchyTree.map((root) => (
-            <TreeNode key={root.id} node={root} />
+            <TreeNode
+              key={root.id}
+              node={root}
+              selectedId={selectedNode?.id}
+              onSelect={setSelectedNode}
+              onEdit={setEditingNode}
+              onAddChild={setAddingParent}
+              onRemove={(node) => {
+                if (!confirm(`Remove ${node.firstName}?`)) return;
+                alert(`Detached ${node.firstName} (managerID = null)`);
+              }}
+            />
           ))}
+        </div>
+      )}
+
+      {/* ✅ EDIT MODAL */}
+      {editingNode && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-surface rounded-xl p-6 w-[400px] space-y-4 shadow-xl">
+            <h2 className="text-lg font-semibold">
+              Edit Hierarchy - {editingNode.firstName}
+            </h2>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type='button'
+                onClick={() => setEditingNode(null)}
+                className="px-4 py-2 text-sm rounded-md border"
+              >
+                Cancel
+              </button>
+              <button type="button" className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground">
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ ADD CHILD MODAL */}
+      {addingParent && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-surface rounded-xl p-6 w-[400px] space-y-4 shadow-xl">
+            <h2 className="text-lg font-semibold">
+              Add Child to {addingParent.firstName}
+            </h2>
+
+            <p className="text-sm text-muted-foreground">
+              Select an employee to attach under this manager.
+            </p>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setAddingParent(null)}
+                className="px-4 py-2 text-sm rounded-md border"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground">
+                Attach
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

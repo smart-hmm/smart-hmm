@@ -7,7 +7,7 @@ type EmployeeRepository interface {
 	Update(e *domain.Employee) error
 	Delete(id string) error
 
-	Find(name, email, departmentId string) ([]*domain.Employee, error)
+	Find(name, email, code, departmentId string) ([]*domain.Employee, error)
 	FindByID(id string) (*domain.Employee, error)
 	FindByEmail(email string) (*domain.Employee, error)
 	FindByCode(code string) (*domain.Employee, error)

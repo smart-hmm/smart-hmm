@@ -13,7 +13,7 @@ import Link from "next/link";
 
 export default function DepartmentsPage() {
   const router = useRouter();
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees();
+  const { data: employees, isLoading: isLoadingEmployees } = useEmployees({});
   const { can } = useRBAC();
   const { data: departments, isLoading, error } = useDepartments();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,6 +23,7 @@ export default function DepartmentsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => router.back()}
             className="p-2 rounded-md hover:bg-muted"
           >
@@ -33,6 +34,7 @@ export default function DepartmentsPage() {
         </div>
 
         <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
           className="px-4 py-2 rounded-md bg-primary text-white text-sm font-semibold hover:opacity-90"
         >
@@ -81,8 +83,8 @@ export default function DepartmentsPage() {
                   {/* <Td>Ho Chi Minh</Td> */}
                   <Td>
                     <Link className="text-info hover:underline" href={"/"}>{`${
-                      dept.manager && dept.manager.firstName
-                    }, ${dept.manager && dept.manager.lastName}`}</Link>
+                      dept.manager?.firstName
+                    }, ${dept.manager?.lastName}`}</Link>
                   </Td>
                   <Td>
                     <span className="font-semibold text-primary">

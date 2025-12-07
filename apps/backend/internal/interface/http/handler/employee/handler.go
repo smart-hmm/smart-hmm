@@ -179,8 +179,9 @@ func (h *EmployeeHandler) Find(w http.ResponseWriter, r *http.Request) {
 	deptID := r.URL.Query().Get("departmentId")
 	name := r.URL.Query().Get("name")
 	email := r.URL.Query().Get("email")
+	code := r.URL.Query().Get("code")
 
-	employees, err := h.Repo.Find(name, email, deptID)
+	employees, err := h.Repo.Find(name, email, code, deptID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

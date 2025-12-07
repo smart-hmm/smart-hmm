@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
 import api from "@/lib/http";
-import { EmployeeInfo } from "@/types";
+import type { EmployeeInfo } from "@/types";
 
 const getEmployees = async ({
   queryKey,
@@ -12,6 +12,7 @@ const getEmployees = async ({
       name?: string;
       email?: string;
       departmentId?: string;
+      code?: string;
     }
   ];
 }) => {
@@ -21,6 +22,7 @@ const getEmployees = async ({
       ...(params.departmentId ? { departmentId: params.departmentId } : {}),
       ...(params.name ? { name: params.name } : {}),
       ...(params.email ? { email: params.email } : {}),
+      ...(params.code ? { code: params.code } : {}),
     },
   });
   const data = response.data as EmployeeInfo[] | null;
@@ -30,6 +32,7 @@ const getEmployees = async ({
 const useEmployees = (params: {
   name?: string;
   email?: string;
+  code?: string;
   departmentId?: string;
 }) => {
   const { data, isLoading, error } = useQuery({

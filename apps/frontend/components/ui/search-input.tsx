@@ -5,8 +5,10 @@ import { useRef } from "react";
 export function SearchInput({
   search,
   setSearch,
+  placeHolder = "", 
 }: {
   search: string;
+  placeHolder?: string;
   setSearch: (value: string) => void;
 }) {
   const mirrorRef = useRef<HTMLSpanElement>(null);
@@ -18,7 +20,7 @@ export function SearchInput({
         onChange={(e) => {
           setSearch(e.target.value);
         }}
-        placeholder="Search by employee name or email..."
+        placeholder={placeHolder}
         className="w-full bg-surface rounded-md border border-muted px-3 py-2 text-sm"
       />
 

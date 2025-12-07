@@ -1,11 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { QueryKey } from "@/services/react-query/constants";
+import useUpsertSysSetting from "@/services/react-query/mutations/use-upsert-sys-setting";
+import useSysSettings from "@/services/react-query/queries/use-sys-settings";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 /* =======================
    TYPES
 ======================= */
+
+const LOCALES = ["en-US", "vi-VN", "ja-JP"];
+
+const TIMEZONES = Intl.supportedValuesOf("timeZone");
+
+const TIME_FORMATS = [
+  { label: "24 Hours (00:00)", value: "24h" },
+  { label: "12 Hours (AM/PM)", value: "12h" },
+];
+
 
 interface CompanySettingsForm {
   company: {
@@ -18,13 +33,17 @@ interface CompanySettingsForm {
     startHour: string;
     endHour: string;
   };
+  localization: {
+    timezone: string,
+    locale: string
+  }
 }
 
 /* =======================
    MOCK DATA
 ======================= */
 
-const TABS = ["General", "Working Time", "Branches", "Meeting Rooms"] as const;
+const TABS = ["General", "Localization", "Working Time", "Branches", "Meeting Rooms"] as const;
 
 const workingDayValues = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -44,6 +63,9 @@ const meetingRooms = [
 
 export default function CompanySettingsPage() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("General");
+  const { data: settings, isLoading: isLoadingSettings } = useSysSettings()
+  const { mutateAsync: upsertSetting, isPending: isPendingUpsertSettings } = useUpsertSysSetting()
+  const queryClient = useQueryClient()
 
   const { register, watch, setValue, handleSubmit } =
     useForm<CompanySettingsForm>({
@@ -54,10 +76,14 @@ export default function CompanySettingsPage() {
           phone: "",
         },
         workingTime: {
-          days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-          startHour: "08:30",
-          endHour: "18:00",
+          days: [],
+          startHour: "00:00",
+          endHour: "00:00",
         },
+        localization: {
+          timezone: TIMEZONES[0],
+          locale: LOCALES[0],
+        }
       },
     });
 
@@ -74,12 +100,51 @@ export default function CompanySettingsPage() {
     }
   }
 
-  function onSubmit(values: CompanySettingsForm) {
-    console.log("✅ SAVED SETTINGS:", values);
+  async function onSubmit(values: CompanySettingsForm) {
+    const { company, workingTime } = values;
+    if (activeTab === 'General') {
+      await upsertSetting({
+        key: "general",
+        value: company
+      })
+    } else if (activeTab === "Working Time") {
+      await upsertSetting({
+        key: "working_time",
+        value: workingTime
+      })
+    }
+
+    toast(`Update ${activeTab.toLowerCase()} settings success`)
+    queryClient.invalidateQueries({
+      queryKey: [QueryKey.GET_SYSTEM_SETTINGS]
+    })
   }
 
+  useEffect(() => {
+    if (!isLoadingSettings && settings) {
+      const general = settings.find((ele) => ele.key === "general")
+      const workingTime = settings.find((ele) => ele.key === "working_time")
+
+      if (general) {
+        setValue("company", {
+          email: general.value.email as string,
+          name: general.value.name as string,
+          phone: general.value.phone as string,
+        })
+      }
+
+      if (workingTime) {
+        setValue("workingTime", {
+          days: workingTime.value.days as string[],
+          startHour: workingTime.value.startHour as string,
+          endHour: workingTime.value.endHour as string,
+        })
+      }
+    }
+  }, [settings, isLoadingSettings, setValue])
+
   return (
-    <div className="p-6 max-w-full mx-auto space-y-6">
+    <div className="p-6 max-w-full mx-auto space-y-6 bg-background">
       {/* ✅ PAGE HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-primary">Company Settings</h1>
@@ -93,13 +158,13 @@ export default function CompanySettingsPage() {
       <div className="flex gap-2 border-b">
         {TABS.map((tab) => (
           <button
+            type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
-              activeTab === tab
-                ? "border-primary text-primary"
-                : "border-transparent text-foreground/50 hover:text-foreground"
-            }`}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${activeTab === tab
+              ? "border-primary text-primary"
+              : "border-transparent text-foreground/70 hover:text-foreground"
+              }`}
           >
             {tab}
           </button>
@@ -107,7 +172,7 @@ export default function CompanySettingsPage() {
       </div>
 
       {/* ✅ FORM */}
-      <form onSubmit={handleSubmit(onSubmit)} className="pt-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="pt-6 text-foreground">
         {/* ================= GENERAL TAB ================= */}
         {activeTab === "General" && (
           <div className="space-y-8 max-w-2xl">
@@ -172,11 +237,10 @@ export default function CompanySettingsPage() {
                     key={day}
                     type="button"
                     onClick={() => toggleDay(day)}
-                    className={`border rounded-md py-2 text-sm font-semibold ${
-                      selectedDays.includes(day)
-                        ? "bg-primary text-white"
-                        : "bg-background"
-                    }`}
+                    className={`border rounded-md py-2 text-sm font-semibold ${selectedDays.includes(day)
+                      ? "bg-primary text-white"
+                      : "bg-background"
+                      }`}
                   >
                     {day}
                   </button>
@@ -292,10 +356,10 @@ export default function CompanySettingsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="px-3 py-1 border rounded-md text-sm">
+                    <button type="button" className="px-3 py-1 border rounded-md text-sm">
                       Edit
                     </button>
-                    <button className="px-3 py-1 border rounded-md text-sm text-destructive">
+                    <button type="button" className="px-3 py-1 border rounded-md text-sm text-destructive">
                       Delete
                     </button>
                   </div>
@@ -305,11 +369,72 @@ export default function CompanySettingsPage() {
           </div>
         )}
 
+        {/* ================= LOCALIZATION TAB (ADDED ONLY) ================= */}
+        {activeTab === ("Localization") && (
+          <div className="space-y-8 max-w-2xl">
+            <div>
+              <h2 className="text-xl font-bold">Localization Settings</h2>
+              <p className="text-sm text-muted-foreground">
+                Configure system language & time zone.
+              </p>
+            </div>
+
+            {/* Locale */}
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">Language / Locale</label>
+              <select {...register('localization.locale')} className="w-full border rounded-md px-3 py-2 bg-background">
+                {LOCALES.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Time Zone */}
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">Time Zone</label>
+              <select {...register("localization.timezone")} className="w-full border rounded-md px-3 py-2 bg-background">
+                {TIMEZONES.map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Time Format */}
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">Time Format</label>
+              <div className="flex gap-6">
+                {TIME_FORMATS.map((format) => (
+                  <label
+                    key={format.value}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="time-format"
+
+                      value={format.value}
+                      defaultChecked={format.value === "24h"}
+                      className="w-4 h-4 accent-primary"
+                    />
+                    <span className="text-sm">{format.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+
         {/* ✅ SAVE BUTTON */}
         <div className="pt-10 border-t mt-10 flex justify-end">
           <button
-            type="submit"
-            className="px-6 py-2 bg-primary text-white rounded-md font-bold"
+            type="submit" disabled={isPendingUpsertSettings}
+            className="px-6 py-2 bg-primary text-white rounded-md font-bold 
+            cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Save Settings
           </button>
