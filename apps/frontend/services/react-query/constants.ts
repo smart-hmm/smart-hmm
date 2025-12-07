@@ -2,6 +2,9 @@ export enum QueryKey {
   // User info
   GET_ME = "GET_ME",
 
+  // User settings
+  GET_USER_SETTINGS = "GET_USER_SETTINGS",
+
   // Departments
   GET_DEPARTMENT = "GET_DEPARTMENT",
   GET_DEPARTMENTS = "GET_DEPARTMENTS",

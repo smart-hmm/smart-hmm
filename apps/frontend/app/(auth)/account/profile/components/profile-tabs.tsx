@@ -39,8 +39,8 @@ export function ProfileTabs({ value, onChange }: Props) {
                 pb-3 text-[15px] font-semibold transition
                 ${
                   active
-                    ? "text-primary border-b-2 border-primary"
-                    : "text-foreground/70 hover:text-primary"
+                    ? "text-[color:var(--theme-primary)] border-b-2 border-[color:var(--theme-primary)]"
+                    : "text-foreground/70 hover:text-[color:var(--theme-primary)]"
                 }
               `}
             >

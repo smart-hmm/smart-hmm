@@ -311,7 +311,7 @@ export default function BookingDashboard() {
               )
             )
           }
-          className="px-4 py-2 rounded-md bg-primary text-white"
+          className="px-4 py-2 rounded-md bg-[color:var(--theme-primary)] text-white"
         >
           ←
         </button>
@@ -333,7 +333,7 @@ export default function BookingDashboard() {
               )
             )
           }
-          className="px-4 py-2 rounded-md bg-primary text-white"
+          className="px-4 py-2 rounded-md bg-[color:var(--theme-primary)] text-white"
         >
           →
         </button>
@@ -341,7 +341,10 @@ export default function BookingDashboard() {
 
       <div className="grid grid-cols-7 gap-3">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-xs font-bold text-primary">
+          <div
+            key={d}
+            className="text-center text-xs font-bold text-[color:var(--theme-primary)]"
+          >
             {d}
           </div>
         ))}
@@ -374,10 +377,10 @@ export default function BookingDashboard() {
                 ${day.isToday ? "ring-2 ring-info" : ""}
               `}
             >
-              <div className="flex justify-between mb-1 text-md text-primary font-semibold">
+              <div className="flex justify-between mb-1 text-md text-[color:var(--theme-primary)] font-semibold">
                 <span>{day.label}</span>
                 {dailyBookings.length > 0 && (
-                  <span className="text-primary font-bold">
+                  <span className="text-[color:var(--theme-primary)] font-bold">
                     {dailyBookings.length}
                   </span>
                 )}
@@ -717,7 +720,7 @@ export default function BookingDashboard() {
                 <button
                   type="submit"
                   disabled={!rangeStart || !rangeEnd}
-                  className="px-5 py-2 rounded-md bg-primary text-white font-semibold disabled:opacity-40"
+                  className="px-5 py-2 rounded-md bg-[color:var(--theme-primary)] text-white font-semibold disabled:opacity-40"
                 >
                   Book
                 </button>

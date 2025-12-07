@@ -75,7 +75,7 @@ export function LeaveCalendar({ value, onChange }: Props) {
               )
             )
           }
-          className="px-3 py-2 rounded-md bg-primary text-surface"
+          className="px-3 py-2 rounded-md bg-[color:var(--theme-primary)] text-surface"
         >
           ←
         </button>
@@ -98,7 +98,7 @@ export function LeaveCalendar({ value, onChange }: Props) {
               )
             )
           }
-          className="px-3 py-2 rounded-md bg-primary text-surface"
+          className="px-3 py-2 rounded-md bg-[color:var(--theme-primary)] text-surface"
         >
           →
         </button>

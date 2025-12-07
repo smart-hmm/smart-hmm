@@ -8,20 +8,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-/* =======================
-   TYPES
-======================= */
-
-const LOCALES = ["en-US", "vi-VN", "ja-JP"];
-
-const TIMEZONES = Intl.supportedValuesOf("timeZone");
-
-const TIME_FORMATS = [
-  { label: "24 Hours (00:00)", value: "24h" },
-  { label: "12 Hours (AM/PM)", value: "12h" },
-];
-
-
 interface CompanySettingsForm {
   company: {
     name: string;
@@ -33,17 +19,9 @@ interface CompanySettingsForm {
     startHour: string;
     endHour: string;
   };
-  localization: {
-    timezone: string,
-    locale: string
-  }
 }
 
-/* =======================
-   MOCK DATA
-======================= */
-
-const TABS = ["General", "Localization", "Working Time", "Branches", "Meeting Rooms"] as const;
+const TABS = ["General", "Working Time", "Branches", "Meeting Rooms"] as const;
 
 const workingDayValues = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -57,15 +35,12 @@ const meetingRooms = [
   { id: "2", name: "Room 02", branchName: "Ha Noi" },
 ];
 
-/* =======================
-   MAIN PAGE
-======================= */
-
 export default function CompanySettingsPage() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("General");
-  const { data: settings, isLoading: isLoadingSettings } = useSysSettings()
-  const { mutateAsync: upsertSetting, isPending: isPendingUpsertSettings } = useUpsertSysSetting()
-  const queryClient = useQueryClient()
+  const { data: settings, isLoading: isLoadingSettings } = useSysSettings();
+  const { mutateAsync: upsertSetting, isPending: isPendingUpsertSettings } =
+    useUpsertSysSetting();
+  const queryClient = useQueryClient();
 
   const { register, watch, setValue, handleSubmit } =
     useForm<CompanySettingsForm>({
@@ -80,10 +55,6 @@ export default function CompanySettingsPage() {
           startHour: "00:00",
           endHour: "00:00",
         },
-        localization: {
-          timezone: TIMEZONES[0],
-          locale: LOCALES[0],
-        }
       },
     });
 
@@ -102,35 +73,35 @@ export default function CompanySettingsPage() {
 
   async function onSubmit(values: CompanySettingsForm) {
     const { company, workingTime } = values;
-    if (activeTab === 'General') {
+    if (activeTab === "General") {
       await upsertSetting({
         key: "general",
-        value: company
-      })
+        value: company,
+      });
     } else if (activeTab === "Working Time") {
       await upsertSetting({
         key: "working_time",
-        value: workingTime
-      })
+        value: workingTime,
+      });
     }
 
-    toast(`Update ${activeTab.toLowerCase()} settings success`)
+    toast(`Update ${activeTab.toLowerCase()} settings success`);
     queryClient.invalidateQueries({
-      queryKey: [QueryKey.GET_SYSTEM_SETTINGS]
-    })
+      queryKey: [QueryKey.GET_SYSTEM_SETTINGS],
+    });
   }
 
   useEffect(() => {
     if (!isLoadingSettings && settings) {
-      const general = settings.find((ele) => ele.key === "general")
-      const workingTime = settings.find((ele) => ele.key === "working_time")
+      const general = settings.find((ele) => ele.key === "general");
+      const workingTime = settings.find((ele) => ele.key === "working_time");
 
       if (general) {
         setValue("company", {
           email: general.value.email as string,
           name: general.value.name as string,
           phone: general.value.phone as string,
-        })
+        });
       }
 
       if (workingTime) {
@@ -138,16 +109,18 @@ export default function CompanySettingsPage() {
           days: workingTime.value.days as string[],
           startHour: workingTime.value.startHour as string,
           endHour: workingTime.value.endHour as string,
-        })
+        });
       }
     }
-  }, [settings, isLoadingSettings, setValue])
+  }, [settings, isLoadingSettings, setValue]);
 
   return (
     <div className="p-6 max-w-full mx-auto space-y-6 bg-background">
       {/* ✅ PAGE HEADER */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">Company Settings</h1>
+        <h1 className="text-2xl font-bold text-[color:var(--theme-primary)]">
+          Company Settings
+        </h1>
         <p className="text-sm text-muted-foreground text-foreground/80 pt-2">
           Manage company configuration, working hours, branches and meeting
           rooms.
@@ -161,10 +134,11 @@ export default function CompanySettingsPage() {
             type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${activeTab === tab
-              ? "border-primary text-primary"
-              : "border-transparent text-foreground/70 hover:text-foreground"
-              }`}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
+              activeTab === tab
+                ? "border-[color:var(--theme-primary)] text-[color:var(--theme-primary)]"
+                : "border-transparent text-foreground/70 hover:text-foreground"
+            }`}
           >
             {tab}
           </button>
@@ -237,10 +211,11 @@ export default function CompanySettingsPage() {
                     key={day}
                     type="button"
                     onClick={() => toggleDay(day)}
-                    className={`border rounded-md py-2 text-sm font-semibold ${selectedDays.includes(day)
-                      ? "bg-primary text-white"
-                      : "bg-background"
-                      }`}
+                    className={`border rounded-md py-2 text-sm font-semibold ${
+                      selectedDays.includes(day)
+                        ? "bg-[color:var(--theme-primary)] text-white"
+                        : "bg-background"
+                    }`}
                   >
                     {day}
                   </button>
@@ -277,7 +252,6 @@ export default function CompanySettingsPage() {
           </div>
         )}
 
-        {/* ================= BRANCHES TAB ================= */}
         {activeTab === "Branches" && (
           <div className="space-y-8 max-w-3xl">
             <div className="flex items-center justify-between">
@@ -290,7 +264,7 @@ export default function CompanySettingsPage() {
 
               <button
                 type="button"
-                className="px-4 py-2 bg-primary text-white rounded-md font-semibold"
+                className="px-4 py-2 bg-[color:var(--theme-primary)] text-white rounded-md font-semibold"
               >
                 + Add Branch
               </button>
@@ -323,7 +297,6 @@ export default function CompanySettingsPage() {
           </div>
         )}
 
-        {/* ================= MEETING ROOMS TAB ================= */}
         {activeTab === "Meeting Rooms" && (
           <div className="space-y-8 max-w-3xl">
             <div className="flex items-center justify-between">
@@ -336,7 +309,7 @@ export default function CompanySettingsPage() {
 
               <button
                 type="button"
-                className="px-4 py-2 bg-primary text-white rounded-md font-semibold"
+                className="px-4 py-2 bg-[color:var(--theme-primary)] text-white rounded-md font-semibold"
               >
                 + Add Room
               </button>
@@ -356,10 +329,16 @@ export default function CompanySettingsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button type="button" className="px-3 py-1 border rounded-md text-sm">
+                    <button
+                      type="button"
+                      className="px-3 py-1 border rounded-md text-sm"
+                    >
                       Edit
                     </button>
-                    <button type="button" className="px-3 py-1 border rounded-md text-sm text-destructive">
+                    <button
+                      type="button"
+                      className="px-3 py-1 border rounded-md text-sm text-destructive"
+                    >
                       Delete
                     </button>
                   </div>
@@ -369,71 +348,11 @@ export default function CompanySettingsPage() {
           </div>
         )}
 
-        {/* ================= LOCALIZATION TAB (ADDED ONLY) ================= */}
-        {activeTab === ("Localization") && (
-          <div className="space-y-8 max-w-2xl">
-            <div>
-              <h2 className="text-xl font-bold">Localization Settings</h2>
-              <p className="text-sm text-muted-foreground">
-                Configure system language & time zone.
-              </p>
-            </div>
-
-            {/* Locale */}
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Language / Locale</label>
-              <select {...register('localization.locale')} className="w-full border rounded-md px-3 py-2 bg-background">
-                {LOCALES.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Time Zone */}
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Time Zone</label>
-              <select {...register("localization.timezone")} className="w-full border rounded-md px-3 py-2 bg-background">
-                {TIMEZONES.map((tz) => (
-                  <option key={tz} value={tz}>
-                    {tz}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Time Format */}
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Time Format</label>
-              <div className="flex gap-6">
-                {TIME_FORMATS.map((format) => (
-                  <label
-                    key={format.value}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name="time-format"
-
-                      value={format.value}
-                      defaultChecked={format.value === "24h"}
-                      className="w-4 h-4 accent-primary"
-                    />
-                    <span className="text-sm">{format.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* ✅ SAVE BUTTON */}
         <div className="pt-10 border-t mt-10 flex justify-end">
           <button
-            type="submit" disabled={isPendingUpsertSettings}
-            className="px-6 py-2 bg-primary text-white rounded-md font-bold 
+            type="submit"
+            disabled={isPendingUpsertSettings}
+            className="px-6 py-2 bg-[color:var(--theme-primary)] text-white rounded-md font-bold 
             cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Save Settings

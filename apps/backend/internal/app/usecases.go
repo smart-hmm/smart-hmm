@@ -10,6 +10,7 @@ import (
 	leavetypeusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/usecase"
 	payrollusecase "github.com/smart-hmm/smart-hmm/internal/modules/payroll/usecase"
 	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
+	usersettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/usecase"
 	systemsettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/system/usecase"
 	userusecase "github.com/smart-hmm/smart-hmm/internal/modules/user/usecase"
 )
@@ -47,6 +48,10 @@ type Usecases struct {
 	ListSettings            *systemsettingsusecase.ListSettingsUsecase
 	UpdateSetting           *systemsettingsusecase.UpdateSettingUsecase
 	DeleteSetting           *systemsettingsusecase.DeleteSettingUsecase
+	GetUserSetting          *usersettingsusecase.GetSettingUsecase
+	ListUserSettings        *usersettingsusecase.ListSettingsUsecase
+	UpdateUserSetting       *usersettingsusecase.UpdateSettingUsecase
+	DeleteUserSetting       *usersettingsusecase.DeleteSettingUsecase
 	RegisterUserUsecase     *userusecase.RegisterUserUsecase
 	LoginUsecase            *authusecase.LoginUsecase
 	MeUsecase               *authusecase.MeUsecase
@@ -96,6 +101,10 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		ListSettings:            systemsettingsusecase.NewListSettingsUsecase(repo.SystemSettings),
 		UpdateSetting:           systemsettingsusecase.NewUpdateSettingUsecase(repo.SystemSettings),
 		DeleteSetting:           systemsettingsusecase.NewDeleteSettingUsecase(repo.SystemSettings),
+		GetUserSetting:          usersettingsusecase.NewGetSettingUsecase(repo.UserSettings),
+		ListUserSettings:        usersettingsusecase.NewListSettingsUsecase(repo.UserSettings),
+		UpdateUserSetting:       usersettingsusecase.NewUpdateSettingUsecase(repo.UserSettings),
+		DeleteUserSetting:       usersettingsusecase.NewDeleteSettingUsecase(repo.UserSettings),
 		RegisterUserUsecase:     registerUser,
 		LoginUsecase:            authusecase.NewLoginUsecase(repo.User, infras.TokenService, createRefreshToken),
 		MeUsecase:               authusecase.NewMeUsecase(repo.User, repo.Employee),

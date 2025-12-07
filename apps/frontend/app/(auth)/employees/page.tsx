@@ -112,9 +112,11 @@ export default function EmployeesPage() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <SearchInput 
-        placeHolder="Search by name, email or code"
-        search={search} setSearch={(value) => setSearch(value)} />
+        <SearchInput
+          placeHolder="Search by name, email or code"
+          search={search}
+          setSearch={(value) => setSearch(value)}
+        />
 
         <select
           value={departmentFilter}
@@ -215,10 +217,11 @@ export default function EmployeesPage() {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded-md border ${currentPage === i + 1
-                ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                : ""
-                }`}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === i + 1
+                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+                  : ""
+              }`}
             >
               {i + 1}
             </button>

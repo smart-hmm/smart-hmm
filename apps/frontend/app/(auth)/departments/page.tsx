@@ -27,16 +27,18 @@ export default function DepartmentsPage() {
             onClick={() => router.back()}
             className="p-2 rounded-md hover:bg-muted"
           >
-            <ArrowLeft className="w-6 h-6 text-primary" />
+            <ArrowLeft className="w-6 h-6 text-[color:var(--theme-primary)]" />
           </button>
 
-          <h1 className="text-xl font-bold text-primary">Departments</h1>
+          <h1 className="text-xl font-bold text-[color:var(--theme-primary)]">
+            Departments
+          </h1>
         </div>
 
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 rounded-md bg-primary text-white text-sm font-semibold hover:opacity-90"
+          className="px-4 py-2 rounded-md bg-[color:var(--theme-primary)] text-white text-sm font-semibold hover:opacity-90"
         >
           + Create New Department
         </button>
@@ -82,12 +84,13 @@ export default function DepartmentsPage() {
                   </Td>
                   {/* <Td>Ho Chi Minh</Td> */}
                   <Td>
-                    <Link className="text-info hover:underline" href={"/"}>{`${
-                      dept.manager?.firstName
-                    }, ${dept.manager?.lastName}`}</Link>
+                    <Link
+                      className="text-info hover:underline"
+                      href={"/"}
+                    >{`${dept.manager?.firstName}, ${dept.manager?.lastName}`}</Link>
                   </Td>
                   <Td>
-                    <span className="font-semibold text-primary">
+                    <span className="font-semibold text-[color:var(--theme-primary)]">
                       {dept.totalEmployees ?? "-"}
                     </span>
                   </Td>

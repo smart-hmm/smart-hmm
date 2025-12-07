@@ -83,39 +83,40 @@ function TreeNode({
       <div
         onClick={() => onSelect?.(node)}
         onKeyUp={() => onSelect?.(node)}
-        className={`relative w-60 rounded-xl border bg-surface p-4 text-center shadow-sm cursor-pointer transition ${isSelected
-          ? "border-primary ring-2 ring-primary/30"
-          : "border-muted hover:border-primary/50"
-          }`}
+        className={`relative w-60 rounded-xl border bg-surface p-4 text-center shadow-sm cursor-pointer transition ${
+          isSelected
+            ? "border-[color:var(--theme-primary)] ring-2 ring-primary/30"
+            : "border-muted hover:border-[color:var(--theme-primary)]/50"
+        }`}
       >
-        {isSelected &&
-        <div className="absolute top-2 right-2  flex gap-1 z-10">
-          {/* ADD CHILD */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onAddChild?.(node);
-            }}
-            className="w-6 h-6 flex items-center justify-center rounded bg-primary text-surface text-primary-foreground text-xs shadow hover:opacity-90"
-            title="Add Child"
-          >
-            +
-          </button>
+        {isSelected && (
+          <div className="absolute top-2 right-2  flex gap-1 z-10">
+            {/* ADD CHILD */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddChild?.(node);
+              }}
+              className="w-6 h-6 flex items-center justify-center rounded bg-[color:var(--theme-primary)] text-surface text-[color:var(--theme-primary)]-foreground text-xs shadow hover:opacity-90"
+              title="Add Child"
+            >
+              +
+            </button>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove?.(node);
-            }}
-            className="w-6 h-6 flex items-center justify-center rounded bg-destructive text-destructive-foreground text-xs shadow hover:opacity-90"
-            title="Remove"
-          >
-            ×
-          </button>
-        </div>
-}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove?.(node);
+              }}
+              className="w-6 h-6 flex items-center justify-center rounded bg-destructive text-destructive-foreground text-xs shadow hover:opacity-90"
+              title="Remove"
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {isSelected && (
           <button
@@ -124,7 +125,7 @@ function TreeNode({
               onEdit?.(node);
             }}
             type="button"
-            className="absolute -top-2 -left-2 rounded-full bg-primary text-surface text-xs px-2 py-1 shadow"
+            className="absolute -top-2 -left-2 rounded-full bg-[color:var(--theme-primary)] text-surface text-xs px-2 py-1 shadow"
           >
             Edit
           </button>
@@ -175,12 +176,9 @@ export default function DepartmentDetailsPage() {
   const params = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState<TabKey>("employees");
 
-  const [selectedNode, setSelectedNode] =
-    useState<EmployeeNode | null>(null);
-  const [editingNode, setEditingNode] =
-    useState<EmployeeNode | null>(null);
-  const [addingParent, setAddingParent] =
-    useState<EmployeeNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<EmployeeNode | null>(null);
+  const [editingNode, setEditingNode] = useState<EmployeeNode | null>(null);
+  const [addingParent, setAddingParent] = useState<EmployeeNode | null>(null);
 
   const { data: employees } = useEmployeesByDepartmentId(params.id);
   const { data: department } = useDepartment(params.id);
@@ -193,7 +191,11 @@ export default function DepartmentDetailsPage() {
   if (!department) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <button type="button" onClick={() => router.back()} className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex items-center gap-2"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
@@ -231,10 +233,11 @@ export default function DepartmentDetailsPage() {
             type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2 text-sm font-semibold capitalize ${activeTab === tab
-              ? "border-b-2 border-primary text-primary"
-              : "text-muted-foreground"
-              }`}
+            className={`pb-2 text-sm font-semibold capitalize ${
+              activeTab === tab
+                ? "border-b-2 border-[color:var(--theme-primary)] text-[color:var(--theme-primary)]"
+                : "text-muted-foreground"
+            }`}
           >
             {tab}
           </button>
@@ -255,9 +258,7 @@ export default function DepartmentDetailsPage() {
             </thead>
             <tbody>
               {employees.map((emp) => {
-                const manager = employees.find(
-                  (e) => e.id === emp.managerID
-                );
+                const manager = employees.find((e) => e.id === emp.managerID);
 
                 return (
                   <tr key={emp.id} className="border-t border-muted">
@@ -309,13 +310,16 @@ export default function DepartmentDetailsPage() {
 
             <div className="flex justify-end gap-3 pt-4">
               <button
-                type='button'
+                type="button"
                 onClick={() => setEditingNode(null)}
                 className="px-4 py-2 text-sm rounded-md border"
               >
                 Cancel
               </button>
-              <button type="button" className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm rounded-md bg-[color:var(--theme-primary)] text-[color:var(--theme-primary)]-foreground"
+              >
                 Save
               </button>
             </div>
@@ -345,7 +349,8 @@ export default function DepartmentDetailsPage() {
               </button>
               <button
                 type="button"
-                className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground">
+                className="px-4 py-2 text-sm rounded-md bg-[color:var(--theme-primary)] text-[color:var(--theme-primary)]-foreground"
+              >
                 Attach
               </button>
             </div>

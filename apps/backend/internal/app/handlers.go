@@ -10,6 +10,7 @@ import (
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
+	usersettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user_settings"
 	userhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user"
 )
 
@@ -23,6 +24,7 @@ type Handlers struct {
 	LeaveRequest   *leaverequesthandler.LeaveRequestHandler
 	LeaveType      *leavetypehandler.LeaveTypeHandler
 	SystemSettings *systemsettingshandler.SystemSettingsHandler
+	UserSettings   *usersettingshandler.UserSettingsHandler
 	Auth           *authhandler.AuthHandler
 }
 
@@ -65,6 +67,12 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.ListSettings,
 			uc.UpdateSetting,
 			uc.DeleteSetting,
+		),
+		UserSettings: usersettingshandler.NewUserSettingsHandler(
+			uc.GetUserSetting,
+			uc.ListUserSettings,
+			uc.UpdateUserSetting,
+			uc.DeleteUserSetting,
 		),
 		Auth: authhandler.NewAuthHandler(
 			uc.LoginUsecase,

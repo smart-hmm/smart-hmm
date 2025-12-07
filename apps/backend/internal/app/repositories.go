@@ -11,6 +11,7 @@ import (
 	leaverepositorytype "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
 	payrollrepository "github.com/smart-hmm/smart-hmm/internal/modules/payroll/repository"
 	refreshtokenrepository "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/repository"
+	usersettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/repository"
 	systemsettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/system/repository"
 	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
 )
@@ -24,6 +25,7 @@ type Repositories struct {
 	LeaveType      leaverepositorytype.LeaveTypeRepository
 	EmailTemplate  emailtemplaterepository.EmailTemplateRepository
 	SystemSettings systemsettingrepository.SystemSettingRepository
+	UserSettings   usersettingrepository.UserSettingRepository
 	User           userrepository.UserRepository
 	RefreshToken   refreshtokenrepository.RefreshTokenRepository
 }
@@ -38,6 +40,7 @@ func buildRepositories(pool *pgxpool.Pool) Repositories {
 		LeaveType:      pgrepository.NewLeaveTypePostgresRepository(pool),
 		EmailTemplate:  pgrepository.NewEmailTemplatePostgresRepository(pool),
 		SystemSettings: pgrepository.NewSystemSettingPostgresRepository(pool),
+		UserSettings:   pgrepository.NewUserSettingPostgresRepository(pool),
 		User:           pgrepository.NewUserPostgresRepository(pool),
 		RefreshToken:   pgrepository.NewRefreshTokenPostgresRepository(pool),
 	}

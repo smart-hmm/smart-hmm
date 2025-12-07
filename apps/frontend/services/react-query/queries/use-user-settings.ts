@@ -2,9 +2,10 @@ import api from "@/lib/http";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
 
-const getSysSettings = async () => {
-  const response = await api.get("/system-settings");
+const getUserSettings = async () => {
+  const response = await api.get("/user-settings");
   const data = response.data as {
+    userId: string;
     key: string;
     value: Record<string, string | number | string[] | number[]>;
     updatedAt: string;
@@ -12,10 +13,10 @@ const getSysSettings = async () => {
   return data;
 };
 
-const useSysSettings = () => {
+const useUserSettings = () => {
   const { data, isLoading, error } = useQuery({
-    queryKey: [QueryKey.GET_SYSTEM_SETTINGS],
-    queryFn: getSysSettings,
+    queryKey: [QueryKey.GET_USER_SETTINGS],
+    queryFn: getUserSettings,
   });
 
   return {
@@ -25,4 +26,4 @@ const useSysSettings = () => {
   };
 };
 
-export default useSysSettings;
+export default useUserSettings;

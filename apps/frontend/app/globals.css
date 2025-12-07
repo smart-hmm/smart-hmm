@@ -1,34 +1,64 @@
 @import "tailwindcss";
 
 @theme {
+  --app-font-family: Inter, sans-serif;
+  --app-font-size: 16px;
+
+  --theme-primary: #3b82f6;
+  --color-primary: var(--theme-primary);
+
   /* Base */
   --color-background: #ffffff;
   --color-foreground: #0f172a;
 
-  /* Brand / Actions */
-  --color-primary: #9b5de5;    
+  /* Other colors remain static */
   --color-secondary: #f15bb5;
-  --color-accent: #fee440;     
+  --color-accent: #fee440;
 
-  /* Status */
-  --color-info: #00bbf9;        
+  --color-info: #00bbf9;
   --color-success: #00f5d4;
   --color-danger: #ef4444;
 
-  /* UI */
   --color-surface: #f8fafc;
   --color-muted: #e5e7eb;
+}
 
-  /* Fonts */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.theme-blue {
+  --theme-primary: #3b82f6;
+}
+.theme-purple {
+  --theme-primary: #8b5cf6;
+}
+.theme-green {
+  --theme-primary: #22c55e;
+}
+.theme-red {
+  --theme-primary: #ef4444;
+}
+.theme-orange {
+  --theme-primary: #f97316;
+}
+.theme-pink {
+  --theme-primary: #ec4899;
+}
+.theme-teal {
+  --theme-primary: #14b8a6;
+}
+.theme-indigo {
+  --theme-primary: #6366f1;
+}
+.theme-yellow {
+  --theme-primary: #eab308;
+}
+.theme-slate {
+  --theme-primary: #64748b;
 }
 
 html[data-theme="dark"] {
   --color-background: #020617;
   --color-foreground: #e5e7eb;
 
-  --color-primary: #b28cff;
+  --color-primary: var(--theme-primary);
   --color-secondary: #f472c7;
   --color-accent: #fde68a;
 
@@ -38,4 +68,10 @@ html[data-theme="dark"] {
 
   --color-surface: #0f172a;
   --color-muted: #334155;
+}
+
+html,
+body {
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size);
 }

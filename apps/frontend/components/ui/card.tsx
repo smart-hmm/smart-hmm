@@ -10,7 +10,9 @@ export default function Card({ title, children, editable }: CardProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-sm">{title}</h3>
         {editable && (
-          <button className="text-sm font-semibold text-primary">Edit</button>
+          <button className="text-sm font-semibold text-[color:var(--theme-primary)]">
+            Edit
+          </button>
         )}
       </div>
       {children}

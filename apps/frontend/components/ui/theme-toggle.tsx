@@ -37,7 +37,7 @@ export function ThemeToggle() {
         className={`
           absolute top-1 left-1
           w-6 h-6 rounded-full
-          bg-primary
+          bg-[color:var(--theme-primary)]
           transition-all duration-300 ease-in-out
           ${theme === "dark" ? "translate-x-8" : "translate-x-0"}
         `}

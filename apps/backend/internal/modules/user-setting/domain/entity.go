@@ -5,25 +5,27 @@ import (
 	"time"
 )
 
-type SystemSetting struct {
+type UserSetting struct {
+	UserId    string    `json:"userId"`
 	Key       string    `json:"key"`
 	Value     any       `json:"value"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func NewSystemSetting(key string, value any) (*SystemSetting, error) {
+func NewUserSetting(userId string, key string, value any) (*UserSetting, error) {
 	if key == "" {
 		return nil, errors.New("key required")
 	}
 
-	return &SystemSetting{
+	return &UserSetting{
+		UserId:    userId,
 		Key:       key,
 		Value:     value,
 		UpdatedAt: time.Now(),
 	}, nil
 }
 
-func (s *SystemSetting) Update(value any) {
+func (s *UserSetting) Update(value any) {
 	s.Value = value
 	s.UpdatedAt = time.Now()
 }

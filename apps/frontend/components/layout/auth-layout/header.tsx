@@ -41,7 +41,7 @@ export default function Header() {
           >
             <div
               className="bg-foreground text-surface rounded-md px-6 py-3 box-border flex flex-col gap-2 items-center"
-              onClick={(e) => {
+              onClick={() => {
                 setPopoverOpen(!isPopoverOpen);
               }}
             >
@@ -49,10 +49,19 @@ export default function Header() {
                 type="button"
                 className="cursor-pointer"
                 onClick={() => {
-                  router.push("/profile");
+                  router.push("/account/profile");
                 }}
               >
                 Profile
+              </button>
+              <button
+                type="button"
+                className="cursor-pointer"
+                onClick={() => {
+                  router.push("/account/settings");
+                }}
+              >
+                Settings
               </button>
               <button
                 type="button"

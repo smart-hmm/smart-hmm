@@ -17,6 +17,7 @@ import (
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
+	usersettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user_settings"
 	userhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user"
 	"github.com/smart-hmm/smart-hmm/internal/interface/http/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -32,6 +33,7 @@ type Args struct {
 	LeaveRequestHandler   *leaverequesthandler.LeaveRequestHandler
 	LeaveTypeHandler      *leavetypehandler.LeaveTypeHandler
 	SystemSettingsHandler *systemsettingshandler.SystemSettingsHandler
+	UserSettingsHandler   *usersettingshandler.UserSettingsHandler
 	AuthHandler           *authhandler.AuthHandler
 	TokenService          tokenports.Service
 }
@@ -78,6 +80,7 @@ func GetRouter(args Args) *chi.Mux {
 			pr.Route("/leave-requests", args.LeaveRequestHandler.Routes)
 			pr.Route("/leave-types", args.LeaveTypeHandler.Routes)
 			pr.Route("/system-settings", args.SystemSettingsHandler.Routes)
+			pr.Route("/user-settings", args.UserSettingsHandler.Routes)
 		})
 	})
 
