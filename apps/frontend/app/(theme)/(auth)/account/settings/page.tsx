@@ -1,33 +1,18 @@
 "use client";
 
-import { FONTS, THEMES } from "@/components/providers/theme-provider";
+import { FONTS, LOCALES, THEMES, TIME_FORMATS, TIMEZONES } from "@/constants";
 import { QueryKey } from "@/services/react-query/constants";
 import useUpsertUserSetting from "@/services/react-query/mutations/use-upsert-user-setting";
 import useUserSettings from "@/services/react-query/queries/use-user-settings";
+import { AppearanceSettings, LocalizationSettings } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 
-const LOCALES = ["en-US", "vi-VN", "ja-JP"];
-const TIMEZONES = Intl.supportedValuesOf("timeZone");
-
-const TIME_FORMATS = [
-  { label: "24 Hours (00:00)", value: "24h" },
-  { label: "12 Hours (AM/PM)", value: "12h" },
-];
-
 interface UserSettingsForm {
-  localization: {
-    timezone: string;
-    locale: string;
-    timeFormat: string;
-  };
-  appearance: {
-    theme: string;
-    font: string;
-    fontSize: string;
-  };
+  localization: LocalizationSettings;
+  appearance: AppearanceSettings;
 }
 
 const TABS = ["Localization", "Appearance"] as const;
@@ -42,8 +27,8 @@ export default function AccountSettingsPage() {
 
   const queryClient = useQueryClient();
 
-  const { register, setValue, handleSubmit, watch } = useForm<UserSettingsForm>(
-    {
+  const { register, setValue, handleSubmit, control } =
+    useForm<UserSettingsForm>({
       defaultValues: {
         localization: {
           timezone: TIMEZONES[0],
@@ -56,8 +41,45 @@ export default function AccountSettingsPage() {
           fontSize: "md",
         },
       },
+    });
+
+  const appearance = useWatch({
+    control,
+    name: "appearance",
+  });
+
+  const localization = useWatch({
+    control,
+    name: "localization",
+  });
+
+  const isChanged = useMemo(() => {
+    if (!settings) return false;
+
+    if (activeTab === "Appearance") {
+      const serverAppearance = settings.find((ele) => ele.key === "appearance");
+      if (!serverAppearance) return false;
+      const settingValue = serverAppearance.value as AppearanceSettings;
+
+      if (settingValue.font !== appearance.font) return true;
+      if (settingValue.fontSize !== appearance.fontSize) return true;
+      if (settingValue.theme !== appearance.theme) return true;
     }
-  );
+
+    if (activeTab === "Localization") {
+      const serverLocalization = settings.find(
+        (ele) => ele.key === "localization"
+      );
+      if (!serverLocalization) return false;
+      const settingValue = serverLocalization.value as LocalizationSettings;
+
+      if (settingValue.locale !== localization.locale) return true;
+      if (settingValue.timeFormat !== localization.timeFormat) return true;
+      if (settingValue.timezone !== localization.timezone) return true;
+    }
+
+    return false;
+  }, [settings, appearance, localization, activeTab]);
 
   async function onSubmit(values: UserSettingsForm) {
     if (activeTab === "Localization") {
@@ -78,6 +100,29 @@ export default function AccountSettingsPage() {
     queryClient.invalidateQueries({
       queryKey: [QueryKey.GET_USER_SETTINGS],
     });
+  }
+
+  function onDiscard() {
+    if (!settings) return;
+
+    if (activeTab === "Localization") {
+      const serverLocalization = settings.find(
+        (ele) => ele.key === "localization"
+      );
+      if (!serverLocalization) return;
+      setValue(
+        "localization",
+        serverLocalization.value as LocalizationSettings
+      );
+    }
+
+    if (activeTab === "Appearance") {
+      const serverLocalization = settings.find(
+        (ele) => ele.key === "appearance"
+      );
+      if (!serverLocalization) return;
+      setValue("appearance", serverLocalization.value as AppearanceSettings);
+    }
   }
 
   useEffect(() => {
@@ -109,39 +154,39 @@ export default function AccountSettingsPage() {
     THEMES.forEach((t) => {
       root.classList.remove(`theme-${t.key}`);
     });
-    root.classList.add(`theme-${watch("appearance.theme")}`);
-  }, [watch("appearance.theme")]);
+    root.classList.add(`theme-${appearance.theme}`);
+  }, [appearance]);
 
   useEffect(() => {
     const root = document.documentElement;
 
     root.style.setProperty(
       "--app-font-family",
-      watch("appearance.font") === "Inter"
+      appearance.font === "Inter"
         ? "Inter, sans-serif"
-        : watch("appearance.font") === "Roboto"
+        : appearance.font === "Roboto"
         ? "Roboto, sans-serif"
-        : watch("appearance.font") === "Poppins"
+        : appearance.font === "Poppins"
         ? "Poppins, sans-serif"
-        : watch("appearance.font") === "Montserrat"
+        : appearance.font === "Montserrat"
         ? "Montserrat, sans-serif"
         : "sans-serif"
     );
 
     root.style.setProperty(
       "--app-font-size",
-      watch("appearance.fontSize") === "sm"
+      appearance.fontSize === "sm"
         ? "14px"
-        : watch("appearance.fontSize") === "lg"
+        : appearance.fontSize === "lg"
         ? "18px"
         : "16px"
     );
-  }, [watch("appearance.font"), watch("appearance.fontSize")]);
+  }, [appearance]);
 
   return (
     <div className="p-6 max-w-full mx-auto space-y-6 bg-background text-foreground">
       <div>
-        <h1 className="text-2xl font-bold text-[color:var(--theme-primary)]">
+        <h1 className="text-2xl font-bold text-(--theme-primary)">
           Account Settings
         </h1>
         <p className="text-sm text-muted-foreground pt-2">
@@ -157,7 +202,7 @@ export default function AccountSettingsPage() {
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
               activeTab === tab
-                ? "border-[color:var(--theme-primary)] text-[color:var(--theme-primary)]"
+                ? "border-(--theme-primary) text-(--theme-primary)"
                 : "border-transparent text-foreground/70 hover:text-foreground"
             }`}
           >
@@ -241,19 +286,18 @@ export default function AccountSettingsPage() {
             {/* Theme */}
             <div className="space-y-1">
               <label className="text-sm font-semibold">Main color</label>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 mt-1">
                 {THEMES.map((theme) => (
                   <button
                     key={theme.key}
                     type="button"
                     onClick={() => setValue("appearance.theme", theme.key)}
-                    className={`
-          w-10 h-10 rounded-full border-2 transition
-          ${
-            watch("appearance.theme") === theme.key
-              ? "scale-110 border-[color:var(--theme-primary)] ring-2 ring-[color:var(--theme-primary)]"
-              : "border-muted"
-          }
+                    className={`w-10 h-10 rounded-full border-2 transition cursor-pointer
+                      ${
+                        appearance.theme === theme.key
+                          ? "scale-100 border-(--theme-primary) ring-2 ring-(--theme-primary)"
+                          : "border-muted"
+                      }
 
                 ${theme.key === "blue" && "bg-blue-500"}
                 ${theme.key === "purple" && "bg-purple-500"}
@@ -302,12 +346,23 @@ export default function AccountSettingsPage() {
           </div>
         )}
 
-        {/* ✅ SAVE BUTTON */}
-        <div className="pt-10 border-t flex justify-end">
+        <div className="pt-10 border-t flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={!isChanged}
+            onClick={onDiscard}
+            className={`px-6 py-2 bg-foreground/50 text-white rounded-md font-bold transition-all 
+              cursor-pointer disabled:cursor-default ${
+                isChanged ? "opacity-100" : "opacity-0"
+              }`}
+          >
+            Discard
+          </button>
+
           <button
             type="submit"
-            disabled={isPending}
-            className="px-6 py-2 bg-[color:var(--theme-primary)] text-white rounded-md font-bold 
+            disabled={isPending || !isChanged}
+            className="px-6 py-2 bg-(--theme-primary) text-white rounded-md font-bold transition-all
             cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Save Settings

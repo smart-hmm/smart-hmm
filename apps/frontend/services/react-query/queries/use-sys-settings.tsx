@@ -1,12 +1,13 @@
 import api from "@/lib/http";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
+import { AppSetting } from "@/types";
 
 const getSysSettings = async () => {
   const response = await api.get("/system-settings");
   const data = response.data as {
     key: string;
-    value: Record<string, string | number | string[] | number[]>;
+    value: AppSetting;
     updatedAt: string;
   }[];
   return data;

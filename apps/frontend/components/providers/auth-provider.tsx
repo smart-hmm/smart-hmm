@@ -1,12 +1,6 @@
 "use client";
 
 import { useMe } from "@/services/react-query/queries/use-me";
-import {
-  removeEmployeeInfo,
-  removeUserInfo,
-  setEmployeeInfo,
-  setUserInfo,
-} from "@/services/redux/slices/user-slice";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -25,14 +19,10 @@ export default function AuthProvider({
   useEffect(() => {
     if (!isLoading) {
       if (!error && data) {
-        dispatch(setUserInfo(data.user));
-        dispatch(setEmployeeInfo(data.employee));
         if (pathname === "/login") {
           router.push("/");
         }
       } else {
-        dispatch(removeUserInfo());
-        dispatch(removeEmployeeInfo());
         if (pathname !== "/login") {
           router.push("/login");
         }

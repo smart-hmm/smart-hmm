@@ -1,24 +1,22 @@
 "use client";
 
 import Loading from "@/app/loading";
+import { FONT_SIZES, FONTS, THEMES } from "@/constants";
 import useUserSettings from "@/services/react-query/queries/use-user-settings";
-import { useLayoutEffect } from "react";
+import { AppFont, AppFontSize, AppTheme } from "@/types";
+import { createContext, useContext, useMemo } from "react";
 
-export const THEMES = [
-  { key: "blue", label: "Blue" },
-  { key: "purple", label: "Purple" },
-  { key: "green", label: "Green" },
-  { key: "red", label: "Red" },
-  { key: "orange", label: "Orange" },
-  { key: "pink", label: "Pink" },
-  { key: "teal", label: "Teal" },
-  { key: "indigo", label: "Indigo" },
-  { key: "yellow", label: "Yellow" },
-  { key: "slate", label: "Slate" },
-];
+type ThemeContextType = {
+  theme: AppTheme;
+  fontSize: AppFontSize;
+  font: AppFont;
+};
 
-export const FONTS = ["Inter", "Roboto", "Poppins", "Montserrat"] as const;
-export const FONT_SIZES = ["sm", "md", "lg"] as const;
+const DEFAULT_THEME = THEMES[0];
+const DEFAULT_FONT = FONTS[0];
+const DEFAULT_FONT_SIZE = FONT_SIZES[0];
+
+const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export default function ThemeProvider({
   children,
@@ -26,42 +24,39 @@ export default function ThemeProvider({
   children: React.ReactNode;
 }) {
   const { data, isLoading } = useUserSettings();
-  useLayoutEffect(() => {
-    if (!data || isLoading) return;
-    const appearance = data.find((ele) => ele.key === "appearance");
-    if (!appearance) return;
 
-    const root = document.documentElement;
-    THEMES.forEach((t) => {
-      root.classList.remove(`theme-${t.key}`);
-    });
+  const appearance = useMemo(
+    () => data?.find((ele) => ele.key === "appearance"),
+    [data]
+  );
 
-    root.classList.add(`theme-${appearance.value.theme as string}`);
+  const value = useMemo<ThemeContextType>(() => {
+    const theme =
+      THEMES.find(
+        (ele) => ele.key === (appearance?.value?.theme ?? DEFAULT_THEME.key)
+      ) ?? DEFAULT_THEME;
 
-    root.style.setProperty(
-      "--app-font-family",
-      appearance.value.font === "Inter"
-        ? "Inter, sans-serif"
-        : appearance.value.font === "Roboto"
-        ? "Roboto, sans-serif"
-        : appearance.value.font === "Poppins"
-        ? "Poppins, sans-serif"
-        : appearance.value.font === "Montserrat"
-        ? "Montserrat, sans-serif"
-        : "sans-serif"
-    );
+    const font =
+      FONTS.find((f) => f === appearance?.value?.font) ?? DEFAULT_FONT;
 
-    root.style.setProperty(
-      "--app-font-size",
-      appearance.value.fontSize === "sm"
-        ? "14px"
-        : appearance.value.fontSize === "lg"
-        ? "18px"
-        : "16px"
-    );
-  }, [data, isLoading]);
+    const fontSize =
+      FONT_SIZES.find((s) => s === appearance?.value?.fontSize) ??
+      DEFAULT_FONT_SIZE;
+
+    return { theme, font, fontSize };
+  }, [appearance]);
 
   if (isLoading) return <Loading />;
 
-  return children;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
+
+export const useTheme = () => {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) {
+    throw new Error("useTheme must be used inside ThemeProvider");
+  }
+  return ctx;
+};

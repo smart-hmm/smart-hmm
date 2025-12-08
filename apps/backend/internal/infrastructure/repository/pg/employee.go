@@ -166,11 +166,13 @@ func (r *EmployeePostgresRepository) Find(name, email, code, departmentID string
 func (r *EmployeePostgresRepository) FindByID(id string) (*domain.Employee, error) {
 	return ScanEmployee(
 		r.db.QueryRow(context.Background(),
-			`SELECT id, code, first_name, last_name, email, phone, date_of_birth,
-			        department_id, manager_id, position, employment_type,
-			        employment_status, join_date, base_salary,
-			        created_at, updated_at
-			       FROM employees WHERE id=$1`, id),
+			`SELECT e.id, e.code, e.first_name, e.last_name, e.email, e.phone, e.date_of_birth,
+		       e.department_id, e.manager_id, e.position, e.employment_type,
+		       e.employment_status, e.join_date, e.base_salary,
+		       e.created_at, e.updated_at, d.name
+			FROM employees e
+			LEFT JOIN departments d ON e.department_id = d.id 
+			WHERE e.id = $1`, id),
 	)
 }
 

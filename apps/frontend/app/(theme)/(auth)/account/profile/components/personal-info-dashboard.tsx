@@ -1,27 +1,32 @@
 "use client";
 
+import Loading from "@/app/loading";
 import Card from "@/components/ui/card";
 import InfoItem from "@/components/ui/info-item";
-import { RootState } from "@/services/redux/store";
+import { useMe } from "@/services/react-query/queries/use-me";
+import { User } from "lucide-react";
 import { DateTime } from "luxon";
-import Image from "next/image";
-import { useSelector } from "react-redux";
 
 export function PersonalInfoDashboard() {
-  const user = useSelector((state: RootState) => state.user);
+  const { data: user, isLoading, error } = useMe();
+
+  if (isLoading) return <Loading />;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between bg-background border border-muted rounded-xl p-5">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <Image
+            {/* <Image
               src="/avatar.png"
               alt="avatar"
               width={56}
               height={56}
               className="rounded-full"
-            />
+            /> */}
+            <div className="w-14 aspect-square rounded-full bg-muted flex items-center justify-center">
+              <User size={35} />
+            </div>
             <span className="absolute -bottom-1 -right-1 bg-success text-white text-[10px] px-2 py-0.5 rounded-full">
               Active
             </span>
@@ -29,10 +34,10 @@ export function PersonalInfoDashboard() {
 
           <div>
             <p className="font-bold text-lg">
-              {user.employeeInfo?.firstName} {user.employeeInfo?.lastName}
+              {user?.employee?.firstName} {user?.employee?.lastName}
             </p>
             <p className="text-sm text-foreground/60">
-              {user.employeeInfo?.position} · Product
+              {user?.employee?.position} · Product
             </p>
           </div>
         </div>
@@ -43,18 +48,18 @@ export function PersonalInfoDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InfoItem
               label="Full Name"
-              value={`${user.employeeInfo?.firstName} ${user.employeeInfo?.lastName}`}
+              value={`${user?.employee?.firstName} ${user?.employee?.lastName}`}
             />
-            <InfoItem label="Email" value={user.employeeInfo?.email ?? ""} />
+            <InfoItem label="Email" value={user?.employee?.email ?? ""} />
             <InfoItem
               label="Phone Number"
-              value={user.employeeInfo?.phone ?? ""}
+              value={user?.employee?.phone ?? ""}
             />
             <InfoItem
               label="Date of Birth"
               value={
-                user.employeeInfo?.dateOfBirth
-                  ? DateTime.fromISO(user.employeeInfo.dateOfBirth).toFormat(
+                user?.employee?.dateOfBirth
+                  ? DateTime.fromISO(user?.employee.dateOfBirth).toFormat(
                       "dd/MM/yyyy"
                     )
                   : ""
@@ -65,24 +70,21 @@ export function PersonalInfoDashboard() {
 
         <Card title="Employment Information">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InfoItem label="Role" value={user.userInfo?.role ?? ""} />
-            <InfoItem
-              label="Position"
-              value={user.employeeInfo?.position ?? ""}
-            />
+            <InfoItem label="Role" value={user?.user.role ?? ""} />
+            <InfoItem label="Position" value={user?.employee?.position ?? ""} />
             <InfoItem
               label="Department"
-              value={user.employeeInfo?.departmentID ?? "-"}
+              value={user?.employee?.departmentID ?? "-"}
             />
             <InfoItem
               label="Supervisor"
-              value={user.employeeInfo?.managerID ?? "-"}
+              value={user?.employee?.managerID ?? "-"}
             />
             <InfoItem
               label="Employment Status"
               value={
-                user.employeeInfo?.employmentType
-                  ? user.employeeInfo.employmentType
+                user?.employee?.employmentType
+                  ? user?.employee.employmentType
                       .toUpperCase()
                       .replaceAll("_", " ")
                   : ""
@@ -91,8 +93,8 @@ export function PersonalInfoDashboard() {
             <InfoItem
               label="Join Date"
               value={
-                user.employeeInfo?.joinDate
-                  ? new Date(user.employeeInfo.joinDate).toLocaleDateString()
+                user?.employee?.joinDate
+                  ? new Date(user?.employee.joinDate).toLocaleDateString()
                   : "-"
               }
             />
