@@ -3,6 +3,7 @@ package employeehandler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -180,12 +181,34 @@ func (h *EmployeeHandler) Find(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	email := r.URL.Query().Get("email")
 	code := r.URL.Query().Get("code")
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
 
-	employees, err := h.Repo.Find(name, email, code, deptID)
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 1
+	}
+
+	employees, totalPages, totalItems, err := h.Repo.Find(name, email, code, deptID, page, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	httpx.WriteJSON(w, employees, http.StatusOK)
+	data := map[string]any{
+		"pagination": map[string]any{
+			"totalPages":  totalPages,
+			"totalItems":  totalItems,
+			"currentPage": page,
+			"limit":       limit,
+		},
+		"items": employees,
+	}
+
+	httpx.WriteJSON(w, data, http.StatusOK)
 }

@@ -494,7 +494,7 @@ export default function BookingDashboard() {
                       setRangeEnd(null);
                     }}
                     className={`
-                      h-16 rounded-lg border border-muted shadow-md flex flex-col text-foreground items-center justify-center text-[11px] font-semibold cursor-pointer transition
+                      h-16 rounded-lg border border-muted shadow-md flex flex-col text-foreground items-center justify-center text-sm font-medium cursor-pointer transition
                       ${
                         booked
                           ? "bg-[var(--color-danger)]/20 border-[var(--color-danger)] text-[var(--color-danger)] cursor-not-allowed"

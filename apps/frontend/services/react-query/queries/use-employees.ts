@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
 import api from "@/lib/http";
 import type { EmployeeInfo } from "@/types";
+import { Pagination } from "@/types/pagination";
 
 const getEmployees = async ({
   queryKey,
@@ -13,6 +14,8 @@ const getEmployees = async ({
       email?: string;
       departmentId?: string;
       code?: string;
+      page?: number;
+      limit?: number;
     }
   ];
 }) => {
@@ -23,10 +26,12 @@ const getEmployees = async ({
       ...(params.name ? { name: params.name } : {}),
       ...(params.email ? { email: params.email } : {}),
       ...(params.code ? { code: params.code } : {}),
+      ...(params.page ? { page: params.page } : {}),
+      ...(params.limit ? { limit: params.limit } : {}),
     },
   });
-  const data = response.data as EmployeeInfo[] | null;
-  return data ?? [];
+  const data = response.data as Pagination<EmployeeInfo> | null;
+  return data;
 };
 
 const useEmployees = (params: {
@@ -34,6 +39,8 @@ const useEmployees = (params: {
   email?: string;
   code?: string;
   departmentId?: string;
+  page?: number;
+  limit?: number;
 }) => {
   const { data, isLoading, error } = useQuery({
     queryKey: [QueryKey.GET_EMPLOYEES, params],

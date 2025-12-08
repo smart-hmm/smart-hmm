@@ -170,7 +170,8 @@ export default function Table<T extends object>({
               setInternalPage((p) => Math.max(1, p - 1));
               onPageChange?.(page - 1);
             }}
-            className="px-3 py-1 rounded-md border disabled:opacity-40"
+            className="px-4 py-2 rounded-md bg-primary text-surface 
+            cursor-pointer border disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Prev
           </button>
@@ -181,7 +182,8 @@ export default function Table<T extends object>({
               setInternalPage((p) => Math.min(totalPages, p + 1));
               onPageChange?.(page + 1);
             }}
-            className="px-3 py-1 rounded-md border disabled:opacity-40"
+            className="px-4 py-2 rounded-md bg-primary text-surface
+            disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
           >
             Next
           </button>

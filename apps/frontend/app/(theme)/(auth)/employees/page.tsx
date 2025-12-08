@@ -4,15 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Td, Th } from "@/components/ui/table";
 import useEmployees from "@/services/react-query/queries/use-employees";
 import Link from "next/link";
 import useDepartments from "@/services/react-query/queries/use-departments";
 import { DateTime } from "luxon";
 import useDebounce from "@/hooks/use-debounce";
 import { SearchInput } from "@/components/ui/search-input";
+import Table from "@/components/ui/table/table";
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -31,7 +31,6 @@ interface Employee extends EmployeeFormValues {
 }
 
 export default function EmployeesPage() {
-  const mirrorRef = useRef<HTMLSpanElement>(null);
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -39,19 +38,18 @@ export default function EmployeesPage() {
   const [debounceSearch, setDebounceSearch] = useState("");
   const { debounce } = useDebounce();
   const [departmentFilter, setDepartmentFilter] = useState("");
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees({
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 1;
+  const { data: employeeList } = useEmployees({
     email: debounceSearch,
     name: debounceSearch,
     code: debounceSearch,
     departmentId: departmentFilter,
+    page: currentPage,
+    limit: pageSize,
   });
-  const { data: departments, isLoading: isLoadingDepartments } =
-    useDepartments();
-
-  const pageSize = 10;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalPages = Math.ceil(employees ? employees.length / pageSize : 0);
+  const { data: departments } = useDepartments();
+  const totalItems = employeeList?.pagination.totalItems ?? 0;
 
   const {
     register,
@@ -138,103 +136,68 @@ export default function EmployeesPage() {
       </div>
 
       <div className="bg-background border border-[var(--color-muted)] rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--color-surface)] border-b border-[var(--color-muted)]">
-            <tr>
-              <Th>Name</Th>
-              <Th>Code</Th>
-              <Th>Email</Th>
-              <Th>Department</Th>
-              <Th>Position</Th>
-              <Th>Phone</Th>
-              <Th>Status</Th>
-              <Th>Join Date</Th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {!employees || employees.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="px-6 py-6 text-center text-sm text-[var(--color-foreground)]/60"
-                >
-                  No employees found.
-                </td>
-              </tr>
-            ) : (
-              employees.map((emp) => (
-                <tr
-                  key={emp.id}
-                  className="border-t border-[var(--color-muted)] hover:bg-[var(--color-surface)]"
-                >
-                  <Td className="font-semibold">
-                    {emp.firstName} {emp.lastName}
-                  </Td>
-                  <Td>{emp.code}</Td>
-                  <Td>{emp.email}</Td>
-                  <Td>
-                    {emp.departmentName ? (
-                      <Link href={`/departments/${emp.departmentID}`}>
-                        {emp.departmentName}
-                      </Link>
-                    ) : (
-                      "-"
-                    )}
-                  </Td>
-                  <Td>{emp.position}</Td>
-                  <Td>{emp.phone}</Td>
-                  <Td>
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-[var(--color-success)]/20 text-[var(--color-success)]">
-                      Active
-                    </span>
-                  </Td>
-                  <Td>
-                    {DateTime.fromISO(emp.joinDate).toFormat("dd/MM/yyyy")}
-                  </Td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex items-center justify-between text-sm">
-        <p className="text-[var(--color-foreground)]/60">
-          Page {currentPage} of {totalPages || 1}
-        </p>
-
-        <div className="flex gap-2">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            className="px-3 py-1 border rounded-md disabled:opacity-40"
-          >
-            Previous
-          </button>
-
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === i + 1
-                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : ""
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="px-3 py-1 border rounded-md disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
+        <Table
+          paginationMode="server"
+          totalItems={totalItems}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={(page) => setCurrentPage(page)}
+          columns={[
+            {
+              label: "Name",
+              mapToField: "firstName",
+              render: (_, row) => {
+                return (
+                  <Link
+                    href={`/employees/${row.id}`}
+                    className="font-bold text-primary hover:underline cursor-pointer"
+                  >
+                    {row.firstName}, {row.lastName}
+                  </Link>
+                );
+              },
+            },
+            {
+              label: "Code",
+              mapToField: "code",
+            },
+            {
+              label: "Email",
+              mapToField: "email",
+            },
+            {
+              label: "Department",
+              render: (_, row) => {
+                if (!row.departmentID) return "-";
+                return (
+                  <Link
+                    href={`/departments/${row.departmentID}`}
+                    className="font-bold text-primary hover:underline cursor-pointer"
+                  >
+                    {row.departmentName}
+                  </Link>
+                );
+              },
+            },
+            {
+              label: "Position",
+              mapToField: "position",
+            },
+            {
+              label: "Phone",
+              mapToField: "phone",
+            },
+            {
+              label: "Join Date",
+              mapToField: "joinDate",
+              render: (val) => {
+                if (!val) return "-";
+                return DateTime.fromISO(String(val)).toFormat("dd/MM/yyyy");
+              },
+            },
+          ]}
+          data={employeeList ? employeeList.items : []}
+        />
       </div>
 
       {isModalOpen && (

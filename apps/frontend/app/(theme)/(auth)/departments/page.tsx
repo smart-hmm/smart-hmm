@@ -13,7 +13,9 @@ import Link from "next/link";
 
 export default function DepartmentsPage() {
   const router = useRouter();
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees({});
+  const { data: employeesList, isLoading: isLoadingEmployees } = useEmployees(
+    {}
+  );
   const { can } = useRBAC();
   const { data: departments, isLoading, error } = useDepartments();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,7 +57,7 @@ export default function DepartmentsPage() {
               render: (value, row) =>
                 value ? (
                   <Link
-                    className="text-primary cursor-pointer hover:underline"
+                    className="font-bold text-primary hover:underline cursor-pointer"
                     href={`/departments/${row.id}`}
                   >
                     {String(value)}
@@ -70,7 +72,7 @@ export default function DepartmentsPage() {
                 <p>
                   {row.manager ? (
                     <Link
-                      className="text-primary cursor-pointer hover:underline"
+                      className="font-bold text-primary hover:underline cursor-pointer"
                       href={`/employees/${row.manager.id}`}
                     >
                       {row.manager.firstName}, {row.manager.lastName}
@@ -106,7 +108,7 @@ export default function DepartmentsPage() {
       {isModalOpen && (
         <CreateDepartmentModal
           isLoadingEmployees={isLoadingEmployees}
-          employees={employees}
+          employees={employeesList?.items}
           setIsModalOpen={setIsModalOpen}
         />
       )}

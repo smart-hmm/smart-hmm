@@ -1,9 +1,13 @@
 "use client";
 
+import NoDocumentFound from "@/components/ui/no-document";
+import Table from "@/components/ui/table/table";
 import useDepartment from "@/services/react-query/queries/use-department";
 import useEmployeesByDepartmentId from "@/services/react-query/queries/use-employees-by-department-id";
 import type { EmployeeInfo } from "@/types";
 import { ArrowLeft } from "lucide-react";
+import { DateTime } from "luxon";
+import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -247,36 +251,63 @@ export default function DepartmentDetailsPage() {
       {/* EMPLOYEES TABLE */}
       {activeTab === "employees" && employees && (
         <div className="rounded-xl border border-muted overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-surface text-xs text-muted-foreground">
-              <tr>
-                <th className="text-left px-4 py-3">Name</th>
-                <th className="text-left px-4 py-3">Position</th>
-                <th className="text-left px-4 py-3">Email</th>
-                <th className="text-left px-4 py-3">Manager</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((emp) => {
-                const manager = employees.find((e) => e.id === emp.managerID);
-
-                return (
-                  <tr key={emp.id} className="border-t border-muted">
-                    <td className="px-4 py-3 font-medium">
-                      {emp.firstName}, {emp.lastName}
-                    </td>
-                    <td className="px-4 py-3">{emp.position}</td>
-                    <td className="px-4 py-3">{emp.email}</td>
-                    <td className="px-4 py-3">
-                      {manager
-                        ? `${manager.firstName}, ${manager.lastName}`
-                        : "—"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <Table
+            columns={[
+              {
+                label: "Name",
+                mapToField: "firstName",
+                render: (_, row) => {
+                  return (
+                    <Link
+                      href={`/employees/${row.id}`}
+                      className="font-bold text-primary hover:underline cursor-pointer"
+                    >
+                      {row.firstName}, {row.lastName}
+                    </Link>
+                  );
+                },
+              },
+              {
+                label: "Code",
+                mapToField: "code",
+              },
+              {
+                label: "Email",
+                mapToField: "email",
+              },
+              {
+                label: "Department",
+                render: (_, row) => {
+                  if (!row.departmentID) return "-";
+                  return (
+                    <Link
+                      href={`/departments/${row.departmentID}`}
+                      className="font-bold text-primary hover:underline cursor-pointer"
+                    >
+                      {row.departmentName}
+                    </Link>
+                  );
+                },
+              },
+              {
+                label: "Position",
+                mapToField: "position",
+              },
+              {
+                label: "Phone",
+                mapToField: "phone",
+              },
+              {
+                label: "Join Date",
+                mapToField: "joinDate",
+                render: (val) => {
+                  if (!val) return "-";
+                  return DateTime.fromISO(String(val)).toFormat("dd/MM/yyyy");
+                },
+              },
+            ]}
+            data={employees ?? []}
+          />
         </div>
       )}
 
@@ -298,6 +329,13 @@ export default function DepartmentDetailsPage() {
             />
           ))}
         </div>
+      )}
+
+      {activeTab === "documents" && (
+        <NoDocumentFound
+          actionLabel="Upload document"
+          // onActionClick={() => setIsUploadModalOpen(true)}
+        />
       )}
 
       {/* ✅ EDIT MODAL */}

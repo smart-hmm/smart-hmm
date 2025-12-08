@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -74,8 +75,14 @@ func ScanEmployee(row pgx.Row) (*domain.Employee, error) {
 	return &e, nil
 }
 
-func (r *EmployeePostgresRepository) Find(name, email, code, departmentID string,
-) ([]*domain.Employee, error) {
+func (r *EmployeePostgresRepository) Find(
+	name,
+	email,
+	code,
+	departmentID string,
+	page,
+	limit int,
+) ([]*domain.Employee, int, int, error) {
 
 	var (
 		orClauses  []string
@@ -128,6 +135,7 @@ func (r *EmployeePostgresRepository) Find(name, email, code, departmentID string
 		idx++
 	}
 
+	countQuery := `SELECT COUNT(*) AS total FROM employees e LEFT JOIN departments d ON e.department_id = d.id`
 	query := `
 		SELECT e.id, e.code, e.first_name, e.last_name, e.email, e.phone, e.date_of_birth,
 		       e.department_id, e.manager_id, e.position, e.employment_type,
@@ -138,12 +146,40 @@ func (r *EmployeePostgresRepository) Find(name, email, code, departmentID string
 	`
 
 	if len(andClauses) > 0 {
+		countQuery += " WHERE " + strings.Join(andClauses, " AND ")
 		query += " WHERE " + strings.Join(andClauses, " AND ")
 	}
 
+	countRows, err := r.db.Query(context.Background(), countQuery, args...)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	defer countRows.Close()
+
+	type Count struct {
+		Total int
+	}
+
+	totalPages := 0
+	totalItems := 0
+
+	for countRows.Next() {
+		var count Count
+		err := countRows.Scan(&count.Total)
+		if err == nil {
+			totalItems = count.Total
+			totalPages = int(math.Ceil(float64(count.Total) / float64(limit)))
+		}
+	}
+
+	offset := (page - 1) * limit
+	query += fmt.Sprintf(" OFFSET $%d LIMIT $%d", idx, idx+1)
+	idx++
+	args = append(args, offset, limit)
+
 	rows, err := r.db.Query(context.Background(), query, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 	defer rows.Close()
 
@@ -151,16 +187,16 @@ func (r *EmployeePostgresRepository) Find(name, email, code, departmentID string
 	for rows.Next() {
 		e, err := ScanEmployee(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, 0, err
 		}
 		result = append(result, e)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
-	return result, nil
+	return result, totalPages, totalItems, nil
 }
 
 func (r *EmployeePostgresRepository) FindByID(id string) (*domain.Employee, error) {

@@ -40,7 +40,8 @@ export default function Header() {
             arrowClassName="popover-arrow"
           >
             <div
-              className="bg-foreground text-surface rounded-md px-6 py-3 box-border flex flex-col gap-2 items-center"
+              className="bg-foreground text-surface rounded-md px-6 py-3 
+              box-border flex flex-col gap-2 items-center text-sm"
               onClick={() => {
                 setPopoverOpen(!isPopoverOpen);
               }}
