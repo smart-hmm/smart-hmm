@@ -128,6 +128,16 @@ func (s *S3Storage) PresignURL(ctx context.Context, in storageports.PresignInput
 		}
 		url = resp.URL
 
+	case "GET":
+		resp, err := s.presigner.PresignGetObject(ctx, &s3.GetObjectInput{
+			Bucket: aws.String(s.bucket),
+			Key:    aws.String(in.Path),
+		}, s3.WithPresignExpires(exp))
+		if err != nil {
+			return "", err
+		}
+		return resp.URL, nil
+
 	default:
 		resp, err := s.presigner.PresignGetObject(ctx, &s3.GetObjectInput{
 			Bucket: aws.String(s.bucket),

@@ -15,4 +15,8 @@ export enum QueryKey {
 
   // System Settings
   GET_SYSTEM_SETTINGS = "GET_SYSTEM_SETTINGS",
+
+  // Files
+  GET_FILE = "GET_FILE",
+  GET_FILES = "GET_FILES",
 }

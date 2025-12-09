@@ -7,12 +7,13 @@ import (
 	departmentrepository "github.com/smart-hmm/smart-hmm/internal/modules/department/repository"
 	emailtemplaterepository "github.com/smart-hmm/smart-hmm/internal/modules/email_template/repository"
 	employeerepository "github.com/smart-hmm/smart-hmm/internal/modules/employee/repository"
+	filerepository "github.com/smart-hmm/smart-hmm/internal/modules/file/repository"
 	leaverepository "github.com/smart-hmm/smart-hmm/internal/modules/leave_request/repository"
 	leaverepositorytype "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/repository"
 	payrollrepository "github.com/smart-hmm/smart-hmm/internal/modules/payroll/repository"
 	refreshtokenrepository "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/repository"
-	usersettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/repository"
 	systemsettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/system/repository"
+	usersettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/repository"
 	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
 )
 
@@ -28,6 +29,7 @@ type Repositories struct {
 	UserSettings   usersettingrepository.UserSettingRepository
 	User           userrepository.UserRepository
 	RefreshToken   refreshtokenrepository.RefreshTokenRepository
+	File           filerepository.FileRepository
 }
 
 func buildRepositories(pool *pgxpool.Pool) Repositories {
@@ -43,5 +45,6 @@ func buildRepositories(pool *pgxpool.Pool) Repositories {
 		UserSettings:   pgrepository.NewUserSettingPostgresRepository(pool),
 		User:           pgrepository.NewUserPostgresRepository(pool),
 		RefreshToken:   pgrepository.NewRefreshTokenPostgresRepository(pool),
+		File:           pgrepository.NewFilePostgresRepository(pool),
 	}
 }

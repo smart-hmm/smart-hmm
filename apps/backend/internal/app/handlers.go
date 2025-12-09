@@ -6,6 +6,7 @@ import (
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
 	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
+	filehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/file"
 	leaverequesthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_request"
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
@@ -28,6 +29,7 @@ type Handlers struct {
 	UserSettings   *usersettingshandler.UserSettingsHandler
 	Auth           *authhandler.AuthHandler
 	Upload         *uploadhandler.UploadHandler
+	File           *filehandler.FileHandler
 }
 
 func buildHandlers(uc Usecases, repo Repositories) Handlers {
@@ -85,6 +87,13 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 		),
 		Upload: uploadhandler.NewUploadHandler(
 			uc.GenPresignedURLUsecase,
+		),
+		File: filehandler.NewFileHandler(
+			uc.GetFileUsecase,
+			uc.ListFilesByDepartmentUsecase,
+			uc.ConfirmUploadUsecase,
+			uc.SoftDeleteFileUsecase,
+			repo.File,
 		),
 	}
 }

@@ -13,6 +13,7 @@ import (
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
 	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
+	filehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/file"
 	leaverequesthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_request"
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
@@ -37,6 +38,7 @@ type Args struct {
 	UserSettingsHandler   *usersettingshandler.UserSettingsHandler
 	AuthHandler           *authhandler.AuthHandler
 	UploadHandler         *uploadhandler.UploadHandler
+	FileHandler           *filehandler.FileHandler
 	TokenService          tokenports.Service
 }
 
@@ -84,6 +86,7 @@ func GetRouter(args Args) *chi.Mux {
 			pr.Route("/system-settings", args.SystemSettingsHandler.Routes)
 			pr.Route("/user-settings", args.UserSettingsHandler.Routes)
 			pr.Route("/upload", args.UploadHandler.Routes)
+			pr.Route("/files", args.FileHandler.Routes)
 		})
 	})
 

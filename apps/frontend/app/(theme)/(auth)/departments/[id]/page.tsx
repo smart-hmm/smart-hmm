@@ -1,19 +1,17 @@
 "use client";
 
-import DocumentCard from "@/components/ui/document-card";
+import DocumentCard, { extensions } from "@/components/ui/document-card";
 import NoDocumentFound from "@/components/ui/no-document";
 import Table from "@/components/ui/table/table";
-import useGenPresignedURL from "@/services/react-query/mutations/use-gen-presigned-url";
 import useDepartment from "@/services/react-query/queries/use-department";
 import useEmployeesByDepartmentId from "@/services/react-query/queries/use-employees-by-department-id";
+import useFiles from "@/services/react-query/queries/use-files";
 import type { EmployeeInfo } from "@/types";
-import type { AxiosError } from "axios";
-import axios from "axios";
 import { ArrowLeft, Upload } from "lucide-react";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /* =======================
    TYPES
@@ -87,10 +85,11 @@ function TreeNode({
       <div
         onClick={() => onSelect?.(node)}
         onKeyUp={() => onSelect?.(node)}
-        className={`relative w-60 rounded-xl border bg-surface p-4 text-center shadow-sm cursor-pointer transition ${isSelected
-          ? "border-[color:var(--theme-primary)] ring-2 ring-primary/30"
-          : "border-muted hover:border-[color:var(--theme-primary)]/50"
-          }`}
+        className={`relative w-60 rounded-xl border bg-surface p-4 text-center shadow-sm cursor-pointer transition ${
+          isSelected
+            ? "border-[color:var(--theme-primary)] ring-2 ring-primary/30"
+            : "border-muted hover:border-[color:var(--theme-primary)]/50"
+        }`}
       >
         {isSelected && (
           <div className="absolute top-2 right-2  flex gap-1 z-10">
@@ -177,51 +176,19 @@ export default function DepartmentDetailsPage() {
 
   const { data: employees } = useEmployeesByDepartmentId(params.id);
   const { data: department } = useDepartment(params.id);
-
-  const [isLoadingDocuments, setLoadingDocuments] = useState(true)
-  const fileRef = useRef<HTMLInputElement | null>(null);
-  const { mutateAsync: genPresignedURL } = useGenPresignedURL()
+  const { data: files, isLoading: isLoadingFiles } = useFiles(
+    params.id ?? null
+  );
+  const [isLoadingDocuments, setLoadingDocuments] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => setLoadingDocuments(false), 3000)
-  }, [])
+    setTimeout(() => setLoadingDocuments(false), 3000);
+  }, []);
 
   const hierarchyTree = useMemo<EmployeeNode[]>(() => {
     if (!employees) return [];
     return buildTree(employees);
   }, [employees]);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    console.log("Uploading file:", file);
-
-    const path = `uploads/${file.type.replaceAll("application/", "")}/${file.name}`;
-
-    try {
-      const response = await genPresignedURL({
-        path: path,
-        contentType: file.type,
-      });
-
-      const formData = new FormData();
-         
-
-      formData.append("file", file);
-
-      await axios(response.url, {
-        data: formData,
-        method: "POST",
-        headers: {
-          'Content-Type': "application/pdf"
-        },
-      });
-    } catch (err) {
-      const _err = err as AxiosError;
-      console.log(_err);
-    }
-  };
 
   if (!department) {
     return (
@@ -268,10 +235,11 @@ export default function DepartmentDetailsPage() {
             type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-2 text-sm font-semibold capitalize ${activeTab === tab
-              ? "border-b-2 border-[color:var(--theme-primary)] text-[color:var(--theme-primary)]"
-              : "text-muted-foreground"
-              }`}
+            className={`pb-2 text-sm font-semibold capitalize ${
+              activeTab === tab
+                ? "border-b-2 border-[color:var(--theme-primary)] text-[color:var(--theme-primary)]"
+                : "text-muted-foreground"
+            }`}
           >
             {tab}
           </button>
@@ -367,8 +335,10 @@ export default function DepartmentDetailsPage() {
         // />
         <div className="w-full flex gap-5 flex-row flex-wrap">
           <button
-            type='button'
-            onClick={() => fileRef.current?.click()}
+            type="button"
+            onClick={() =>
+              router.push(`/departments/${params.id}/documents/upload`)
+            }
             className="
             w-[12%]
             min-h-40
@@ -376,58 +346,51 @@ export default function DepartmentDetailsPage() {
             rounded-md
             border border-dashed border-muted
             bg-muted/10
-            transition-all
+            transition-all cursor-pointer
             hover:bg-muted/30
-            hover:shadow-xl
           "
           >
             <Upload className="w-8 h-8 text-primary" />
             <span className="text-sm font-medium text-foreground">
               Upload Document
             </span>
-
-            <input
-              ref={fileRef}
-              type="file"
-              hidden
-              accept=".pdf,.docx,.xlsx,.pptx"
-              onChange={handleFileChange}
-            />
           </button>
 
-          {isLoadingDocuments && <DocumentCard.Loading />}
+          {isLoadingFiles && <DocumentCard.Loading />}
 
-          {!isLoadingDocuments && <DocumentCard
-            onClick={() => router.push("/documents/123")}
-            className="w-[12%] transition-all bg-muted/20 rounded-md
-            hover:shadow-xl hover:bg-muted/40 items-center p-4">
-            <DocumentCard.Extension extension="pptx" className="w-[80%] max-w-20" />
-            <DocumentCard.Info
-              owner={{
-                id: "123",
-                code: "123",
-                firstName: "Vu Hoang",
-                lastName: "Le",
-                position: "",
-                phone: "",
-                baseSalary: 0,
-                employmentStatus: "ACTIVE",
-                employmentType: "FULL_TIME",
-                joinDate: "",
-                createdAt: "",
-                departmentID: "",
-                managerID: "",
-                updatedAt: "",
-                dateOfBirth: "",
-                departmentName: "",
-                email: "213@gmail.com"
-              }}
-              compact={false}
-              name="Quarterly Report"
-              createdAt="2025-12-07T10:12:00"
-              lastUpdatedAt="2025-12-09T16:59:00"
-            />
-          </DocumentCard>}
+          {!isLoadingFiles &&
+            (files && files.length > 0 ? (
+              files.map((file) => (
+                <DocumentCard
+                  key={file.id}
+                  onClick={() =>
+                    router.push(
+                      `/departments/${params.id}/documents/${file.id}`
+                    )
+                  }
+                  className="w-[12%] transition-all bg-muted/20 rounded-md
+                  hover:shadow-xl hover:bg-muted/40 items-center p-4"
+                >
+                  <DocumentCard.Extension
+                    extension={
+                      file.contentType.replaceAll(
+                        "application/",
+                        ""
+                      ) as (typeof extensions)[number]
+                    }
+                    className="w-[80%] max-w-20"
+                  />
+                  <DocumentCard.Info
+                    compact={false}
+                    name={file.fileName}
+                    createdAt={file.createdAt}
+                    fileSize={file.size}
+                  />
+                </DocumentCard>
+              ))
+            ) : (
+              <NoDocumentFound />
+            ))}
         </div>
       )}
 
