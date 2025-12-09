@@ -223,9 +223,9 @@ export default function EmployeesPage() {
             >
               {/* Full Name */}
               <div>
-                <label className="block text-xs font-semibold mb-1">
+                <div className="block text-xs font-semibold mb-1">
                   Full Name
-                </label>
+                </div>
                 <input
                   {...register("fullName")}
                   className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2"
@@ -240,9 +240,9 @@ export default function EmployeesPage() {
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-semibold mb-1">
+                <div className="block text-xs font-semibold mb-1">
                   Work Email
-                </label>
+                </div>
                 <input
                   {...register("email")}
                   className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2"
@@ -257,9 +257,9 @@ export default function EmployeesPage() {
 
               {/* Position */}
               <div>
-                <label className="block text-xs font-semibold mb-1">
+                <div className="block text-xs font-semibold mb-1">
                   Job Position
-                </label>
+                </div>
                 <input
                   {...register("position")}
                   className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2"
@@ -274,9 +274,9 @@ export default function EmployeesPage() {
 
               {/* Department (SELECT) ✅ */}
               <div>
-                <label className="block text-xs font-semibold mb-1">
+                <div className="block text-xs font-semibold mb-1">
                   Department
-                </label>
+                </div>
                 <select
                   {...register("department")}
                   className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2 bg-background"
@@ -296,9 +296,9 @@ export default function EmployeesPage() {
 
               {/* Role */}
               <div>
-                <label className="block text-xs font-semibold mb-1">
+                <div className="block text-xs font-semibold mb-1">
                   System Role
-                </label>
+                </div>
                 <select
                   {...register("role")}
                   className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2 bg-background"

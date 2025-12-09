@@ -15,6 +15,7 @@ type Config struct {
 	Redis    Redis    `validate:"required"`
 	RabbitMQ RabbitMQ `validate:"required"`
 	JWT      JWT      `validate:"required"`
+	S3       S3Config `validate:"required"`
 }
 
 type App struct {
@@ -39,6 +40,12 @@ type Resend struct {
 
 type RabbitMQ struct {
 	DSN string `envconfig:"DSN" validate:"required"`
+}
+
+type S3Config struct {
+	Region    string `envconfig:"REGION" validate:"required"`
+	Bucket    string `envconfig:"BUCKET" validate:"required"`
+	PublicURL string `envconfig:"PUBLIC_URL" validate:"required"`
 }
 
 type JWT struct {
@@ -72,6 +79,9 @@ func Load() (*Config, error) {
 	}
 	if err := envconfig.Process("JWT", &cfg.JWT); err != nil {
 		return nil, fmt.Errorf("load JWT config: %w", err)
+	}
+	if err := envconfig.Process("S3", &cfg.S3); err != nil {
+		return nil, fmt.Errorf("load S3 config: %w", err)
 	}
 
 	if err := validate.Struct(cfg); err != nil {

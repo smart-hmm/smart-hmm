@@ -10,8 +10,9 @@ import (
 	leavetypeusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/usecase"
 	payrollusecase "github.com/smart-hmm/smart-hmm/internal/modules/payroll/usecase"
 	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
-	usersettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/usecase"
+	storageusecase "github.com/smart-hmm/smart-hmm/internal/modules/storage/usecase"
 	systemsettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/system/usecase"
+	usersettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/usecase"
 	userusecase "github.com/smart-hmm/smart-hmm/internal/modules/user/usecase"
 )
 
@@ -58,6 +59,7 @@ type Usecases struct {
 	RefreshToken            *authusecase.RefreshTokenUsecase
 	LogoutRefreshToken      *refreshtokenusecase.LogoutRefreshTokenUsecase
 	ForceLogoutAllUsecase   *refreshtokenusecase.ForceLogoutAllUsecase
+	GenPresignedURLUsecase  *storageusecase.GenPresignedURLUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -111,5 +113,6 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		RefreshToken:            authusecase.NewRefreshTokenUsecase(repo.RefreshToken, infras.TokenService, rotateRefreshToken),
 		LogoutRefreshToken:      refreshtokenusecase.NewLogoutRefreshTokenUsecase(repo.RefreshToken),
 		ForceLogoutAllUsecase:   refreshtokenusecase.NewForceLogoutAllUsecase(repo.RefreshToken),
+		GenPresignedURLUsecase:  storageusecase.NewGenPresignedURLUsecase(infras.StorageService),
 	}
 }

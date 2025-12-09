@@ -10,8 +10,9 @@ import (
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
-	usersettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user_settings"
+	uploadhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/upload"
 	userhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user"
+	usersettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user_settings"
 )
 
 type Handlers struct {
@@ -26,6 +27,7 @@ type Handlers struct {
 	SystemSettings *systemsettingshandler.SystemSettingsHandler
 	UserSettings   *usersettingshandler.UserSettingsHandler
 	Auth           *authhandler.AuthHandler
+	Upload         *uploadhandler.UploadHandler
 }
 
 func buildHandlers(uc Usecases, repo Repositories) Handlers {
@@ -80,6 +82,9 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.RefreshToken,
 			uc.LogoutRefreshToken,
 			uc.ForceLogoutAllUsecase,
+		),
+		Upload: uploadhandler.NewUploadHandler(
+			uc.GenPresignedURLUsecase,
 		),
 	}
 }

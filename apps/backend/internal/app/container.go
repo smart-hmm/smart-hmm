@@ -44,6 +44,7 @@ func Build(ctx context.Context, cfg *config.Config) (*Container, error) {
 			SystemSettingsHandler: handlers.SystemSettings,
 			UserSettingsHandler:   handlers.UserSettings,
 			AuthHandler:           handlers.Auth,
+			UploadHandler:         handlers.Upload,
 			TokenService:          infras.TokenService,
 		}),
 	}, nil

@@ -9,9 +9,10 @@ const ThemeLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    THEMES.forEach((t) => {
-      root.classList.remove(`theme-${t.key}`);
-    });
+    
+    for (const theme of THEMES) {
+      root.classList.remove(`theme-${theme.key}`);
+    }
 
     root.classList.add(`theme-${themeCtx.theme.key}`);
 

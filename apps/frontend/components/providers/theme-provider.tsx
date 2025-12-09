@@ -3,7 +3,7 @@
 import Loading from "@/app/loading";
 import { FONT_SIZES, FONTS, THEMES } from "@/constants";
 import useUserSettings from "@/services/react-query/queries/use-user-settings";
-import { AppFont, AppFontSize, AppTheme } from "@/types";
+import type { AppFont, AppFontSize, AppTheme } from "@/types";
 import { createContext, useContext, useMemo } from "react";
 
 type ThemeContextType = {
@@ -14,7 +14,7 @@ type ThemeContextType = {
 
 const DEFAULT_THEME = THEMES[0];
 const DEFAULT_FONT = FONTS[0];
-const DEFAULT_FONT_SIZE = FONT_SIZES[0];
+const DEFAULT_FONT_SIZE = FONT_SIZES[1];
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { FONTS, LOCALES, THEMES, TIME_FORMATS, TIMEZONES } from "@/constants";
+import { FONT_SIZES, FONTS, LOCALES, THEMES, TIME_FORMATS, TIMEZONES } from "@/constants";
 import { QueryKey } from "@/services/react-query/constants";
 import useUpsertUserSetting from "@/services/react-query/mutations/use-upsert-user-setting";
 import useUserSettings from "@/services/react-query/queries/use-user-settings";
-import { AppearanceSettings, LocalizationSettings } from "@/types";
+import type { AppearanceSettings, LocalizationSettings } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -36,9 +36,9 @@ export default function AccountSettingsPage() {
           timeFormat: TIME_FORMATS[0].value,
         },
         appearance: {
-          theme: "blue",
-          font: "Inter",
-          fontSize: "md",
+          theme: THEMES[0].key,
+          font: FONTS[0],
+          fontSize: FONT_SIZES[1],
         },
       },
     });
@@ -54,11 +54,11 @@ export default function AccountSettingsPage() {
   });
 
   const isChanged = useMemo(() => {
-    if (!settings) return false;
+    if (!settings) return true;
 
     if (activeTab === "Appearance") {
       const serverAppearance = settings.find((ele) => ele.key === "appearance");
-      if (!serverAppearance) return false;
+      if (!serverAppearance) return true;
       const settingValue = serverAppearance.value as AppearanceSettings;
 
       if (settingValue.font !== appearance.font) return true;
@@ -70,7 +70,7 @@ export default function AccountSettingsPage() {
       const serverLocalization = settings.find(
         (ele) => ele.key === "localization"
       );
-      if (!serverLocalization) return false;
+      if (!serverLocalization) return true;
       const settingValue = serverLocalization.value as LocalizationSettings;
 
       if (settingValue.locale !== localization.locale) return true;
@@ -151,9 +151,9 @@ export default function AccountSettingsPage() {
 
   useEffect(() => {
     const root = document.documentElement;
-    THEMES.forEach((t) => {
-      root.classList.remove(`theme-${t.key}`);
-    });
+    for (const t of THEMES) {
+       root.classList.remove(`theme-${t.key}`);
+    }
     root.classList.add(`theme-${appearance.theme}`);
   }, [appearance]);
 
@@ -223,7 +223,7 @@ export default function AccountSettingsPage() {
 
             {/* Locale */}
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Language / Locale</label>
+              <div className="text-sm font-semibold">Language / Locale</div>
               <select
                 {...register("localization.locale")}
                 className="w-full border rounded-md px-3 py-2 bg-background"
@@ -238,7 +238,7 @@ export default function AccountSettingsPage() {
 
             {/* Time Zone */}
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Time Zone</label>
+              <div className="text-sm font-semibold">Time Zone</div>
               <select
                 {...register("localization.timezone")}
                 className="w-full border rounded-md px-3 py-2 bg-background"
@@ -253,7 +253,7 @@ export default function AccountSettingsPage() {
 
             {/* Time Format */}
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Time Format</label>
+              <div className="text-sm font-semibold">Time Format</div>
               <div className="flex gap-6">
                 {TIME_FORMATS.map((format) => (
                   <label
@@ -285,7 +285,7 @@ export default function AccountSettingsPage() {
 
             {/* Theme */}
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Main color</label>
+              <div className="text-sm font-semibold">Main color</div>
               <div className="flex flex-wrap gap-3 mt-1">
                 {THEMES.map((theme) => (
                   <button
@@ -318,7 +318,7 @@ export default function AccountSettingsPage() {
 
             {/* Font */}
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Font Family</label>
+              <div className="text-sm font-semibold">Font Family</div>
               <select
                 {...register("appearance.font")}
                 className="w-full border rounded-md px-3 py-2 bg-background"
@@ -333,7 +333,7 @@ export default function AccountSettingsPage() {
 
             {/* Font Size */}
             <div className="space-y-1">
-              <label className="text-sm font-semibold">Font Size</label>
+              <div className="text-sm font-semibold">Font Size</div>
               <select
                 {...register("appearance.fontSize")}
                 className="w-full border rounded-md px-3 py-2 bg-background"
