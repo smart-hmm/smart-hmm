@@ -14,9 +14,10 @@ import useGenPresignedURL from "@/services/react-query/mutations/use-gen-presign
 import api from "@/lib/http";
 import { AxiosError } from "axios";
 import { defaultStyles, FileIcon } from "react-file-icon";
-import { extensions } from "@/components/ui/document-card";
 import { useParams } from "next/navigation";
 import useConfirmUpload from "@/services/react-query/mutations/use-confirm-upload";
+import { extensions } from "@/types";
+import { toStandardFileType } from "@/lib/utils/utils";
 
 const ACCEPTED_EXTENSIONS = [".pdf", ".docx", ".xlsx", ".pptx"];
 const MAX_SIZE_MB = 20;
@@ -91,6 +92,7 @@ export default function UploadDocumentsPage() {
       });
 
       const uploadUrl = presigned.url as string;
+      const fileType = toStandardFileType(file);
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -127,7 +129,7 @@ export default function UploadDocumentsPage() {
         departmentId: params.id,
         storagePath: path,
         filename: file.name,
-        contentType: file.type,
+        contentType: fileType || "application/octet-stream",
         size: file.size,
       });
 

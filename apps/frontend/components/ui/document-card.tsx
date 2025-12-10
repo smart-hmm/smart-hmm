@@ -1,16 +1,7 @@
-import type { EmployeeInfo } from "@/types";
+import type { EmployeeInfo, extensions } from "@/types";
 import { Calendar, HardDrive, User } from "lucide-react";
 import { DateTime } from "luxon";
 import { FileIcon, defaultStyles } from "react-file-icon";
-
-export const extensions = [
-  "pdf",
-  "xlsx",
-  "docx",
-  "txt",
-  "pptx",
-  "odt",
-] as const;
 
 type DocumentCardRootProps = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
@@ -28,7 +19,7 @@ type DocumentCardInfoProps = React.HTMLAttributes<HTMLDivElement> & {
   compact?: boolean;
 };
 
-type DocumentCardSkeletonProps = {
+type DocumentCardSkeletonProps = React.HTMLAttributes<HTMLDivElement> & {
   compact?: boolean;
 };
 
@@ -61,7 +52,7 @@ const formatFull = (date?: string | Date) => {
   return DateTime.fromISO(date).toFormat("dd/MM/yyyy HH:mm");
 };
 
-const bytesToMBFormatted = (bytes: number, decimals = 2): string => {
+export const bytesToMBFormatted = (bytes: number, decimals = 2): string => {
   if (!bytes || bytes <= 0) return "0 MB";
 
   const mb = bytes / (1024 * 1024);
@@ -142,13 +133,16 @@ const DocumentCardInfo = ({
   );
 };
 
-function DocumentCardSkeleton({ compact = false }: DocumentCardSkeletonProps) {
+function DocumentCardSkeleton({
+  compact = false,
+  ...rest
+}: DocumentCardSkeletonProps) {
   return (
     <div
       className={`
         w-[12%] min-w-[140px]
         cursor-default flex flex-col items-center p-4
-        rounded-md bg-muted/20 animate-pulse
+        rounded-md bg-muted/20 animate-pulse ${rest.className}
       `}
     >
       <div

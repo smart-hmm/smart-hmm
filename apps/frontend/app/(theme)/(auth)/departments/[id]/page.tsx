@@ -1,44 +1,21 @@
 "use client";
 
-import DocumentCard, { extensions } from "@/components/ui/document-card";
-import NoDocumentFound from "@/components/ui/no-document";
-import Table from "@/components/ui/table/table";
 import useDepartment from "@/services/react-query/queries/use-department";
 import useEmployeesByDepartmentId from "@/services/react-query/queries/use-employees-by-department-id";
 import useFiles from "@/services/react-query/queries/use-files";
 import type { EmployeeInfo } from "@/types";
-import { ArrowLeft, Upload } from "lucide-react";
-import { DateTime } from "luxon";
-import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-
-/* =======================
-   TYPES
-======================= */
-
-interface DepartmentDocument {
-  id: string;
-  title: string;
-  type: string;
-  uploadedAt: string;
-}
-
-interface Department {
-  id: string;
-  name: string;
-  managerId: string;
-  employees: EmployeeInfo[];
-  documents: DepartmentDocument[];
-}
-
-export type EmployeeNode = EmployeeInfo & {
-  children: EmployeeNode[];
-};
-
-/* =======================
-   TREE HELPERS
-======================= */
+import { ArrowLeft } from "lucide-react";
+import {
+  useRouter,
+  useParams,
+  useSearchParams,
+  usePathname,
+} from "next/navigation";
+import { useMemo, useState } from "react";
+import { EmployeeNode } from "./components/tree-node";
+import Hierarchy from "./components/hierarchy";
+import Employees from "./components/employees";
+import Documents from "./components/documents";
 
 function buildTree(employees: EmployeeInfo[]): EmployeeNode[] {
   const map = new Map<string, EmployeeNode>();
@@ -61,130 +38,21 @@ function buildTree(employees: EmployeeInfo[]): EmployeeNode[] {
   return roots;
 }
 
-interface TreeNodeProps {
-  node: EmployeeNode;
-  selectedId?: string;
-  onSelect?: (node: EmployeeNode) => void;
-  onEdit?: (node: EmployeeNode) => void;
-  onAddChild?: (parent: EmployeeNode) => void;
-  onRemove?: (node: EmployeeNode) => void;
-}
-
-function TreeNode({
-  node,
-  selectedId,
-  onSelect,
-  onEdit,
-  onAddChild,
-  onRemove,
-}: TreeNodeProps) {
-  const isSelected = selectedId === node.id;
-
-  return (
-    <div className="flex flex-col items-center relative group">
-      <div
-        onClick={() => onSelect?.(node)}
-        onKeyUp={() => onSelect?.(node)}
-        className={`relative w-60 rounded-xl border bg-surface p-4 text-center shadow-sm cursor-pointer transition ${
-          isSelected
-            ? "border-[color:var(--theme-primary)] ring-2 ring-primary/30"
-            : "border-muted hover:border-[color:var(--theme-primary)]/50"
-        }`}
-      >
-        {isSelected && (
-          <div className="absolute top-2 right-2  flex gap-1 z-10">
-            {/* ADD CHILD */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddChild?.(node);
-              }}
-              className="w-6 h-6 flex items-center justify-center rounded bg-[color:var(--theme-primary)] text-surface text-[color:var(--theme-primary)]-foreground text-xs shadow hover:opacity-90"
-              title="Add Child"
-            >
-              +
-            </button>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove?.(node);
-              }}
-              className="w-6 h-6 flex items-center justify-center rounded bg-destructive text-destructive-foreground text-xs shadow hover:opacity-90"
-              title="Remove"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {isSelected && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit?.(node);
-            }}
-            type="button"
-            className="absolute -top-2 -left-2 rounded-full bg-[color:var(--theme-primary)] text-surface text-xs px-2 py-1 shadow"
-          >
-            Edit
-          </button>
-        )}
-
-        <p className="font-semibold">
-          {node.firstName}, {node.lastName}
-        </p>
-        <p className="text-sm text-muted-foreground">{node.position}</p>
-        <p className="text-xs text-muted-foreground mt-1">{node.email}</p>
-      </div>
-
-      {node.children.length > 0 && (
-        <>
-          <div className="w-px h-8 bg-muted" />
-          <div className="flex gap-10 mt-4 relative">
-            {node.children.map((child) => (
-              <TreeNode
-                key={child.id}
-                node={child}
-                selectedId={selectedId}
-                onSelect={onSelect}
-                onEdit={onEdit}
-                onAddChild={onAddChild}
-                onRemove={onRemove}
-              />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 const TABS = ["employees", "hierarchy", "documents"] as const;
 type TabKey = (typeof TABS)[number];
 
 export default function DepartmentDetailsPage() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const tab = searchParams.get("tab") || "employees";
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState<TabKey>("employees");
-
-  const [selectedNode, setSelectedNode] = useState<EmployeeNode | null>(null);
-  const [editingNode, setEditingNode] = useState<EmployeeNode | null>(null);
-  const [addingParent, setAddingParent] = useState<EmployeeNode | null>(null);
-
+  const [activeTab, setActiveTab] = useState<TabKey>(tab as TabKey);
   const { data: employees } = useEmployeesByDepartmentId(params.id);
   const { data: department } = useDepartment(params.id);
   const { data: files, isLoading: isLoadingFiles } = useFiles(
     params.id ?? null
   );
-  const [isLoadingDocuments, setLoadingDocuments] = useState(true);
-
-  useEffect(() => {
-    setTimeout(() => setLoadingDocuments(false), 3000);
-  }, []);
-
   const hierarchyTree = useMemo<EmployeeNode[]>(() => {
     if (!employees) return [];
     return buildTree(employees);
@@ -208,9 +76,13 @@ export default function DepartmentDetailsPage() {
     );
   }
 
+  const onSwitchTab = (tab: TabKey) => {
+    router.push(`${pathname}?tab=${tab}`);
+    setActiveTab(tab);
+  };
+
   return (
     <div className="min-h-screen bg-background p-6 space-y-6 text-foreground">
-      {/* HEADER */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -228,16 +100,15 @@ export default function DepartmentDetailsPage() {
         </div>
       </div>
 
-      {/* TABS */}
       <div className="flex gap-6 border-b border-muted">
         {TABS.map((tab) => (
           <button
             type="button"
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => onSwitchTab(tab)}
             className={`pb-2 text-sm font-semibold capitalize ${
               activeTab === tab
-                ? "border-b-2 border-[color:var(--theme-primary)] text-[color:var(--theme-primary)]"
+                ? "border-b-2 border-(--theme-primary) text-(--theme-primary)"
                 : "text-muted-foreground"
             }`}
           >
@@ -246,210 +117,14 @@ export default function DepartmentDetailsPage() {
         ))}
       </div>
 
-      {/* EMPLOYEES TABLE */}
       {activeTab === "employees" && employees && (
-        <div className="rounded-xl border border-muted overflow-hidden">
-          <Table
-            columns={[
-              {
-                label: "Name",
-                mapToField: "firstName",
-                render: (_, row) => {
-                  return (
-                    <Link
-                      href={`/employees/${row.id}`}
-                      className="font-bold text-primary hover:underline cursor-pointer"
-                    >
-                      {row.firstName}, {row.lastName}
-                    </Link>
-                  );
-                },
-              },
-              {
-                label: "Code",
-                mapToField: "code",
-              },
-              {
-                label: "Email",
-                mapToField: "email",
-              },
-              {
-                label: "Department",
-                render: (_, row) => {
-                  if (!row.departmentID) return "-";
-                  return (
-                    <Link
-                      href={`/departments/${row.departmentID}`}
-                      className="font-bold text-primary hover:underline cursor-pointer"
-                    >
-                      {row.departmentName}
-                    </Link>
-                  );
-                },
-              },
-              {
-                label: "Position",
-                mapToField: "position",
-              },
-              {
-                label: "Phone",
-                mapToField: "phone",
-              },
-              {
-                label: "Join Date",
-                mapToField: "joinDate",
-                render: (val) => {
-                  if (!val) return "-";
-                  return DateTime.fromISO(String(val)).toFormat("dd/MM/yyyy");
-                },
-              },
-            ]}
-            data={employees ?? []}
-          />
-        </div>
+        <Employees employees={employees} />
       )}
 
-      {/* ✅ HIERARCHY */}
-      {activeTab === "hierarchy" && (
-        <div className="flex justify-center overflow-auto py-10">
-          {hierarchyTree.map((root) => (
-            <TreeNode
-              key={root.id}
-              node={root}
-              selectedId={selectedNode?.id}
-              onSelect={setSelectedNode}
-              onEdit={setEditingNode}
-              onAddChild={setAddingParent}
-              onRemove={(node) => {
-                if (!confirm(`Remove ${node.firstName}?`)) return;
-                alert(`Detached ${node.firstName} (managerID = null)`);
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {activeTab === "hierarchy" && <Hierarchy hierarchyTree={hierarchyTree} />}
 
       {activeTab === "documents" && (
-        // <NoDocumentFound
-        //   actionLabel="Upload document"
-        // />
-        <div className="w-full flex gap-5 flex-row flex-wrap">
-          <button
-            type="button"
-            onClick={() =>
-              router.push(`/departments/${params.id}/documents/upload`)
-            }
-            className="
-            w-[12%]
-            min-h-40
-            flex flex-col items-center justify-center gap-3
-            rounded-md
-            border border-dashed border-muted
-            bg-muted/10
-            transition-all cursor-pointer
-            hover:bg-muted/30
-          "
-          >
-            <Upload className="w-8 h-8 text-primary" />
-            <span className="text-sm font-medium text-foreground">
-              Upload Document
-            </span>
-          </button>
-
-          {isLoadingFiles && <DocumentCard.Loading />}
-
-          {!isLoadingFiles &&
-            (files && files.length > 0 ? (
-              files.map((file) => (
-                <DocumentCard
-                  key={file.id}
-                  onClick={() =>
-                    router.push(
-                      `/departments/${params.id}/documents/${file.id}`
-                    )
-                  }
-                  className="w-[12%] transition-all bg-muted/20 rounded-md
-                  hover:shadow-xl hover:bg-muted/40 items-center p-4"
-                >
-                  <DocumentCard.Extension
-                    extension={
-                      file.contentType.replaceAll(
-                        "application/",
-                        ""
-                      ) as (typeof extensions)[number]
-                    }
-                    className="w-[80%] max-w-20"
-                  />
-                  <DocumentCard.Info
-                    compact={false}
-                    name={file.fileName}
-                    createdAt={file.createdAt}
-                    fileSize={file.size}
-                  />
-                </DocumentCard>
-              ))
-            ) : (
-              <NoDocumentFound />
-            ))}
-        </div>
-      )}
-
-      {/* ✅ EDIT MODAL */}
-      {editingNode && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-surface rounded-xl p-6 w-[400px] space-y-4 shadow-xl">
-            <h2 className="text-lg font-semibold">
-              Edit Hierarchy - {editingNode.firstName}
-            </h2>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setEditingNode(null)}
-                className="px-4 py-2 text-sm rounded-md border"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 text-sm rounded-md bg-[color:var(--theme-primary)] text-[color:var(--theme-primary)]-foreground"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ✅ ADD CHILD MODAL */}
-      {addingParent && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-surface rounded-xl p-6 w-[400px] space-y-4 shadow-xl">
-            <h2 className="text-lg font-semibold">
-              Add Child to {addingParent.firstName}
-            </h2>
-
-            <p className="text-sm text-muted-foreground">
-              Select an employee to attach under this manager.
-            </p>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setAddingParent(null)}
-                className="px-4 py-2 text-sm rounded-md border"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="px-4 py-2 text-sm rounded-md bg-[color:var(--theme-primary)] text-[color:var(--theme-primary)]-foreground"
-              >
-                Attach
-              </button>
-            </div>
-          </div>
-        </div>
+        <Documents files={files ?? []} isLoading={isLoadingFiles} />
       )}
     </div>
   );

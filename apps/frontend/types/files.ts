@@ -1,3 +1,7 @@
+export const extensions = ["pdf", "xlsx", "docx", "pptx"] as const;
+
+export type DocumentType = (typeof extensions)[number];
+
 export type ConfirmUploadPayload = {
   departmentId: string;
   storagePath: string;

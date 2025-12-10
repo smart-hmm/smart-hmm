@@ -85,9 +85,6 @@ export default function DocumentViewerPage() {
         </div>
       </div>
 
-      {/* ===============================
-          ✅ VIEWER BODY
-      =============================== */}
       <div className="flex-1 bg-[color:var(--color-muted)] p-3">
         <div
           className="
