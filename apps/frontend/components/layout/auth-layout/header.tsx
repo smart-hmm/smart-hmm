@@ -1,90 +1,174 @@
 "use client";
 
-import { useLogout } from "@/services/react-query/mutations/use-logout";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { UserRound } from "lucide-react";
+import useSysSettings from "@/services/react-query/queries/use-sys-settings";
+import { ArrowContainer, Popover, type PopoverPosition, type Rect } from "react-tiny-popover";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  ArrowContainer,
-  Popover,
-  PopoverPosition,
-  Rect,
-} from "react-tiny-popover";
+import { useLogout } from "@/services/react-query/mutations/use-logout";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Header() {
   const router = useRouter();
   const [isPopoverOpen, setPopoverOpen] = useState(false);
   const { mutateAsync: logout } = useLogout();
+  const pathname = usePathname();
+  const { data: settings } = useSysSettings();
+
+  const name =
+    (settings?.find((ele) => ele.key === "general")?.value.name ?? "") as string;
+
+  const shortName = name
+    .split(" ")
+    .map((ele) => ele.charAt(0))
+    .slice(0, 2)
+    .join("");
+
+  const navItems = [
+    {
+      href: "/departments",
+      label: "Departments",
+    },
+    {
+      href: "/employees",
+      label: "Employees",
+    },
+    {
+      href: "/meeting",
+      label: "Meeting",
+    },
+    {
+      href: "/company-settings",
+      label: "Settings",
+    },
+  ];
 
   return (
-    <div className="w-screen h-[50px] bg-foreground fixed top-0 left-0 z-1 flex flex-row justify-end items-center box-border pr-28">
-      <Popover
-        isOpen={isPopoverOpen}
-        positions={["top", "bottom", "left", "right"]}
-        content={({
-          position,
-          childRect,
-          popoverRect,
-        }: {
-          position: PopoverPosition;
-          childRect: Rect;
-          popoverRect: Rect;
-        }) => (
-          <ArrowContainer
-            position={position}
-            childRect={childRect}
-            popoverRect={popoverRect}
-            arrowColor={"var(--color-foreground)"}
-            arrowSize={10}
-            className="popover-arrow-container"
-            arrowClassName="popover-arrow"
-          >
-            <div
-              className="bg-foreground text-surface rounded-md px-6 py-3 
-              box-border flex flex-col gap-2 items-center text-sm"
-              onClick={() => {
-                setPopoverOpen(!isPopoverOpen);
-              }}
-            >
-              <button
-                type="button"
-                className="cursor-pointer"
-                onClick={() => {
-                  router.push("/account/profile");
-                }}
-              >
-                Profile
-              </button>
-              <button
-                type="button"
-                className="cursor-pointer"
-                onClick={() => {
-                  router.push("/account/settings");
-                }}
-              >
-                Settings
-              </button>
-              <button
-                type="button"
-                className="cursor-pointer"
-                onClick={async () => {
-                  await logout();
-                  window.location.reload();
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          </ArrowContainer>
-        )}
-      >
-        <div
-          onClick={() => setPopoverOpen(!isPopoverOpen)}
-          className="rounded-full bg-surface w-[30px] aspect-square flex items-center justify-center cursor-pointer"
-        >
-          <UserRound color="#aaaaaa" size={24} />
+    <header
+      className="
+        fixed top-0 left-0 right-0 z-40
+        h-[60px]
+        bg-background
+        border-b border-muted
+        shadow-sm
+
+      "
+    >
+      <div className="max-w-7xl px-6 flex items-center h-full mx-auto relative">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-(--theme-primary) text-white flex items-center justify-center font-bold text-sm">
+            {shortName}
+          </div>
+
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-foreground">
+              {name || "HRM"}
+            </span>
+          </div>
         </div>
-      </Popover>
-    </div>
+        <div className="flex items-center pl-10">
+          {navItems.map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`
+                flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all
+                ${isActive
+                    ? "text-primary"
+                    : "text-foreground/70 hover:underline"
+                  }
+              `}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="absolute right-9 flex items-center gap-2">
+          <Popover
+            isOpen={isPopoverOpen}
+            positions={["top", "bottom", "left", "right"]}
+            containerStyle={{
+              top: "-5px",
+              zIndex: "50",
+            }}
+            content={({
+              position,
+              childRect,
+              popoverRect,
+            }: {
+              position: PopoverPosition;
+              childRect: Rect;
+              popoverRect: Rect;
+            }) => (
+              <ArrowContainer
+                position={position}
+                childRect={childRect}
+                popoverRect={popoverRect}
+                arrowColor={"var(--color-background)"}
+                arrowSize={10}
+                className="popover-arrow-container"
+                arrowClassName="popover-arrow"
+              >
+                <div
+                  className="bg-background text-foreground 
+                border border-muted/50
+                rounded-md px-6 py-3 shadow-2xl z-50 
+                box-border flex flex-col gap-2 items-center text-sm"
+                  onKeyDown={() => {
+                    setPopoverOpen(!isPopoverOpen);
+                  }}
+                  onClick={() => {
+                    setPopoverOpen(!isPopoverOpen);
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      router.push("/account/profile");
+                    }}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    type="button"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      router.push("/account/settings");
+                    }}
+                  >
+                    Settings
+                  </button>
+                  <button
+                    type="button"
+                    className="cursor-pointer"
+                    onClick={async () => {
+                      await logout();
+                      window.location.reload();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </ArrowContainer>
+            )}
+          >
+            <button
+              type='button'
+              onClick={() => setPopoverOpen(!isPopoverOpen)}
+              className="rounded-full bg-surface w-[30px] aspect-square flex items-center justify-center cursor-pointer"
+            >
+              <UserRound color="#aaaaaa" size={24} />
+            </button>
+          </Popover>
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Header from "./header";
-import Navbar from "./navbar";
+
 
 export default function AuthLayout({
   children,
@@ -13,11 +13,8 @@ export default function AuthLayout({
       <header>
         <Header />
       </header>
-      <nav>
-        <Navbar />
-      </nav>
       <main>
-        <div className="mt-[50px] ml-[120px] w-[calc(100vw-120px)] min-h-screen bg-surface p-8 box-border">
+        <div className="mt-[50px] w-full max-w-7xl mx-auto min-h-screen bg-surface p-8 box-border">
           {children}
         </div>
       </main>

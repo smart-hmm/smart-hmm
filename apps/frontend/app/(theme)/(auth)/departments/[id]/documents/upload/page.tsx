@@ -1,22 +1,18 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   UploadCloud,
-  FileText,
-  FileSpreadsheet,
-  FileType,
   X,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 import useGenPresignedURL from "@/services/react-query/mutations/use-gen-presigned-url";
-import api from "@/lib/http";
-import { AxiosError } from "axios";
+import type { AxiosError } from "axios";
 import { defaultStyles, FileIcon } from "react-file-icon";
 import { useParams } from "next/navigation";
 import useConfirmUpload from "@/services/react-query/mutations/use-confirm-upload";
-import { extensions } from "@/types";
+import type { extensions } from "@/types";
 import { toStandardFileType } from "@/lib/utils/utils";
 
 const ACCEPTED_EXTENSIONS = [".pdf", ".docx", ".xlsx", ".pptx"];
@@ -45,7 +41,7 @@ function getFileIcon(ext: string) {
       <FileIcon
         extension={ext.replaceAll(".", "")}
         {...defaultStyles[
-          ext.replaceAll(".", "") as (typeof extensions)[number]
+        ext.replaceAll(".", "") as (typeof extensions)[number]
         ]}
       />
     </div>
@@ -60,7 +56,7 @@ export default function UploadDocumentsPage() {
 
   const { mutateAsync: genPresignedUrl, isPending: isGettingUrl } =
     useGenPresignedURL();
-  const { mutateAsync: confirmUpload, isPending: isConfirmingUpload } =
+  const { mutateAsync: confirmUpload } =
     useConfirmUpload();
 
   const validateFile = (file: File): string | null => {
@@ -137,10 +133,10 @@ export default function UploadDocumentsPage() {
         prev.map((it) =>
           it.id === id
             ? {
-                ...it,
-                status: "success",
-                progress: 100,
-              }
+              ...it,
+              status: "success",
+              progress: 100,
+            }
             : it
         )
       );
@@ -151,11 +147,11 @@ export default function UploadDocumentsPage() {
         prev.map((it) =>
           it.id === id
             ? {
-                ...it,
-                status: "error",
-                error:
-                  _err?.message ?? "Something went wrong while uploading file.",
-              }
+              ...it,
+              status: "error",
+              error:
+                _err?.message ?? "Something went wrong while uploading file.",
+            }
             : it
         )
       );
@@ -168,9 +164,8 @@ export default function UploadDocumentsPage() {
     const newItems: UploadItem[] = [];
     for (const file of Array.from(files)) {
       const error = validateFile(file);
-      const id = `${file.name}-${file.size}-${
-        file.lastModified
-      }-${crypto.randomUUID()}`;
+      const id = `${file.name}-${file.size}-${file.lastModified
+        }-${crypto.randomUUID()}`;
 
       newItems.push({
         id,
@@ -183,11 +178,9 @@ export default function UploadDocumentsPage() {
 
     setItems((prev) => [...newItems, ...prev]);
 
-    newItems
-      .filter((item) => !item.error)
-      .forEach((item) => {
-        void uploadFile(item.id, item.file);
-      });
+    for (const item of newItems.filter((item) => !item.error)) {
+      void uploadFile(item.id, item.file);
+    }
   };
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -228,6 +221,7 @@ export default function UploadDocumentsPage() {
           </div>
 
           <button
+            type='button'
             onClick={() => inputRef.current?.click()}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2"
           >

@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { Poppins, Roboto, Inter, Montserrat } from "next/font/google";
-import { ThemeToggle } from "../components/ui/theme-toggle";
 import { ToastContainer } from "react-toastify";
 import StoreProvider from "@/components/providers/store-provider";
 import ReactQueryProvider from "@/components/providers/query-provider";
 import AuthProvider from "@/components/providers/auth-provider";
-import "./globals.css";
 import RBACProvider from "@/components/providers/rbac-provider";
 import { Suspense } from "react";
 import Loading from "./loading";
 import ThemeProvider from "@/components/providers/theme-provider";
+import "./globals.css";
 
 const poppins = Poppins({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -62,9 +61,6 @@ export default function RootLayout({
             <AuthProvider>
               <RBACProvider>
                 <ThemeProvider>
-                  <div className="fixed top-2 right-2 z-4">
-                    <ThemeToggle />
-                  </div>
                   <Suspense fallback={<Loading />}>{children}</Suspense>
                   <ToastContainer />
                 </ThemeProvider>

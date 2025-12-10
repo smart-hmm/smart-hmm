@@ -1,19 +1,26 @@
 "use client";
 
 import Card from "@/components/ui/card";
-import Field from "@/components/ui/field";
 import SummaryCard from "@/components/ui/summary-card";
-import { Td, Th } from "@/components/ui/table";
-import { useMemo, useState } from "react";
+import Field from "@/components/ui/field";
+import { useState } from "react";
 
-type LeaveStatus = "Pending" | "Approved" | "Rejected";
 
-interface LeaveHistoryItem {
-  date: string;
-  type: string;
-  reason: string;
-  status: LeaveStatus;
-}
+const PUBLIC_HOLIDAYS: Record<string, string> = {
+  "2025-01-01": "New Year",
+  "2025-04-30": "Reunification Day",
+  "2025-05-01": "Labor Day",
+  "2025-09-02": "National Day",
+};
+
+const getHolidayName = (date: Date) =>
+  PUBLIC_HOLIDAYS[date.toISOString().split("T")[0]];
+
+
+const MOCK_LEAVE_STATUS: Record<string, "approved" | "pending"> = {
+  "2025-05-10": "approved",
+  "2025-06-12": "pending",
+};
 
 interface CalendarDay {
   date: Date;
@@ -21,220 +28,260 @@ interface CalendarDay {
   isCurrentMonth: boolean;
   isWeekend: boolean;
   isToday: boolean;
+  isHoliday: boolean;
+  holidayName?: string;
+  leaveStatus?: "approved" | "pending";
 }
 
+const MONTHS = Array.from({ length: 12 }, (_, i) => i);
+
 export function RequestLeaveDashboard() {
-  const [leaveType, setLeaveType] = useState<string>("Annual Leave");
-  const [reason, setReason] = useState<string>("");
+  const today = new Date();
+  const currentYear = today.getFullYear();
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [leaveType, setLeaveType] = useState("Annual Leave");
+  const [leaveDuration, setLeaveDuration] = useState<"FULL" | "AM" | "PM">(
+    "FULL"
+  );
+  const [reason, setReason] = useState("");
 
-  const days = useMemo<CalendarDay[]>(() => {
-    const today = new Date();
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
+  const yearCalendar = () => {
+    return MONTHS.map((month) => {
+      const first = new Date(currentYear, month, 1);
+      const last = new Date(currentYear, month + 1, 0);
+      const startWeekday = first.getDay();
+      const totalDays = last.getDate();
 
-    const first = new Date(year, month, 1);
-    const last = new Date(year, month + 1, 0);
+      const days: CalendarDay[] = [];
 
-    const startWeekday = first.getDay();
-    const totalDays = last.getDate();
+      // Padding before
+      for (let i = startWeekday - 1; i >= 0; i--) {
+        const d = new Date(currentYear, month, -i);
+        days.push({
+          date: d,
+          label: d.getDate(),
+          isCurrentMonth: false,
+          isWeekend: d.getDay() === 0 || d.getDay() === 6,
+          isToday: d.toDateString() === today.toDateString(),
+          isHoliday: !!getHolidayName(d),
+          holidayName: getHolidayName(d),
+          leaveStatus: MOCK_LEAVE_STATUS[
+            d.toISOString().split("T")[0]
+          ],
+        });
+      }
 
-    const result: CalendarDay[] = [];
+      // Current month
+      for (let i = 1; i <= totalDays; i++) {
+        const d = new Date(currentYear, month, i);
+        days.push({
+          date: d,
+          label: i,
+          isCurrentMonth: true,
+          isWeekend: d.getDay() === 0 || d.getDay() === 6,
+          isToday: d.toDateString() === today.toDateString(),
+          isHoliday: !!getHolidayName(d),
+          holidayName: getHolidayName(d),
+          leaveStatus: MOCK_LEAVE_STATUS[
+            d.toISOString().split("T")[0]
+          ],
+        });
+      }
 
-    // padding before
-    for (let i = startWeekday - 1; i >= 0; i--) {
-      const d = new Date(year, month, -i);
-      result.push({
-        date: d,
-        label: d.getDate(),
-        isCurrentMonth: false,
-        isWeekend: d.getDay() === 0 || d.getDay() === 6,
-        isToday: d.toDateString() === today.toDateString(),
-      });
-    }
-
-    // current month
-    for (let i = 1; i <= totalDays; i++) {
-      const d = new Date(year, month, i);
-      result.push({
-        date: d,
-        label: i,
-        isCurrentMonth: true,
-        isWeekend: d.getDay() === 0 || d.getDay() === 6,
-        isToday: d.toDateString() === today.toDateString(),
-      });
-    }
-
-    return result;
-  }, [currentMonth]);
-
-  const handleSubmit = () => {
-    if (!selectedDate) return;
-
-    console.log({
-      leaveType,
-      date: selectedDate,
-      reason,
+      return {
+        month,
+        label: first.toLocaleString("default", { month: "long" }),
+        days,
+      };
     });
   };
 
+  const submitLeave = () => {
+    if (!selectedDate) return;
+
+    console.log({
+      date: selectedDate,
+      leaveType,
+      leaveDuration,
+      reason,
+    });
+
+    setSelectedDate(null);
+    setReason("");
+    setLeaveDuration("FULL");
+  };
+
   return (
-    <div className="space-y-6">
-      {/* ================= SUMMARY ================= */}
+    <div className="space-y-8">
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <SummaryCard title="Annual Leave" value="10 Days" />
-        <SummaryCard title="Used" value="3 Days" />
-        <SummaryCard title="Remaining" value="7 Days" />
+        <SummaryCard title="Annual Leave" value="15 Days" />
+        <SummaryCard title="Sick Leave" value="7 Days" />
         <SummaryCard title="Pending Requests" value="1" />
+        <SummaryCard title="Year" value={currentYear.toString()} />
       </div>
 
-      {/* ================= MAIN GRID ================= */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* ========== LEFT (2/3) ========== */}
-        <div className="xl:col-span-2 space-y-6">
-          {/* Leave Calendar */}
-          <Card title="Select Leave Date">
-            <div className="flex items-center justify-between mb-4">
-              <button
-                onClick={() =>
-                  setCurrentMonth(
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() - 1,
-                      1
-                    )
-                  )
-                }
-                className="px-3 py-2 rounded-md bg-[var(--color-primary)] text-white"
-              >
-                ←
-              </button>
-
-              <p className="font-semibold text-sm">
-                {currentMonth.toLocaleString("default", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-
-              <button
-                onClick={() =>
-                  setCurrentMonth(
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() + 1,
-                      1
-                    )
-                  )
-                }
-                className="px-3 py-2 rounded-md bg-[var(--color-primary)] text-white"
-              >
-                →
-              </button>
-            </div>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {yearCalendar().length > 0 && yearCalendar().map((month) => (
+          <Card key={month.month} title={`${month.label} ${currentYear}`}>
             {/* Weekdays */}
-            <div className="grid grid-cols-7 gap-3 mb-2">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                <div
-                  key={d}
-                  className="text-center text-xs font-semibold text-[var(--color-foreground)]/60"
-                >
-                  {d}
-                </div>
+            <div className="grid grid-cols-7 text-xs mb-2 text-center font-semibold text-foreground/60">
+              {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                <div key={`${d}_${// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  i}`}>{d}</div>
               ))}
             </div>
 
-            {/* Calendar */}
-            <div className="grid grid-cols-7 gap-3">
-              {days.map((day) => {
-                const selected =
+            {/* Days */}
+            <div className="grid grid-cols-7 gap-2">
+              {month.days.map((day) => {
+                const isSelected =
                   selectedDate?.toDateString() === day.date.toDateString();
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={day.date.toISOString()}
                     onClick={() => {
-                      if (!day.isWeekend && day.isCurrentMonth) {
+                      if (
+                        day.isCurrentMonth &&
+                        !day.isWeekend &&
+                        !day.isHoliday
+                      ) {
                         setSelectedDate(day.date);
                       }
                     }}
                     className={`
-                      h-12 flex items-center justify-center rounded-md border text-sm font-medium
-                      ${
-                        selected
-                          ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                          : day.isWeekend || !day.isCurrentMonth
-                          ? "bg-[var(--color-surface)] opacity-40 border-[var(--color-muted)]"
-                          : "hover:bg-[var(--color-muted)] cursor-pointer border-[var(--color-muted)]"
+                      group relative h-9 flex items-center justify-center rounded-md border text-xs font-bold
+                      transition-all
+                      ${isSelected
+                        ? "bg-primary text-white border-primary"
+                        : day.isHoliday
+                          ? "bg-danger text-white border-danger"
+                          : day.isWeekend
+                            ? "bg-accent text-black border-accent"
+                            : !day.isCurrentMonth
+                              ? "bg-surface opacity-30 border-muted"
+                              : "hover:bg-muted cursor-pointer border-muted"
                       }
-                      ${
-                        day.isToday && !selected
-                          ? "ring-2 ring-[var(--color-info)]"
-                          : ""
-                      }
-                    `}
+                      ${day.isToday && !isSelected
+                        ? "ring-2 ring-info"
+                        : ""
+                      }`}
                   >
                     {day.label}
-                  </div>
+
+                    {day.leaveStatus && (
+                      <div
+                        className={`
+                          absolute top-0 right-0 h-2 w-2 rounded-full
+                          ${day.leaveStatus === "approved"
+                            ? "bg-[var(--color-success)]"
+                            : "bg-[var(--color-warning)]"
+                          }
+                        `}
+                      />
+                    )}
+
+                    {day.isHoliday && day.holidayName && (
+                      <div
+                        className="
+                        pointer-events-none
+                        absolute -top-10 left-1/2 -translate-x-1/2
+                        whitespace-nowrap
+                        rounded-md bg-black px-2 py-1
+                        text-[10px] text-white shadow-lg
+                        opacity-0 scale-95
+                        transition-all duration-200
+                        group-hover:opacity-100 group-hover:scale-100
+                      "
+                      >
+                        {day.holidayName}
+                      </div>
+                    )}
+                  </button>
                 );
               })}
             </div>
-
-            <p className="mt-3 text-sm">
-              {selectedDate
-                ? `Selected Date: ${selectedDate.toDateString()}`
-                : "No date selected"}
-            </p>
           </Card>
-        </div>
+        ))}
+      </div>
 
-        {/* ========== RIGHT (1/3) ========== */}
-        <div className="space-y-6">
-          {/* Leave Request Form */}
-          <Card title="Leave Request Form">
-            <div className="space-y-4 text-sm">
-              <Field label="Leave Type">
-                <select
-                  value={leaveType}
-                  onChange={(e) => setLeaveType(e.target.value)}
-                  className="w-full mt-1 rounded-md border border-[var(--color-muted)] px-3 py-2"
-                >
-                  <option>Annual Leave</option>
-                  <option>Sick Leave</option>
-                  <option>Unpaid Leave</option>
-                  <option>Other</option>
-                </select>
-              </Field>
+      {selectedDate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl space-y-4">
+            <h2 className="text-lg font-bold text-center">
+              Request Leave
+            </h2>
 
-              <Field label="Selected Date">
-                <input
-                  value={selectedDate ? selectedDate.toDateString() : ""}
-                  readOnly
-                  className="w-full mt-1 rounded-md border border-[var(--color-muted)] px-3 py-2 bg-[var(--color-surface)]"
-                />
-              </Field>
+            <p className="text-center text-sm text-muted-foreground">
+              {selectedDate.toDateString()}
+            </p>
 
-              <Field label="Reason">
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows={4}
-                  className="w-full mt-1 rounded-md border border-[var(--color-muted)] px-3 py-2"
-                />
-              </Field>
+            <Field label="Leave Type">
+              <select
+                value={leaveType}
+                onChange={(e) => setLeaveType(e.target.value)}
+                className="w-full rounded-md border px-3 py-2"
+              >
+                <option>Annual Leave</option>
+                <option>Sick Leave</option>
+                <option>Unpaid Leave</option>
+                <option>Other</option>
+              </select>
+            </Field>
+
+            <Field label="Leave Duration">
+              <div className="grid grid-cols-3 gap-2">
+                {["FULL", "AM", "PM"].map((d) => (
+                  <button
+                    type='button'
+                    key={d}
+                    onClick={() =>
+                      setLeaveDuration(d as "FULL" | "AM" | "PM")
+                    }
+                    className={`py-2 rounded-md border font-semibold ${leaveDuration === d
+                      ? "bg-primary text-white"
+                      : ""
+                      }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="Reason">
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={4}
+                className="w-full rounded-md border px-3 py-2"
+              />
+            </Field>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type='button'
+                onClick={() => setSelectedDate(null)}
+                className="flex-1 border rounded-md py-2"
+              >
+                Cancel
+              </button>
 
               <button
-                onClick={handleSubmit}
-                className="w-full mt-4 bg-[var(--color-primary)] text-white py-2 rounded-md font-semibold"
+                type='button'
+                onClick={submitLeave}
+                className="flex-1 bg-primary text-white rounded-md py-2 font-semibold"
               >
-                Submit Request
+                Submit
               </button>
             </div>
-          </Card>
+          </div>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

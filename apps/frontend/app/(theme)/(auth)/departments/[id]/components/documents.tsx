@@ -1,7 +1,7 @@
 "use client";
 
 import DocumentsGrid from "@/components/ui/documents-grid";
-import { extensions, FileInfo } from "@/types";
+import type { extensions, FileInfo } from "@/types";
 import { useParams, useRouter } from "next/navigation";
 
 export default function Documents({

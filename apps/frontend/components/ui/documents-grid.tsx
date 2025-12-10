@@ -6,7 +6,7 @@ import NoDocumentFound from "./no-document";
 import { Upload, LayoutGrid, Table2, X } from "lucide-react";
 import Table from "./table/table";
 import { DateTime } from "luxon";
-import { extensions } from "@/types";
+import type { extensions } from "@/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type Document = {
@@ -140,6 +140,7 @@ const DocumentsGrid = ({
     });
   }, [documents, selectedTypes, searchText]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (selectedTypes.length === 0) {
       updateParam("type");
@@ -148,10 +149,12 @@ const DocumentsGrid = ({
     }
   }, [selectedTypes]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     updateParam("q", searchText || undefined);
   }, [searchText]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     updateParam("view", viewMode);
   }, [viewMode]);
@@ -166,13 +169,13 @@ const DocumentsGrid = ({
           <div className="flex items-center justify-end">
             <div className="flex items-center gap-2 rounded-md border border-muted bg-muted/10 p-1">
               <button
+                type="button"
                 onClick={() => onSwitchMode("grid")}
                 className={`
                   flex items-center gap-1 px-3 py-1.5 text-sm rounded-md transition
-                  ${
-                    viewMode === "grid"
-                      ? "bg-primary text-white shadow"
-                      : "text-foreground hover:bg-muted/40"
+                  ${viewMode === "grid"
+                    ? "bg-primary text-white shadow"
+                    : "text-foreground hover:bg-muted/40"
                   }
                 `}
               >
@@ -181,13 +184,13 @@ const DocumentsGrid = ({
               </button>
 
               <button
+                type="button"
                 onClick={() => onSwitchMode("table")}
                 className={`
                   flex items-center gap-1 px-3 py-1.5 text-sm rounded-md transition
-                  ${
-                    viewMode === "table"
-                      ? "bg-primary text-white shadow"
-                      : "text-foreground hover:bg-muted/40"
+                  ${viewMode === "table"
+                    ? "bg-primary text-white shadow"
+                    : "text-foreground hover:bg-muted/40"
                   }
                 `}
               >
@@ -206,7 +209,7 @@ const DocumentsGrid = ({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search document..."
             className="
-                h-9 w-full md:w-52 rounded-md border border-muted bg-muted/10
+                h-9 w-full md:w-72 rounded-md border border-muted bg-muted/10
                 px-3 text-sm outline-none
                 focus:ring-2 focus:ring-primary
               "
@@ -223,22 +226,20 @@ const DocumentsGrid = ({
                   px-3 py-1.5 text-xs font-medium border
                   transition-all duration-200 ease-out
                   transform
-                  ${
-                    isAllActive
-                      ? "bg-primary text-white border-primary shadow-md shadow-primary/30 scale-[1.02]"
-                      : "bg-muted/10 text-foreground border-muted hover:bg-muted/30 hover:-translate-y-0.5 hover:shadow-sm"
-                  }
+                  ${isAllActive
+                  ? "bg-primary text-white border-primary shadow-md shadow-primary/30 scale-[1.02]"
+                  : "bg-muted/10 text-foreground border-muted hover:bg-muted/30 hover:-translate-y-0.5 hover:shadow-sm"
+                }
                 `}
             >
               <span>ALL</span>
               <span
                 className={`
                     min-w-5 rounded-full text-[10px] px-1.5 text-center
-                    ${
-                      isAllActive
-                        ? "bg-white/90 text-primary"
-                        : "bg-muted text-foreground"
-                    }
+                    ${isAllActive
+                    ? "bg-white/90 text-primary"
+                    : "bg-muted text-foreground"
+                  }
                   `}
               >
                 {documents.length}
@@ -258,11 +259,10 @@ const DocumentsGrid = ({
                       px-3 py-1.5 text-xs font-medium border
                       transition-all duration-200 ease-out
                       transform
-                      ${
-                        isActive
-                          ? "bg-primary text-white border-primary shadow-md shadow-primary/30 scale-[1.02] -translate-y-0.5"
-                          : "bg-muted/10 text-foreground border-muted hover:bg-muted/30 hover:-translate-y-0.5 hover:shadow-sm"
-                      }
+                      ${isActive
+                      ? "bg-primary text-white border-primary shadow-md shadow-primary/30 scale-[1.02] -translate-y-0.5"
+                      : "bg-muted/10 text-foreground border-muted hover:bg-muted/30 hover:-translate-y-0.5 hover:shadow-sm"
+                    }
                       active:scale-95
                     `}
                 >
@@ -271,11 +271,10 @@ const DocumentsGrid = ({
                   <span
                     className={`
                         min-w-5 rounded-full text-[10px] px-1.5 text-center
-                        ${
-                          isActive
-                            ? "bg-white/90 text-primary"
-                            : "bg-muted text-foreground"
-                        }
+                        ${isActive
+                        ? "bg-white/90 text-primary"
+                        : "bg-muted text-foreground"
+                      }
                       `}
                   >
                     {typeCountMap[t]}
@@ -286,6 +285,7 @@ const DocumentsGrid = ({
 
             {(selectedTypes.length > 0 || searchText) && (
               <button
+                type="button"
                 onClick={onResetFilters}
                 className="
                   hidden md:inline-flex
@@ -305,6 +305,7 @@ const DocumentsGrid = ({
 
         {(selectedTypes.length > 0 || searchText) && (
           <button
+            type="button"
             onClick={onResetFilters}
             className="
                 inline-flex md:hidden
@@ -323,61 +324,69 @@ const DocumentsGrid = ({
       </div>
 
       {viewMode === "grid" && (
-        <div className="w-full grid xl:grid-cols-8 lg:grid-cols-6 md:grid-cols-3 sm:grid-cols-1 gap-4">
-          <button
-            type="button"
-            onClick={() => onUploadBtnClicked?.()}
-            className="
+        <div>
+          {!isLoading && filteredDocuments.length === 0 &&
+            <NoDocumentFound
+              showUpload
+              onUploadClick={() => onUploadBtnClicked?.()}
+            />}
+          <div className="w-full grid xl:grid-cols-6 lg:grid-cols-4 md:grid-cols-4 sm:grid-cols-2 gap-4">
+            {!isLoading && filteredDocuments.length > 0 &&
+              <button
+                type="button"
+                onClick={() => onUploadBtnClicked?.()}
+                className="
               min-h-40
               flex flex-col items-center justify-center gap-3
               rounded-md border border-dashed border-muted
               bg-muted/10 hover:bg-muted/30 transition
             "
-          >
-            <Upload className="w-8 h-8 text-primary" />
-            <span className="text-sm font-medium text-foreground">
-              Upload Document
-            </span>
-          </button>
+              >
+                <Upload className="w-8 h-8 text-primary" />
+                <span className="text-sm font-medium text-foreground">
+                  Upload Document
+                </span>
+              </button>
+            }
 
-          {isLoading &&
-            Array(10)
-              .fill(null)
-              .map((_, i) => (
-                <DocumentCard key={i}>
-                  <DocumentCard.Loading className="w-full" />
-                </DocumentCard>
-              ))}
+            {isLoading &&
+              Array(10)
+                .fill(null)
+                .map((_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  <DocumentCard key={i}>
+                    <DocumentCard.Loading className="w-full" />
+                  </DocumentCard>
+                ))}
 
-          {!isLoading &&
-            (filteredDocuments.length > 0 ? (
-              filteredDocuments.map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  onClick={() => onItemClicked?.(doc)}
-                  className="
+            {!isLoading &&
+              (filteredDocuments.length > 0 &&
+                filteredDocuments.map((doc) => (
+                  <DocumentCard
+                    key={doc.id}
+                    onClick={() => onItemClicked?.(doc)}
+                    className="
                     bg-muted/20 rounded-md p-4
                     transition-all
                     hover:shadow-xl hover:bg-muted/40
                   "
-                >
-                  <DocumentCard.Extension
-                    extension={doc.extension}
-                    className="w-[80%] max-w-14 mx-auto"
-                  />
-                  <DocumentCard.Info
-                    compact={false}
-                    name={doc.name}
-                    createdAt={doc.createdAt}
-                    fileSize={doc.size}
-                  />
-                </DocumentCard>
-              ))
-            ) : (
-              <NoDocumentFound />
-            ))}
+                  >
+                    <DocumentCard.Extension
+                      extension={doc.extension}
+                      className="w-[80%] max-w-14 mx-auto"
+                    />
+                    <DocumentCard.Info
+                      compact={false}
+                      name={doc.name}
+                      createdAt={doc.createdAt}
+                      fileSize={doc.size}
+                    />
+                  </DocumentCard>
+                )))}
+          </div>
         </div>
-      )}
+      )
+      }
 
       {viewMode === "table" && (
         <div className="w-full space-y-3">
