@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.4
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.20.14
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.93.1
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/knadh/koanf/parsers/yaml v1.1.0
 	github.com/knadh/koanf/providers/env v1.1.0
@@ -65,6 +65,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.3 // indirect
 	golang.org/x/mod v0.27.0 // indirect
@@ -81,5 +82,6 @@ require (
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/pgvector/pgvector-go v0.3.0
 	golang.org/x/text v0.29.0 // indirect
 )
