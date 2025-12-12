@@ -72,7 +72,6 @@ func (r *DocumentPostgresRepository) SearchChunks(
 	ctx context.Context,
 	embedding []float32,
 	limit int,
-	maxDistance float64,
 ) ([]domain.Chunk, error) {
 
 	vec := pgvector.NewVector(embedding)
@@ -89,7 +88,7 @@ func (r *DocumentPostgresRepository) SearchChunks(
 		LIMIT $2
 	`,
 		vec,
-		1000,
+		limit,
 	)
 	if err != nil {
 		return nil, err
