@@ -1,9 +1,11 @@
 package app
 
 import (
+	aiusecase "github.com/smart-hmm/smart-hmm/internal/modules/ai/usecase"
 	attendanceusecase "github.com/smart-hmm/smart-hmm/internal/modules/attendance/usecase"
 	authusecase "github.com/smart-hmm/smart-hmm/internal/modules/auth/usecase"
 	departmentusecase "github.com/smart-hmm/smart-hmm/internal/modules/department/usecase"
+	documentusecase "github.com/smart-hmm/smart-hmm/internal/modules/document/usecase"
 	emailtemplateusecase "github.com/smart-hmm/smart-hmm/internal/modules/email_template/usecase"
 	employeeusecase "github.com/smart-hmm/smart-hmm/internal/modules/employee/usecase"
 	fileusecase "github.com/smart-hmm/smart-hmm/internal/modules/file/usecase"
@@ -65,6 +67,10 @@ type Usecases struct {
 	GetFileUsecase               *fileusecase.GetFileUsecase
 	SoftDeleteFileUsecase        *fileusecase.SoftDeleteFileUsecase
 	ListFilesByDepartmentUsecase *fileusecase.ListFilesByDepartmentUsecase
+	ChuckTextUsecase             *documentusecase.ChunkTextUseCase
+	IngestDocumentUseCase        *documentusecase.IngestDocumentUseCase
+	AskQuestionUseCase           *aiusecase.AskQuestionUseCase
+	EmbedChunkUseCase            *aiusecase.EmbedChunkUseCase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -72,6 +78,8 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 	updateEmployee := employeeusecase.NewUpdateEmployeeUsecase(repo.Employee)
 	deleteEmployee := employeeusecase.NewDeleteEmployeeUsecase(repo.Employee)
 	registerUser := userusecase.NewRegisterUserUsecase(repo.User)
+	chunkTextUsecase := documentusecase.NewChunkTextUseCase()
+	embedChuckUsecase := aiusecase.NewEmbedChunkUseCase(infras.OllamaClient)
 	createRefreshToken := refreshtokenusecase.NewCreateRefreshTokenUsecase(repo.RefreshToken)
 	rotateRefreshToken := refreshtokenusecase.NewRotateRefreshTokenUsecase(repo.RefreshToken)
 
@@ -123,5 +131,9 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		GetFileUsecase:               fileusecase.NewGetFileUsecase(repo.File, storageusecase.NewGetPresignedDownloadURLUsecase(infras.StorageService)),
 		ListFilesByDepartmentUsecase: fileusecase.NewListFilesByDepartmentUsecase(repo.File),
 		SoftDeleteFileUsecase:        fileusecase.NewSoftDeleteFileUsecase(repo.File),
+		ChuckTextUsecase:             chunkTextUsecase,
+		IngestDocumentUseCase:        documentusecase.NewIngestDocumentUseCase(repo.Document, chunkTextUsecase, embedChuckUsecase),
+		EmbedChunkUseCase:            embedChuckUsecase,
+		AskQuestionUseCase:           aiusecase.NewAskQuestionUseCase(repo.Document, embedChuckUsecase, infras.OllamaClient),
 	}
 }

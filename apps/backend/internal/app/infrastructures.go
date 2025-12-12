@@ -8,6 +8,7 @@ import (
 	"github.com/smart-hmm/smart-hmm/internal/config"
 	rediscache "github.com/smart-hmm/smart-hmm/internal/infrastructure/cache/redis"
 	"github.com/smart-hmm/smart-hmm/internal/infrastructure/database"
+	"github.com/smart-hmm/smart-hmm/internal/infrastructure/llm"
 	resendmail "github.com/smart-hmm/smart-hmm/internal/infrastructure/mail/resend"
 	rabbitmqqueue "github.com/smart-hmm/smart-hmm/internal/infrastructure/queue/rabbitmq"
 	s3storage "github.com/smart-hmm/smart-hmm/internal/infrastructure/storage/s3"
@@ -28,6 +29,8 @@ type Infrastructures struct {
 	StorageService storageports.StorageService
 
 	Redis *rediscache.RedisService
+
+	OllamaClient *llm.OllamaClient
 }
 
 func buildInfrastructures(ctx context.Context, cfg *config.Config) (*Infrastructures, error) {
@@ -73,6 +76,8 @@ func buildInfrastructures(ctx context.Context, cfg *config.Config) (*Infrastruct
 		cfg.S3.PublicURL,
 	)
 
+	ollamaClient := llm.NewOllamaClient("http://localhost:11434", "gemma2:9b", "nomic-embed-text")
+
 	infras := &Infrastructures{
 		MailService:    mailSvc,
 		DB:             db.Pool(),
@@ -80,6 +85,7 @@ func buildInfrastructures(ctx context.Context, cfg *config.Config) (*Infrastruct
 		QueueService:   queue,
 		TokenService:   tokenSvc,
 		StorageService: s3Storage,
+		OllamaClient:   ollamaClient,
 	}
 
 	if infras.QueueService == nil {

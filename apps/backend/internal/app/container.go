@@ -46,7 +46,10 @@ func Build(ctx context.Context, cfg *config.Config) (*Container, error) {
 			AuthHandler:           handlers.Auth,
 			UploadHandler:         handlers.Upload,
 			FileHandler:           handlers.File,
-			TokenService:          infras.TokenService,
+			DocumentHandler:       handlers.Document,
+			AIHandler:             handlers.AI,
+
+			TokenService: infras.TokenService,
 		}),
 	}, nil
 }

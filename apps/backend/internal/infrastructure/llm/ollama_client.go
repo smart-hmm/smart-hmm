@@ -1,4 +1,4 @@
-package rag
+package llm
 
 import (
 	"bytes"
@@ -8,26 +8,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/smart-hmm/smart-hmm/internal/modules/document/domain"
+	"github.com/smart-hmm/smart-hmm/internal/modules/ai/domain"
 )
 
 type OllamaClient struct {
-	baseURL    string
-	model      string
-	embedModel string
-	httpClient *http.Client
-}
-
-func NewOllamaClient(baseURL, model, embedModel string) *OllamaClient {
-	if baseURL == "" {
-		baseURL = "http://localhost:11434"
-	}
-	return &OllamaClient{
-		baseURL:    baseURL,
-		model:      model,
-		embedModel: embedModel,
-		httpClient: &http.Client{Timeout: 120 * time.Second},
-	}
+	baseURL       string
+	generateModel string
+	embedModel    string
+	httpClient    *http.Client
 }
 
 type ollamaEmbedRequest struct {
@@ -49,8 +37,22 @@ type ollamaGenerateResponse struct {
 	Response string `json:"response"`
 }
 
+func NewOllamaClient(baseURL, generateModel, embedModel string) *OllamaClient {
+	if baseURL == "" {
+		baseURL = "http://localhost:11434"
+	}
+	return &OllamaClient{
+		baseURL:       baseURL,
+		generateModel: generateModel,
+		embedModel:    embedModel,
+		httpClient: &http.Client{
+			Timeout: 120 * time.Second,
+		},
+	}
+}
+
 func (c *OllamaClient) Embed(ctx context.Context, text string) ([]float32, error) {
-	reqBody, err := json.Marshal(ollamaEmbedRequest{
+	body, err := json.Marshal(ollamaEmbedRequest{
 		Model:  c.embedModel,
 		Prompt: text,
 	})
@@ -58,8 +60,12 @@ func (c *OllamaClient) Embed(ctx context.Context, text string) ([]float32, error
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/api/embeddings", c.baseURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		c.baseURL+"/api/embeddings",
+		bytes.NewReader(body),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +92,8 @@ func (c *OllamaClient) Embed(ctx context.Context, text string) ([]float32, error
 func (c *OllamaClient) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	fullPrompt := systemPrompt + "\n\nUser:\n" + userPrompt
 
-	reqBody, err := json.Marshal(ollamaGenerateRequest{
-		Model:  c.model,
+	body, err := json.Marshal(ollamaGenerateRequest{
+		Model:  c.generateModel,
 		Prompt: fullPrompt,
 		Stream: false,
 	})
@@ -95,8 +101,12 @@ func (c *OllamaClient) Generate(ctx context.Context, systemPrompt, userPrompt st
 		return "", err
 	}
 
-	url := fmt.Sprintf("%s/api/generate", c.baseURL)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		c.baseURL+"/api/generate",
+		bytes.NewReader(body),
+	)
 	if err != nil {
 		return "", err
 	}
@@ -120,5 +130,5 @@ func (c *OllamaClient) Generate(ctx context.Context, systemPrompt, userPrompt st
 	return out.Response, nil
 }
 
+var _ domain.LLM = (*OllamaClient)(nil)
 var _ domain.Embedder = (*OllamaClient)(nil)
-var _ domain.LLMClient = (*OllamaClient)(nil)

@@ -1,9 +1,11 @@
 package app
 
 import (
+	aihandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/ai"
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
 	authhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/auth"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
+	documenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/document"
 	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
 	filehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/file"
@@ -30,6 +32,8 @@ type Handlers struct {
 	Auth           *authhandler.AuthHandler
 	Upload         *uploadhandler.UploadHandler
 	File           *filehandler.FileHandler
+	Document       *documenthandler.DocumentHandler
+	AI             *aihandler.AIHandler
 }
 
 func buildHandlers(uc Usecases, repo Repositories) Handlers {
@@ -95,5 +99,7 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.SoftDeleteFileUsecase,
 			repo.File,
 		),
+		Document: documenthandler.NewDocumentHandler(uc.IngestDocumentUseCase),
+		AI:       aihandler.NewAIHandler(uc.AskQuestionUseCase),
 	}
 }

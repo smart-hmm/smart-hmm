@@ -5,6 +5,7 @@ import (
 	pgrepository "github.com/smart-hmm/smart-hmm/internal/infrastructure/repository/pg"
 	attendancerepository "github.com/smart-hmm/smart-hmm/internal/modules/attendance/repository"
 	departmentrepository "github.com/smart-hmm/smart-hmm/internal/modules/department/repository"
+	documentrepository "github.com/smart-hmm/smart-hmm/internal/modules/document/repository"
 	emailtemplaterepository "github.com/smart-hmm/smart-hmm/internal/modules/email_template/repository"
 	employeerepository "github.com/smart-hmm/smart-hmm/internal/modules/employee/repository"
 	filerepository "github.com/smart-hmm/smart-hmm/internal/modules/file/repository"
@@ -30,6 +31,7 @@ type Repositories struct {
 	User           userrepository.UserRepository
 	RefreshToken   refreshtokenrepository.RefreshTokenRepository
 	File           filerepository.FileRepository
+	Document       documentrepository.DocumentRepository
 }
 
 func buildRepositories(pool *pgxpool.Pool) Repositories {
@@ -46,5 +48,6 @@ func buildRepositories(pool *pgxpool.Pool) Repositories {
 		User:           pgrepository.NewUserPostgresRepository(pool),
 		RefreshToken:   pgrepository.NewRefreshTokenPostgresRepository(pool),
 		File:           pgrepository.NewFilePostgresRepository(pool),
+		Document:       pgrepository.NewDocumentPostgresRepository(pool),
 	}
 }

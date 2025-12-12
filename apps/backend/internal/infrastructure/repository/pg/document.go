@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	pgvector "github.com/pgvector/pgvector-go/pgx"
+	pgvector "github.com/pgvector/pgvector-go"
 	"github.com/smart-hmm/smart-hmm/internal/modules/document/domain"
 	documentrepository "github.com/smart-hmm/smart-hmm/internal/modules/document/repository"
 )
@@ -24,7 +24,8 @@ func (r *DocumentPostgresRepository) InsertDocumentWithChunks(
 	doc *domain.Document,
 	chunks []domain.Chunk,
 ) error {
-	tx, err := r.pool.BeginTx(ctx, pgxpool.TxOptions{})
+
+	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
@@ -32,10 +33,10 @@ func (r *DocumentPostgresRepository) InsertDocumentWithChunks(
 
 	var docID int64
 	err = tx.QueryRow(ctx,
-		`INSERT INTO documents (tenant_id, title, description, source, mime_type, language, tags)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+		`INSERT INTO documents (title, description, source, mime_type, language, tags)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING id`,
-		doc.TenantID,
+
 		doc.Title,
 		doc.Description,
 		doc.Source,
@@ -48,12 +49,12 @@ func (r *DocumentPostgresRepository) InsertDocumentWithChunks(
 	}
 
 	for _, c := range chunks {
-		vec := pgvector.V(c.Embedding)
+		vec := pgvector.NewVector(c.Embedding)
+
 		_, err = tx.Exec(ctx,
-			`INSERT INTO document_chunks (document_id, tenant_id, chunk_index, content, embedding, metadata)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+			`INSERT INTO document_chunks (document_id, chunk_index, content, embedding, metadata)
+             VALUES ($1, $2, $3, $4, $5)`,
 			docID,
-			doc.TenantID,
 			c.ChunkIndex,
 			c.Content,
 			vec,
@@ -64,49 +65,63 @@ func (r *DocumentPostgresRepository) InsertDocumentWithChunks(
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit(ctx)
 }
 
-// SearchChunks: order theo khoảng cách cosine
 func (r *DocumentPostgresRepository) SearchChunks(
 	ctx context.Context,
-	tenantID string,
 	embedding []float32,
 	limit int,
+	maxDistance float64,
 ) ([]domain.Chunk, error) {
-	vec := pgvector.(embedding)
 
-	rows, err := r.pool.Query(ctx,
-		`SELECT c.id, c.document_id, c.tenant_id, c.chunk_index, c.content
-         FROM document_chunks c
-         WHERE c.tenant_id = $1
-         ORDER BY c.embedding <-> $2
-         LIMIT $3`,
-		tenantID,
+	vec := pgvector.NewVector(embedding)
+
+	rows, err := r.pool.Query(ctx, `
+		SELECT
+			id,
+			document_id,
+			chunk_index,
+			content,
+			embedding <-> $1 AS distance
+		FROM document_chunks
+		ORDER BY distance ASC
+		LIMIT $2
+	`,
 		vec,
-		limit,
+		1000,
 	)
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var res []domain.Chunk
+	var results []domain.Chunk
+
 	for rows.Next() {
 		var c domain.Chunk
-		if err := rows.Scan(&c.ID, &c.DocumentID, &c.TenantID, &c.ChunkIndex, &c.Content); err != nil {
+		var distance float64
+
+		if err := rows.Scan(
+			&c.ID,
+			&c.DocumentID,
+			&c.ChunkIndex,
+			&c.Content,
+			&distance,
+		); err != nil {
 			return nil, err
 		}
-		res = append(res, c)
+
+		if distance <= maxDistance {
+			c.Distance = &distance
+			results = append(results, c)
+		}
+
+		if len(results) >= limit {
+			break
+		}
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return results, nil
 }

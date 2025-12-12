@@ -8,9 +8,11 @@ import (
 	cm "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	tokenports "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/token"
+	aihandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/ai"
 	attendancehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/attendance"
 	authhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/auth"
 	departmenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/department"
+	documenthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/document"
 	emailtemplatehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/email_template"
 	employeehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/employee"
 	filehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/file"
@@ -39,6 +41,8 @@ type Args struct {
 	AuthHandler           *authhandler.AuthHandler
 	UploadHandler         *uploadhandler.UploadHandler
 	FileHandler           *filehandler.FileHandler
+	DocumentHandler       *documenthandler.DocumentHandler
+	AIHandler             *aihandler.AIHandler
 	TokenService          tokenports.Service
 }
 
@@ -68,6 +72,9 @@ func GetRouter(args Args) *chi.Mux {
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	r.Route("/api/v1", func(api chi.Router) {
+		api.Route("/documents", args.DocumentHandler.Routes)
+		api.Route("/ai", args.AIHandler.Routes)
+
 		api.Route("/auth", func(ar chi.Router) {
 			args.AuthHandler.Routes(ar, args.TokenService)
 		})
@@ -87,6 +94,7 @@ func GetRouter(args Args) *chi.Mux {
 			pr.Route("/user-settings", args.UserSettingsHandler.Routes)
 			pr.Route("/upload", args.UploadHandler.Routes)
 			pr.Route("/files", args.FileHandler.Routes)
+
 		})
 	})
 

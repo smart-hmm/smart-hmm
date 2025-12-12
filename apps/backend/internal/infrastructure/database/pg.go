@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	pgxvector "github.com/pgvector/pgvector-go/pgx"
+
 	"github.com/smart-hmm/smart-hmm/internal/config"
 	databaseport "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/database"
 )
@@ -36,10 +40,13 @@ func (db *PostgresDatabase) Open(ctx context.Context) error {
 		return fmt.Errorf("failed to parse dsn: %w", err)
 	}
 
-	// Optional: pool tuning
 	cfg.MaxConns = 10
 	cfg.MinConns = 1
 	cfg.MaxConnLifetime = time.Hour
+
+	cfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+		return pgxvector.RegisterTypes(ctx, conn)
+	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
@@ -61,7 +68,6 @@ func (db *PostgresDatabase) Ping(ctx context.Context) error {
 	if db.pool == nil {
 		return fmt.Errorf("database not opened")
 	}
-
 	return db.pool.Ping(ctx)
 }
 
