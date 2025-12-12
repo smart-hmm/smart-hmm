@@ -34,8 +34,8 @@ func (r *DocumentPostgresRepository) InsertDocumentWithChunks(
 	var docID int64
 	err = tx.QueryRow(ctx,
 		`INSERT INTO documents (title, description, source, mime_type, language, tags)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id`,
+			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING id`,
 
 		doc.Title,
 		doc.Description,
@@ -53,7 +53,7 @@ func (r *DocumentPostgresRepository) InsertDocumentWithChunks(
 
 		_, err = tx.Exec(ctx,
 			`INSERT INTO document_chunks (document_id, chunk_index, content, embedding, metadata)
-             VALUES ($1, $2, $3, $4, $5)`,
+				VALUES ($1, $2, $3, $4, $5)`,
 			docID,
 			c.ChunkIndex,
 			c.Content,
@@ -83,7 +83,7 @@ func (r *DocumentPostgresRepository) SearchChunks(
 			document_id,
 			chunk_index,
 			content,
-			embedding <-> $1 AS distance
+			embedding <-> $1::vector AS distance
 		FROM document_chunks
 		ORDER BY distance ASC
 		LIMIT $2
@@ -91,7 +91,6 @@ func (r *DocumentPostgresRepository) SearchChunks(
 		vec,
 		1000,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -113,10 +112,7 @@ func (r *DocumentPostgresRepository) SearchChunks(
 			return nil, err
 		}
 
-		if distance <= maxDistance {
-			c.Distance = &distance
-			results = append(results, c)
-		}
+		results = append(results, c)
 
 		if len(results) >= limit {
 			break
