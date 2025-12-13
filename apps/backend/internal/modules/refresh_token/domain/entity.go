@@ -39,7 +39,7 @@ func NewRefreshTokenWithExpiry(
 		return nil, ErrInvalidRefreshToken
 	}
 
-	now := time.Now().UTC()
+	now := time.Now().UTC().UTC()
 
 	return &RefreshToken{
 		UserID:    userID,
@@ -52,7 +52,7 @@ func NewRefreshTokenWithExpiry(
 }
 
 func (t *RefreshToken) Validate() error {
-	now := time.Now().UTC()
+	now := time.Now().UTC().UTC()
 
 	if t.RevokedAt != nil {
 		return ErrRefreshTokenRevoked
@@ -66,7 +66,7 @@ func (t *RefreshToken) Validate() error {
 }
 
 func (t *RefreshToken) Revoke() {
-	now := time.Now().UTC()
+	now := time.Now().UTC().UTC()
 	t.RevokedAt = &now
 }
 

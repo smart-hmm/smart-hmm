@@ -17,6 +17,6 @@ func NewUpdateLeaveTypeUsecase(repo leaverepository.LeaveTypeRepository) *Update
 }
 
 func (uc *UpdateLeaveTypeUsecase) Execute(ctx context.Context, t *domain.LeaveType) error {
-	t.UpdatedAt = time.Now()
+	t.UpdatedAt = time.Now().UTC()
 	return uc.repo.Update(t)
 }

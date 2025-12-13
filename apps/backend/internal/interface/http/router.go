@@ -20,6 +20,7 @@ import (
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
+	tenanthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/tenant"
 	uploadhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/upload"
 	userhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user"
 	usersettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user_settings"
@@ -43,6 +44,7 @@ type Args struct {
 	FileHandler           *filehandler.FileHandler
 	DocumentHandler       *documenthandler.DocumentHandler
 	AIHandler             *aihandler.AIHandler
+	TenantHandler         *tenanthandler.TenantHandler
 	TokenService          tokenports.Service
 }
 
@@ -72,9 +74,6 @@ func GetRouter(args Args) *chi.Mux {
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	r.Route("/api/v1", func(api chi.Router) {
-		api.Route("/documents", args.DocumentHandler.Routes)
-		api.Route("/ai", args.AIHandler.Routes)
-
 		api.Route("/auth", func(ar chi.Router) {
 			args.AuthHandler.Routes(ar, args.TokenService)
 		})
@@ -94,7 +93,9 @@ func GetRouter(args Args) *chi.Mux {
 			pr.Route("/user-settings", args.UserSettingsHandler.Routes)
 			pr.Route("/upload", args.UploadHandler.Routes)
 			pr.Route("/files", args.FileHandler.Routes)
-
+			pr.Route("/documents", args.DocumentHandler.Routes)
+			pr.Route("/ai", args.AIHandler.Routes)
+			pr.Route("/tenants", args.TenantHandler.Routes)
 		})
 	})
 

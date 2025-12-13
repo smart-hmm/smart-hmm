@@ -22,6 +22,6 @@ func (uc *UpdateDepartmentUsecase) Execute(ctx context.Context, d *domain.Depart
 		return errors.New("name required")
 	}
 
-	d.UpdatedAt = time.Now()
+	d.UpdatedAt = time.Now().UTC()
 	return uc.repo.Update(d)
 }

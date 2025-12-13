@@ -19,11 +19,11 @@ func NewSystemSetting(key string, value any) (*SystemSetting, error) {
 	return &SystemSetting{
 		Key:       key,
 		Value:     value,
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now().UTC(),
 	}, nil
 }
 
 func (s *SystemSetting) Update(value any) {
 	s.Value = value
-	s.UpdatedAt = time.Now()
+	s.UpdatedAt = time.Now().UTC()
 }

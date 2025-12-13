@@ -55,7 +55,7 @@ func NewEmployee(code, firstName, lastName, email, phone, position string, base 
 		return nil, errors.New("base salary cannot be negative")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &Employee{
 		Code:       code,
@@ -73,5 +73,5 @@ func NewEmployee(code, firstName, lastName, email, phone, position string, base 
 
 func (e *Employee) UpdatePosition(pos string) {
 	e.Position = pos
-	e.UpdatedAt = time.Now()
+	e.UpdatedAt = time.Now().UTC()
 }

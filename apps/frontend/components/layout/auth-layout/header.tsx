@@ -4,7 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserRound } from "lucide-react";
 import useSysSettings from "@/services/react-query/queries/use-sys-settings";
-import { ArrowContainer, Popover, type PopoverPosition, type Rect } from "react-tiny-popover";
+import {
+  ArrowContainer,
+  Popover,
+  type PopoverPosition,
+  type Rect,
+} from "react-tiny-popover";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useLogout } from "@/services/react-query/mutations/use-logout";
@@ -17,8 +22,8 @@ export default function Header() {
   const pathname = usePathname();
   const { data: settings } = useSysSettings();
 
-  const name =
-    (settings?.find((ele) => ele.key === "general")?.value.name ?? "") as string;
+  const name = (settings?.find((ele) => ele.key === "general")?.value.name ??
+    "") as string;
 
   const shortName = name
     .split(" ")
@@ -28,18 +33,22 @@ export default function Header() {
 
   const navItems = [
     {
+      id: "nav-departments",
       href: "/departments",
       label: "Departments",
     },
     {
+      id: "nav-employees",
       href: "/employees",
       label: "Employees",
     },
     {
+      id: "nav-meeting",
       href: "/meeting",
       label: "Meeting",
     },
     {
+      id: "nav-settings",
       href: "/company-settings",
       label: "Settings",
     },
@@ -73,14 +82,16 @@ export default function Header() {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link
+                id={item.id}
                 key={item.href}
                 href={item.href}
                 className={`
                 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all
-                ${isActive
+                ${
+                  isActive
                     ? "text-primary"
                     : "text-foreground/70 hover:underline"
-                  }
+                }
               `}
               >
                 {item.label}
@@ -159,14 +170,17 @@ export default function Header() {
             )}
           >
             <button
-              type='button'
+              type="button"
+              id="nav-user-profile"
               onClick={() => setPopoverOpen(!isPopoverOpen)}
               className="rounded-full bg-surface w-[30px] aspect-square flex items-center justify-center cursor-pointer"
             >
               <UserRound color="#aaaaaa" size={24} />
             </button>
           </Popover>
-          <ThemeToggle />
+          <div id="nav-theme-toggle">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </header>

@@ -40,7 +40,7 @@ func (uc *ConfirmUploadUsecase) Execute(
 		ContentType: in.ContentType,
 		Size:        in.Size,
 
-		CreatedAt:  time.Now(),
+		CreatedAt:  time.Now().UTC(),
 		UploadedBy: &in.UploadedBy,
 	}
 

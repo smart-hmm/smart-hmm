@@ -23,8 +23,8 @@ func (uc *CreateLeaveTypeUsecase) Execute(ctx context.Context, name string, defa
 		Name:        name,
 		DefaultDays: defaultDays,
 		IsPaid:      isPaid,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 	err := uc.repo.Create(t)
 	return t, err

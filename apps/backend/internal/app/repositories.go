@@ -14,6 +14,9 @@ import (
 	payrollrepository "github.com/smart-hmm/smart-hmm/internal/modules/payroll/repository"
 	refreshtokenrepository "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/repository"
 	systemsettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/system/repository"
+	tenantrepository "github.com/smart-hmm/smart-hmm/internal/modules/tenant/repository"
+	tenantmemberrepository "github.com/smart-hmm/smart-hmm/internal/modules/tenant_member/repository"
+	tenantprofilerepository "github.com/smart-hmm/smart-hmm/internal/modules/tenant_profile/repository"
 	usersettingrepository "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/repository"
 	userrepository "github.com/smart-hmm/smart-hmm/internal/modules/user/repository"
 )
@@ -32,6 +35,9 @@ type Repositories struct {
 	RefreshToken   refreshtokenrepository.RefreshTokenRepository
 	File           filerepository.FileRepository
 	Document       documentrepository.DocumentRepository
+	Tenant         tenantrepository.TenantRepository
+	TenantMember   tenantmemberrepository.TenantMemberRepository
+	TenantProfile  tenantprofilerepository.TenantProfileRepository
 }
 
 func buildRepositories(pool *pgxpool.Pool) Repositories {
@@ -49,5 +55,8 @@ func buildRepositories(pool *pgxpool.Pool) Repositories {
 		RefreshToken:   pgrepository.NewRefreshTokenPostgresRepository(pool),
 		File:           pgrepository.NewFilePostgresRepository(pool),
 		Document:       pgrepository.NewDocumentPostgresRepository(pool),
+		Tenant:         pgrepository.NewTenantPostgresRepository(pool),
+		TenantMember:   pgrepository.NewTenantMemberPostgresRepository(pool),
+		TenantProfile:  pgrepository.NewTenantProfilePostgresRepository(pool),
 	}
 }

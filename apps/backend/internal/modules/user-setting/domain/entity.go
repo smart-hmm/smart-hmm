@@ -21,11 +21,11 @@ func NewUserSetting(userId string, key string, value any) (*UserSetting, error) 
 		UserId:    userId,
 		Key:       key,
 		Value:     value,
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now().UTC(),
 	}, nil
 }
 
 func (s *UserSetting) Update(value any) {
 	s.Value = value
-	s.UpdatedAt = time.Now()
+	s.UpdatedAt = time.Now().UTC()
 }

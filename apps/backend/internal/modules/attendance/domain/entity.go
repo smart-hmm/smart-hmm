@@ -42,7 +42,7 @@ func NewClockIn(employeeID string, method ClockMethod, note *string) (*Attendanc
 		return nil, errors.New("employeeID is required")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &AttendanceRecord{
 		ID:         uuid.NewString(),
@@ -60,7 +60,7 @@ func (a *AttendanceRecord) ClockOutNow() error {
 		return errors.New("already clocked out")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	if now.Before(a.ClockIn) {
 		return errors.New("clock-out cannot be before clock-in")

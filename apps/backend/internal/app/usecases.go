@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/smart-hmm/smart-hmm/internal/infrastructure/database/txmanager"
 	aiusecase "github.com/smart-hmm/smart-hmm/internal/modules/ai/usecase"
 	attendanceusecase "github.com/smart-hmm/smart-hmm/internal/modules/attendance/usecase"
 	authusecase "github.com/smart-hmm/smart-hmm/internal/modules/auth/usecase"
@@ -15,6 +16,8 @@ import (
 	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
 	storageusecase "github.com/smart-hmm/smart-hmm/internal/modules/storage/usecase"
 	systemsettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/system/usecase"
+	tenantusecase "github.com/smart-hmm/smart-hmm/internal/modules/tenant/usecase"
+	tenantprofileusecase "github.com/smart-hmm/smart-hmm/internal/modules/tenant_profile/usecase"
 	usersettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/usecase"
 	userusecase "github.com/smart-hmm/smart-hmm/internal/modules/user/usecase"
 )
@@ -71,6 +74,12 @@ type Usecases struct {
 	IngestDocumentUseCase        *documentusecase.IngestDocumentUseCase
 	AskQuestionUseCase           *aiusecase.AskQuestionUseCase
 	EmbedChunkUseCase            *aiusecase.EmbedChunkUseCase
+	CreateTenantUseCase          *tenantusecase.CreateTenantUsecase
+	UpdateTenantUseCase          *tenantusecase.UpdateTenantUsecase
+	GetTenantByIdUseCase         *tenantusecase.GetTenantByIdUsecase
+	DeleteTenantUseCase          *tenantusecase.DeleteTenantUsecase
+	CreateTenantWithOwner        *tenantusecase.CreateTenantWithOwnerUseCase
+	CreateNewTenantProfile       *tenantprofileusecase.CreateNewTenantProfileUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -82,6 +91,7 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 	embedChuckUsecase := aiusecase.NewEmbedChunkUseCase(infras.OllamaClient)
 	createRefreshToken := refreshtokenusecase.NewCreateRefreshTokenUsecase(repo.RefreshToken)
 	rotateRefreshToken := refreshtokenusecase.NewRotateRefreshTokenUsecase(repo.RefreshToken)
+	txManager := txmanager.NewPgxTxManager(infras.DB)
 
 	return Usecases{
 		ClockIn:                      attendanceusecase.NewClockInUsecase(repo.Attendance),
@@ -135,5 +145,11 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		IngestDocumentUseCase:        documentusecase.NewIngestDocumentUseCase(repo.Document, chunkTextUsecase, embedChuckUsecase),
 		EmbedChunkUseCase:            embedChuckUsecase,
 		AskQuestionUseCase:           aiusecase.NewAskQuestionUseCase(repo.Document, embedChuckUsecase, infras.OllamaClient),
+		CreateTenantUseCase:          tenantusecase.NewCreateTenantUsecase(repo.Tenant),
+		UpdateTenantUseCase:          tenantusecase.NewUpdateTenantUsecase(repo.Tenant),
+		GetTenantByIdUseCase:         tenantusecase.NewGetTenantByIdUsecase(repo.Tenant),
+		DeleteTenantUseCase:          tenantusecase.NewDeleteTenantUsecase(repo.Tenant),
+		CreateTenantWithOwner:        tenantusecase.NewCreateTenantWithOwnerUseCase(repo.Tenant, repo.TenantMember, txManager),
+		CreateNewTenantProfile:       tenantprofileusecase.NewCreateNewTenantProfileUsecase(repo.TenantProfile),
 	}
 }

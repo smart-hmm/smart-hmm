@@ -16,6 +16,6 @@ func NewSoftDeleteFileUsecase(repo filerepository.FileRepository) *SoftDeleteFil
 }
 
 func (uc *SoftDeleteFileUsecase) Execute(ctx context.Context, id string) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	return uc.repo.SoftDelete(ctx, id, now)
 }

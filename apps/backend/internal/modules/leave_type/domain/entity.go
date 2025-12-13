@@ -26,7 +26,7 @@ func NewLeaveType(name string, defaultDays int, isPaid bool) (*LeaveType, error)
 		return nil, errors.New("default days cannot be negative")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &LeaveType{
 		ID:          uuid.NewString(),
@@ -49,7 +49,7 @@ func (t *LeaveType) UpdateLeaveType(name string, defaultDays int, isPaid bool) e
 	t.Name = name
 	t.DefaultDays = defaultDays
 	t.IsPaid = isPaid
-	t.UpdatedAt = time.Now()
+	t.UpdatedAt = time.Now().UTC()
 
 	return nil
 }

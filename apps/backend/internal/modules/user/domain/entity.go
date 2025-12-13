@@ -33,7 +33,7 @@ func NewUser(email, hashedPassword string, role UserRole, employeeID *string) (*
 		return nil, errors.New("email required")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &User{
 		ID:           uuid.NewString(),
@@ -48,5 +48,5 @@ func NewUser(email, hashedPassword string, role UserRole, employeeID *string) (*
 
 func (u *User) ChangePassword(newHash string) {
 	u.PasswordHash = newHash
-	u.UpdatedAt = time.Now()
+	u.UpdatedAt = time.Now().UTC()
 }

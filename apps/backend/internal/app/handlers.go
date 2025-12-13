@@ -13,6 +13,7 @@ import (
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
+	tenanthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/tenant"
 	uploadhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/upload"
 	userhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user"
 	usersettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/user_settings"
@@ -34,6 +35,7 @@ type Handlers struct {
 	File           *filehandler.FileHandler
 	Document       *documenthandler.DocumentHandler
 	AI             *aihandler.AIHandler
+	Tenant         *tenanthandler.TenantHandler
 }
 
 func buildHandlers(uc Usecases, repo Repositories) Handlers {
@@ -101,5 +103,11 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 		),
 		Document: documenthandler.NewDocumentHandler(uc.IngestDocumentUseCase),
 		AI:       aihandler.NewAIHandler(uc.AskQuestionUseCase),
+		Tenant: tenanthandler.NewTenantHandler(
+			uc.CreateTenantUseCase,
+			uc.UpdateTenantUseCase,
+			uc.DeleteTenantUseCase,
+			uc.GetTenantByIdUseCase,
+		),
 	}
 }

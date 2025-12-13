@@ -44,7 +44,7 @@ func NewLeaveRequest(empID, leaveTypeID, reason string, start, end time.Time) (*
 		return nil, errors.New("end date cannot be before start date")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	return &LeaveRequest{
 		ID:          uuid.NewString(),
 		EmployeeID:  empID,
@@ -66,7 +66,7 @@ func (r *LeaveRequest) ApproveLeaveRequest(adminID string) error {
 		return errors.New("adminID required")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	r.Status = Approved
 	r.ApprovedBy = &adminID
 	r.ApprovedAt = &now
@@ -85,7 +85,7 @@ func (r *LeaveRequest) RejectLeaveRequest(adminID string, reason string) error {
 		return errors.New("rejection reason is required")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	r.Status = Rejected
 	r.RejectedBy = &adminID

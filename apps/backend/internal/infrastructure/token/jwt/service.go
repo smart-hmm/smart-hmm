@@ -69,7 +69,7 @@ func (s *Service) ValidateRefreshToken(token string) (string, error) {
 func (s *Service) createToken(userID string, secret []byte, ttl time.Duration) (string, time.Time, error) {
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
 
-	exp := time.Now().Add(ttl)
+	exp := time.Now().UTC().Add(ttl)
 	payloadBytes, err := json.Marshal(claims{
 		Sub: userID,
 		Exp: exp.Unix(),
@@ -113,7 +113,7 @@ func (s *Service) validateToken(token string, secret []byte) (string, error) {
 		return "", ErrInvalidToken
 	}
 
-	if time.Unix(c.Exp, 0).Before(time.Now()) {
+	if time.Unix(c.Exp, 0).Before(time.Now().UTC()) {
 		return "", ErrTokenExpired
 	}
 

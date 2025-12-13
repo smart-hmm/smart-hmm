@@ -17,6 +17,6 @@ func NewUpdateEmployeeUsecase(repo employeerepository.EmployeeRepository) *Updat
 }
 
 func (uc *UpdateEmployeeUsecase) Execute(ctx context.Context, e *domain.Employee) error {
-	e.UpdatedAt = time.Now()
+	e.UpdatedAt = time.Now().UTC()
 	return uc.repo.Update(e)
 }

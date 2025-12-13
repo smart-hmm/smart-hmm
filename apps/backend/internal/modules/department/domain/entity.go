@@ -23,7 +23,7 @@ func NewDepartment(name string, managerID *string) (*Department, error) {
 		return nil, errors.New("name required")
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &Department{
 		Name:      name,
@@ -35,5 +35,5 @@ func NewDepartment(name string, managerID *string) (*Department, error) {
 
 func (d *Department) ChangeManager(managerID *string) {
 	d.ManagerID = managerID
-	d.UpdatedAt = time.Now()
+	d.UpdatedAt = time.Now().UTC()
 }

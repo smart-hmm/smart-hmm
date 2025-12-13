@@ -32,7 +32,7 @@ func (uc *GeneratePayrollUsecase) Execute(
 		baseSalary,
 		allowances,
 		deductions,
-		time.Now(),
+		time.Now().UTC(),
 	)
 	if err != nil {
 		return nil, err

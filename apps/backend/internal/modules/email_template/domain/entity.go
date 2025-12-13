@@ -63,8 +63,8 @@ func NewTemplate(
 		Key:         key,
 		Name:        name,
 		Description: description,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}, nil
 }
 
@@ -106,7 +106,7 @@ func NewTemplateVersion(
 		BodyText:   bodyText,
 		Status:     TemplateStatusDraft,
 		CreatedBy:  createdBy,
-		CreatedAt:  time.Now(),
+		CreatedAt:  time.Now().UTC(),
 	}, nil
 }
 
@@ -131,6 +131,6 @@ func NewTemplateVariable(
 		Key:        key,
 		Desc:       description,
 		Required:   required,
-		CreatedAt:  time.Now(),
+		CreatedAt:  time.Now().UTC(),
 	}, nil
 }
