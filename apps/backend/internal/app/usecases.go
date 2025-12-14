@@ -12,6 +12,7 @@ import (
 	fileusecase "github.com/smart-hmm/smart-hmm/internal/modules/file/usecase"
 	leaverequestusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_request/usecase"
 	leavetypeusecase "github.com/smart-hmm/smart-hmm/internal/modules/leave_type/usecase"
+	metadatausecase "github.com/smart-hmm/smart-hmm/internal/modules/metadata/usecase"
 	payrollusecase "github.com/smart-hmm/smart-hmm/internal/modules/payroll/usecase"
 	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
 	storageusecase "github.com/smart-hmm/smart-hmm/internal/modules/storage/usecase"
@@ -83,6 +84,7 @@ type Usecases struct {
 	CreateTenantWithOwner        *tenantusecase.CreateTenantWithOwnerUseCase
 	CreateNewTenantProfile       *tenantprofileusecase.CreateNewTenantProfileUsecase
 	GetTenantsByUserId           *tenantmemberusecase.GetTenantsByUserIdUsecase
+	GetTenantMetadata            *metadatausecase.GetTenantMetadataUseCase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -157,5 +159,6 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		CreateNewTenantProfile:       tenantprofileusecase.NewCreateNewTenantProfileUsecase(repo.TenantProfile),
 		GetTenantsByUserId:           getTenantsByUserId,
 		GetTenantBySlugUseCase:       tenantusecase.NewGetTenantBySlugUsecase(repo.Tenant, getTenantsByUserId),
+		GetTenantMetadata:            metadatausecase.NewGetTenantMetadataUseCase(),
 	}
 }

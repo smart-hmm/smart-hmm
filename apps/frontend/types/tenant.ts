@@ -2,7 +2,7 @@ export type CreateTenantProfilePayload = {
   name: string;
   slug: string;
   industry: string;
-  companySize: "small" | "medium" | "large";
+  companySize: string;
   country: string;
   timezone: string;
   currency: string;

@@ -34,6 +34,7 @@ func buildRouter(handlers Handlers, infras *Infrastructures) *chi.Mux {
 		AIHandler:             handlers.AI,
 		TokenService:          infras.TokenService,
 		TenantHandler:         handlers.Tenant,
+		MetadataHandler:       handlers.Metadata,
 	})
 }
 

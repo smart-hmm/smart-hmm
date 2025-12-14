@@ -46,8 +46,8 @@ export default function FirstRunGuideModal({
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
           >
-            <div
-              className="relative w-full max-w-md rounded-2xl bg-background p-8 shadow-xl text-center"
+            <div className="relative w-full max-w-md rounded-2xl bg-background p-8 shadow-xl text-center"
+              onKeyDown={() => { }}
               onClick={(e) => e.stopPropagation()}
             >
               <h1 className="text-xl font-semibold">
@@ -64,12 +64,13 @@ export default function FirstRunGuideModal({
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => completeFirstRun(true)}
-                  className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground"
+                  className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-background"
                 >
                   Take a quick tour
                 </motion.button>
 
                 <button
+                  type='button'
                   onClick={() => completeFirstRun(false)}
                   className="w-full rounded-lg border py-2.5 text-sm text-muted-foreground hover:bg-muted"
                 >

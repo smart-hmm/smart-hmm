@@ -11,6 +11,7 @@ import (
 	filehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/file"
 	leaverequesthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_request"
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
+	metadatahandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/metadata"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
 	tenanthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/tenant"
@@ -36,6 +37,7 @@ type Handlers struct {
 	Document       *documenthandler.DocumentHandler
 	AI             *aihandler.AIHandler
 	Tenant         *tenanthandler.TenantHandler
+	Metadata       *metadatahandler.MetadataHandler
 }
 
 func buildHandlers(uc Usecases, repo Repositories) Handlers {
@@ -113,5 +115,6 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.CreateNewTenantProfile,
 			uc.GetTenantBySlugUseCase,
 		),
+		Metadata: metadatahandler.NewMetadataHandler(uc.GetTenantMetadata),
 	}
 }

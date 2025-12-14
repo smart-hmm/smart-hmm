@@ -22,4 +22,7 @@ export enum QueryKey {
 
   // Tenants
   GET_TENANT_BY_SLUG = "GET_TENANT_BY_SLUG",
+  
+  // Metadata
+  GET_METADATA_TENANT = "GET_METADATA_TENANT"
 }

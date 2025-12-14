@@ -18,6 +18,7 @@ import (
 	filehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/file"
 	leaverequesthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_request"
 	leavetypehandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/leave_type"
+	metadatahandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/metadata"
 	payrollhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/payroll"
 	systemsettingshandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/system_settings"
 	tenanthandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/tenant"
@@ -45,6 +46,7 @@ type Args struct {
 	DocumentHandler       *documenthandler.DocumentHandler
 	AIHandler             *aihandler.AIHandler
 	TenantHandler         *tenanthandler.TenantHandler
+	MetadataHandler       *metadatahandler.MetadataHandler
 	TokenService          tokenports.Service
 }
 
@@ -77,6 +79,8 @@ func GetRouter(args Args) *chi.Mux {
 		api.Route("/auth", func(ar chi.Router) {
 			args.AuthHandler.Routes(ar, args.TokenService)
 		})
+
+		api.Route("/metadata", args.MetadataHandler.Routes)
 
 		api.Group(func(pr chi.Router) {
 			pr.Use(middleware.JWTGuard(args.TokenService))

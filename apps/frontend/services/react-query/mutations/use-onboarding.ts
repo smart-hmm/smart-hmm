@@ -1,5 +1,5 @@
 import api from "@/lib/http";
-import { CreateTenantProfilePayload } from "@/types/tenant";
+import type { CreateTenantProfilePayload } from "@/types/tenant";
 import { useMutation } from "@tanstack/react-query";
 
 const onboarding = async (payload: CreateTenantProfilePayload) => {

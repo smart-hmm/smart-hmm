@@ -75,6 +75,8 @@ export default function AuthProvider({
       return;
     }
 
+    if(pathname === "/onboarding") return;
+    
     router.replace("/select-tenant");
   }, [state, pathname, router, dispatch]);
 

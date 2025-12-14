@@ -1,209 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as Flags from "country-flag-icons/react/3x2";
 import useOnboarding from "@/services/react-query/mutations/use-onboarding";
+import { useRouter } from "next/navigation";
+import useTenantMetadata from "@/services/react-query/queries/use-tenant-metadata";
+import Loading from "@/app/loading";
 
-const INDUSTRIES = [
-  "Technology",
-  "Finance",
-  "Healthcare",
-  "Education",
-  "Manufacturing",
-  "Retail",
-  "Logistics",
-  "Marketing",
-  "Other",
-] as const;
-
-type CompanySize = "small" | "medium" | "large";
-
-const INDUSTRY_KEYWORDS: Record<string, string[]> = {
-  Technology: ["tech", "software", "ai", "cloud", "it"],
-  Finance: ["bank", "finance", "capital", "investment", "fin"],
-  Healthcare: ["health", "clinic", "hospital", "medical"],
-  Education: ["school", "academy", "education", "university"],
-  Retail: ["shop", "store", "retail", "commerce"],
-  Manufacturing: ["factory", "manufacturing", "industrial"],
-};
-
-function inferIndustryFromName(name: string): string | null {
-  const lower = name.toLowerCase();
-  for (const [industry, keywords] of Object.entries(INDUSTRY_KEYWORDS)) {
-    if (keywords.some((k) => lower.includes(k))) {
-      return industry;
-    }
-  }
-  return null;
-}
-
-const COUNTRY_MAP: Record<
-  string,
-  {
-    label: string;
-    currency: string;
-    defaultTimezone: string;
-    timezones: string[];
-  }
-> = {
-  VN: {
-    label: "Vietnam",
-    currency: "VND",
-    defaultTimezone: "Asia/Ho_Chi_Minh",
-    timezones: ["Asia/Ho_Chi_Minh"],
-  },
-
-  US: {
-    label: "United States",
-    currency: "USD",
-    defaultTimezone: "America/New_York",
-    timezones: [
-      "America/New_York",
-      "America/Chicago",
-      "America/Denver",
-      "America/Los_Angeles",
-    ],
-  },
-
-  CA: {
-    label: "Canada",
-    currency: "CAD",
-    defaultTimezone: "America/Toronto",
-    timezones: ["America/Toronto", "America/Vancouver", "America/Edmonton"],
-  },
-
-  GB: {
-    label: "United Kingdom",
-    currency: "GBP",
-    defaultTimezone: "Europe/London",
-    timezones: ["Europe/London"],
-  },
-
-  SG: {
-    label: "Singapore",
-    currency: "SGD",
-    defaultTimezone: "Asia/Singapore",
-    timezones: ["Asia/Singapore"],
-  },
-
-  JP: {
-    label: "Japan",
-    currency: "JPY",
-    defaultTimezone: "Asia/Tokyo",
-    timezones: ["Asia/Tokyo"],
-  },
-
-  KR: {
-    label: "South Korea",
-    currency: "KRW",
-    defaultTimezone: "Asia/Seoul",
-    timezones: ["Asia/Seoul"],
-  },
-
-  CN: {
-    label: "China",
-    currency: "CNY",
-    defaultTimezone: "Asia/Shanghai",
-    timezones: ["Asia/Shanghai"],
-  },
-
-  IN: {
-    label: "India",
-    currency: "INR",
-    defaultTimezone: "Asia/Kolkata",
-    timezones: ["Asia/Kolkata"],
-  },
-
-  TH: {
-    label: "Thailand",
-    currency: "THB",
-    defaultTimezone: "Asia/Bangkok",
-    timezones: ["Asia/Bangkok"],
-  },
-
-  ID: {
-    label: "Indonesia",
-    currency: "IDR",
-    defaultTimezone: "Asia/Jakarta",
-    timezones: ["Asia/Jakarta", "Asia/Makassar"],
-  },
-
-  AU: {
-    label: "Australia",
-    currency: "AUD",
-    defaultTimezone: "Australia/Sydney",
-    timezones: [
-      "Australia/Sydney",
-      "Australia/Melbourne",
-      "Australia/Perth",
-      "Australia/Brisbane",
-    ],
-  },
-
-  NZ: {
-    label: "New Zealand",
-    currency: "NZD",
-    defaultTimezone: "Pacific/Auckland",
-    timezones: ["Pacific/Auckland"],
-  },
-
-  DE: {
-    label: "Germany",
-    currency: "EUR",
-    defaultTimezone: "Europe/Berlin",
-    timezones: ["Europe/Berlin"],
-  },
-
-  FR: {
-    label: "France",
-    currency: "EUR",
-    defaultTimezone: "Europe/Paris",
-    timezones: ["Europe/Paris"],
-  },
-
-  NL: {
-    label: "Netherlands",
-    currency: "EUR",
-    defaultTimezone: "Europe/Amsterdam",
-    timezones: ["Europe/Amsterdam"],
-  },
-
-  ES: {
-    label: "Spain",
-    currency: "EUR",
-    defaultTimezone: "Europe/Madrid",
-    timezones: ["Europe/Madrid"],
-  },
-
-  IT: {
-    label: "Italy",
-    currency: "EUR",
-    defaultTimezone: "Europe/Rome",
-    timezones: ["Europe/Rome"],
-  },
-
-  BR: {
-    label: "Brazil",
-    currency: "BRL",
-    defaultTimezone: "America/Sao_Paulo",
-    timezones: ["America/Sao_Paulo", "America/Manaus"],
-  },
-
-  MX: {
-    label: "Mexico",
-    currency: "MXN",
-    defaultTimezone: "America/Mexico_City",
-    timezones: ["America/Mexico_City"],
-  },
-
-  AR: {
-    label: "Argentina",
-    currency: "ARS",
-    defaultTimezone: "America/Argentina/Buenos_Aires",
-    timezones: ["America/Argentina/Buenos_Aires"],
-  },
-};
+const DEFAULT_VISIBLE = 9;
 
 function GridSelectModal<T extends string>({
   open,
@@ -232,7 +37,9 @@ function GridSelectModal<T extends string>({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40"
+        onKeyDown={() => { }}
+        onClick={onClose} />
 
       {/* modal */}
       <motion.div
@@ -244,6 +51,7 @@ function GridSelectModal<T extends string>({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">{title}</h3>
           <button
+            type='button'
             onClick={onClose}
             className="rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-muted"
           >
@@ -257,6 +65,7 @@ function GridSelectModal<T extends string>({
         >
           {options.map(({ value, label, Flag }) => (
             <button
+              type='button'
               key={value}
               onClick={() => {
                 onSelect(value);
@@ -305,6 +114,7 @@ function GridSelectTrigger({
 }
 
 export default function TenantOnboardingPage() {
+  const router = useRouter()
   const [screen, setScreen] = useState<"intro" | "form" | "success">("intro");
 
   const [name, setName] = useState("");
@@ -313,9 +123,7 @@ export default function TenantOnboardingPage() {
 
   const [industry, setIndustry] = useState("");
   const [customIndustry, setCustomIndustry] = useState("");
-  const [companySize, setCompanySize] = useState<CompanySize | null>(null);
-
-  // 🌍 Locale (ADDED)
+  const [companySize, setCompanySize] = useState<string>("");
   const [country, setCountry] = useState("");
   const [timezone, setTimezone] = useState("");
   const [currency, setCurrency] = useState("");
@@ -328,11 +136,18 @@ export default function TenantOnboardingPage() {
   const [openCountry, setOpenCountry] = useState(false);
   const [openTimezone, setOpenTimezone] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
+  const { data: metadata, isLoading: isLoadingMetadata } = useTenantMetadata()
+
+  const [expanded, setExpanded] = useState(false);
+  const visibleIndustries = useMemo(() => {
+    if (expanded) return metadata?.industries;
+    return metadata?.industries.slice(0, DEFAULT_VISIBLE);
+  }, [expanded, metadata]);
 
   const { mutateAsync: onboarding, isPending: isPendingOnboarding } =
     useOnboarding();
 
-  const countryConfig = country ? COUNTRY_MAP[country] : null;
+  const countryConfig = metadata?.countries ? (metadata.countries.find(ele => ele.code === country) || null) : null;
 
   useEffect(() => {
     const saved = localStorage.getItem("tenant_onboarding");
@@ -350,7 +165,7 @@ export default function TenantOnboardingPage() {
       if (d.country) setCountry(d.country);
       if (d.timezone) setTimezone(d.timezone);
       if (d.currency) setCurrency(d.currency);
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -387,11 +202,11 @@ export default function TenantOnboardingPage() {
   useEffect(() => {
     if (!country) return;
 
-    const cfg = COUNTRY_MAP[country];
+    const cfg = metadata?.countries ? (metadata.countries.find(ele => ele.code === country) || null) : null;
     if (!cfg) return;
     if (!timezone) setTimezone(cfg.defaultTimezone);
     if (!currency) setCurrency(cfg.currency);
-  }, [country]);
+  }, [country, timezone, currency, metadata]);
 
   useEffect(() => {
     if (!slug) {
@@ -438,8 +253,8 @@ export default function TenantOnboardingPage() {
       setScreen("success");
 
       setTimeout(() => {
-        window.location.href = `/guide`;
-      }, 900);
+        window.location.href = "/select-tenant"
+      }, 2000);
     } catch (e) {
       setError((e as Error).message);
       setLoading(false);
@@ -450,10 +265,12 @@ export default function TenantOnboardingPage() {
     screen === "intro"
       ? "20%"
       : screen === "form"
-      ? loading
-        ? "90%"
-        : "60%"
-      : "100%";
+        ? loading
+          ? "90%"
+          : "60%"
+        : "100%";
+
+  if (isLoadingMetadata) return <Loading />
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
@@ -509,9 +326,9 @@ export default function TenantOnboardingPage() {
 
               <div className="mt-6 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium">
+                  <div className="block text-sm font-medium">
                     Tenant name
-                  </label>
+                  </div>
                   <p className="mb-1 text-xs text-slate-500">
                     Visible to everyone in your workspace.
                   </p>
@@ -529,30 +346,24 @@ export default function TenantOnboardingPage() {
                             .replace(/(^-|-$)/g, "")
                         );
                       }
-
-                      if (!industry) {
-                        const inferred = inferIndustryFromName(v);
-                        if (inferred) setIndustry(inferred);
-                      }
                     }}
                     className="w-full rounded-lg border px-3 py-2 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium">
+                  <div className="block text-sm font-medium">
                     Tenant URL
-                  </label>
+                  </div>
                   <p className="mb-1 text-xs text-slate-500">
                     This will be your workspace address.
                   </p>
 
                   <div
                     className={`flex items-center rounded-lg border px-3 py-2
-                      ${
-                        slugAvailable === false
-                          ? "border-red-400"
-                          : slugAvailable === true
+                      ${slugAvailable === false
+                        ? "border-red-400"
+                        : slugAvailable === true
                           ? "border-green-400"
                           : "border-muted"
                       }`}
@@ -588,29 +399,51 @@ export default function TenantOnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium">Industry</label>
+                  <div className="flex items-center justify-between">
+                    <div className="block text-sm font-medium">Industry</div>
+
+                    {industry && industry !== "Other" && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        {industry}
+                      </span>
+                    )}
+                  </div>
+
                   <p className="mb-2 text-xs text-slate-500">
                     Used to tailor defaults for your business.
                   </p>
 
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {INDUSTRIES.map((i) => (
+                    {visibleIndustries?.map((item) => (
                       <button
-                        key={i}
+                        key={item.name}
                         type="button"
-                        onClick={() => setIndustry(i)}
-                        className={`rounded-lg border px-3 py-2 text-sm
-                          ${
-                            industry === i
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-muted"
+                        onClick={() => setIndustry(item.name)}
+                        className={`rounded-lg border px-3 py-2 text-sm transition
+          ${industry === item.name
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-muted hover:border-slate-300"
                           }`}
                       >
-                        {i}
+                        {item.name}
                       </button>
                     ))}
                   </div>
 
+                  {/* Expand / Collapse */}
+                  {metadata && metadata.industries.length > DEFAULT_VISIBLE && (
+                    <button
+                      type="button"
+                      onClick={() => setExpanded((v) => !v)}
+                      className="mt-2 text-xs font-medium text-primary hover:underline"
+                    >
+                      {expanded
+                        ? "Show less"
+                        : `Show ${metadata.industries.length - DEFAULT_VISIBLE} more`}
+                    </button>
+                  )}
+
+                  {/* Custom input */}
                   {industry === "Other" && (
                     <input
                       value={customIndustry}
@@ -621,10 +454,11 @@ export default function TenantOnboardingPage() {
                   )}
                 </div>
 
+
                 <div>
-                  <label className="block text-sm font-medium">
+                  <div className="block text-sm font-medium">
                     Company size
-                  </label>
+                  </div>
                   <p className="mb-2 text-xs text-slate-500">
                     Used to configure permissions and features.
                   </p>
@@ -638,12 +472,11 @@ export default function TenantOnboardingPage() {
                       <button
                         key={o.key}
                         type="button"
-                        onClick={() => setCompanySize(o.key as CompanySize)}
+                        onClick={() => setCompanySize(o.key)}
                         className={`rounded-xl border p-4 text-left
-                          ${
-                            companySize === o.key
-                              ? "border-primary bg-primary/10"
-                              : "border-muted"
+                          ${companySize === o.key
+                            ? "border-primary bg-primary/10"
+                            : "border-muted"
                           }`}
                       >
                         <div className="font-medium">{o.label}</div>
@@ -658,28 +491,31 @@ export default function TenantOnboardingPage() {
                     label="Country"
                     placeholder="Select country"
                     valueLabel={
-                      country ? COUNTRY_MAP[country].label : undefined
+                      country && metadata?.countries ? (metadata.countries.find(ele => ele.code === country) || undefined)?.label : undefined
                     }
                     onClick={() => setOpenCountry(true)}
                   />
 
-                  <GridSelectModal
-                    open={openCountry}
-                    title="Select country"
-                    value={country}
-                    columns={3}
-                    onClose={() => setOpenCountry(false)}
-                    onSelect={(code) => {
-                      setCountry(code);
-                      setTimezone(COUNTRY_MAP[code].defaultTimezone);
-                      setCurrency(COUNTRY_MAP[code].currency);
-                    }}
-                    options={Object.entries(COUNTRY_MAP).map(([code, c]) => ({
-                      value: code,
-                      label: c.label,
-                      Flag: Flags[code as keyof typeof Flags],
-                    }))}
-                  />
+                  {metadata?.countries && metadata.countries.length > 0 &&
+                    <GridSelectModal
+                      open={openCountry}
+                      title="Select country"
+                      value={country}
+                      columns={3}
+                      onClose={() => setOpenCountry(false)}
+                      onSelect={(code) => {
+                        const country = metadata?.countries.find(ele => ele.code === code)
+                        if (!country) return;
+                        setCountry(code);
+                        setTimezone(country.defaultTimezone);
+                        setCurrency(country.currency);
+                      }}
+                      options={metadata?.countries.map((c) => ({
+                        value: c.code,
+                        label: c.label,
+                        Flag: Flags[c.code as keyof typeof Flags],
+                      }))}
+                    />}
 
                   <GridSelectTrigger
                     label="Timezone"
@@ -699,9 +535,9 @@ export default function TenantOnboardingPage() {
                     options={
                       countryConfig
                         ? countryConfig.timezones.map((tz) => ({
-                            value: tz,
-                            label: tz,
-                          }))
+                          value: tz,
+                          label: tz,
+                        }))
                         : []
                     }
                   />
@@ -713,22 +549,23 @@ export default function TenantOnboardingPage() {
                     onClick={() => setOpenCurrency(true)}
                   />
 
-                  <GridSelectModal
-                    open={openCurrency}
-                    title="Select currency"
-                    value={currency}
-                    columns={3}
-                    onClose={() => setOpenCurrency(false)}
-                    onSelect={setCurrency}
-                    options={[
-                      ...new Set(
-                        Object.values(COUNTRY_MAP).map((c) => c.currency)
-                      ),
-                    ].map((cur) => ({
-                      value: cur,
-                      label: cur,
-                    }))}
-                  />
+                  {metadata?.countries && metadata.countries.length > 0 &&
+                    <GridSelectModal
+                      open={openCurrency}
+                      title="Select currency"
+                      value={currency}
+                      columns={3}
+                      onClose={() => setOpenCurrency(false)}
+                      onSelect={setCurrency}
+                      options={[
+                        ...new Set(
+                          metadata.countries.map((c) => c.currency)
+                        ),
+                      ].map((cur) => ({
+                        value: cur,
+                        label: cur,
+                      }))}
+                    />}
                 </div>
 
                 <motion.button

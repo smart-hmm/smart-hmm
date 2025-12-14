@@ -1,5 +1,5 @@
 import api from "@/lib/http";
-import { TenantInfo } from "@/types/tenant";
+import { notFound } from "next/navigation";
 
 export default async function DashboardHomePage({
   params,
@@ -7,14 +7,8 @@ export default async function DashboardHomePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  let tenantInfo: TenantInfo | null = null;
-
-  try {
-    const resp = await api.get(`/tenants/${slug}`);
-    tenantInfo = resp.data;
-  } catch {}
-
-  if (!tenantInfo) return <h1>Asdad</h1>;
-
+  const resp = await api.get(`/tenants/${slug}`).catch(() => null)
+  if (!resp) notFound();
   return <h1>Home</h1>;
 }
+

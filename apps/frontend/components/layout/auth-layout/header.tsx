@@ -15,22 +15,18 @@ import { useState } from "react";
 import { useLogout } from "@/services/react-query/mutations/use-logout";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useSelector } from "react-redux";
-import { RootState } from "@/services/redux/store";
+import type { RootState } from "@/services/redux/store";
 
 export default function Header() {
   const router = useRouter();
   const [isPopoverOpen, setPopoverOpen] = useState(false);
   const { mutateAsync: logout } = useLogout();
   const pathname = usePathname();
-  const { data: settings } = useSysSettings();
   const selectedTenant = useSelector(
     (state: RootState) => state.tenants.selectedTenant
-  );
+  )
 
-  const name = (settings?.find((ele) => ele.key === "general")?.value.name ??
-    "") as string;
-
-  const shortName = name
+  const shortName = selectedTenant?.name
     .split(" ")
     .map((ele) => ele.charAt(0))
     .slice(0, 2)
@@ -78,7 +74,7 @@ export default function Header() {
 
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold text-foreground">
-              {name || "HRM"}
+              {selectedTenant?.name || "HRM"}
             </span>
           </div>
         </div>

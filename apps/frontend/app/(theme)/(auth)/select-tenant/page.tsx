@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Building2, Plus, ArrowRight, Clock } from "lucide-react";
-import { TenantInfo } from "@/types/tenant";
-import { useMe } from "@/services/react-query/queries/use-me";
+import type { TenantInfo } from "@/types/tenant";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/services/redux/store";
+import type { RootState } from "@/services/redux/store";
 import { setSelectedTenant } from "@/services/redux/slices/tenants-slice";
 
 /* ---------------- Role Badge ---------------- */
@@ -20,14 +19,53 @@ function RoleBadge({ role }: { role: string }) {
 
   return (
     <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        styles[role] ?? styles.MEMBER
-      }`}
+      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[role] ?? styles.MEMBER
+        }`}
     >
       {role}
     </span>
   );
 }
+
+const pageVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: "easeOut",
+    },
+  },
+};
+
+const gridVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: {
+    opacity: 0,
+    y: 16,
+    scale: 0.98,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.35,
+      ease: "easeOut",
+    },
+  },
+};
+
 
 export default function SelectTenantPage() {
   const router = useRouter();
@@ -54,30 +92,40 @@ export default function SelectTenantPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] flex items-center justify-center px-6">
-      <div className="w-full max-w-4xl">
+    <motion.main
+      variants={pageVariants as Variants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] flex items-center justify-center px-6"
+    >
+      <div className="w-full max-w-4xl pt-6 pb-14">
         {/* Header */}
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-semibold tracking-tight">
-            Choose your workspace
+            Choose your tenant
           </h1>
           <p className="mt-2 text-sm text-foreground">
             Select a tenant to continue to your dashboard
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <motion.main
+          variants={gridVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {sortedTenants.map((tenant) => {
             const isRecent =
               tenant.id === localStorage.getItem("recent_tenant_id");
 
             return (
               <motion.button
+                variants={itemVariants as Variants}
                 key={tenant.id}
                 onClick={() => selectTenant(tenant)}
                 whileHover={{ y: -4 }}
                 whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 className="group relative rounded-2xl border border-[var(--color-muted)] bg-[var(--color-surface)] p-6 text-left
                     hover:border-[var(--color-primary)]
                     hover:shadow-lg
@@ -108,7 +156,7 @@ export default function SelectTenantPage() {
                     </div>
 
                     <div className="mt-2 flex items-center gap-2">
-                      <RoleBadge role={"admin"} />
+                      <RoleBadge role={"admin" as string} />
                     </div>
                   </div>
 
@@ -120,9 +168,12 @@ export default function SelectTenantPage() {
 
           {/* Create new tenant */}
           <motion.button
+            key="create-new-tenant"
+            onClick={() => router.push("/onboarding")}
+            variants={itemVariants as Variants}
             whileHover={{ y: -4 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => router.push("/onboarding")}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
             className="rounded-2xl border-2 border-dashed border-[var(--color-muted)] bg-transparent p-6 text-left
                 hover:border-[var(--color-primary)]
                 hover:bg-[var(--color-surface)]
@@ -141,15 +192,15 @@ export default function SelectTenantPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-medium">Create new workspace</h3>
+                <h3 className="text-lg font-medium">Create new tenant</h3>
                 <p className="mt-1 text-sm text-foreground/70">
                   Start a new organization
                 </p>
               </div>
             </div>
           </motion.button>
-        </div>
+        </motion.main>
       </div>
-    </main>
+    </motion.main>
   );
 }
