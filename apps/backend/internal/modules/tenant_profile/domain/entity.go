@@ -24,38 +24,6 @@ func (cs CompanySize) IsValid() bool {
 	}
 }
 
-type Industry string
-
-const (
-	IndustryTechnology    Industry = "Technology"
-	IndustryFinance       Industry = "Finance"
-	IndustryHealthcare    Industry = "Healthcare"
-	IndustryEducation     Industry = "Education"
-	IndustryManufacturing Industry = "Manufacturing"
-	IndustryRetail        Industry = "Retail"
-	IndustryLogistics     Industry = "Logistics"
-	IndustryMarketing     Industry = "Marketing"
-	IndustryOther         Industry = "Other"
-)
-
-func (i Industry) IsValid() bool {
-	switch i {
-	case
-		IndustryTechnology,
-		IndustryFinance,
-		IndustryHealthcare,
-		IndustryEducation,
-		IndustryManufacturing,
-		IndustryRetail,
-		IndustryLogistics,
-		IndustryMarketing,
-		IndustryOther:
-		return true
-	default:
-		return false
-	}
-}
-
 var (
 	ErrInvalidTenantID    = errors.New("invalid tenant id")
 	ErrInvalidIndustry    = errors.New("invalid industry")
@@ -67,7 +35,7 @@ type TenantProfile struct {
 	TenantID    string
 	LegalName   *string
 	LogoURL     *string
-	Industry    Industry
+	Industry    string
 	CompanySize CompanySize
 	Country     *string
 	Timezone    *string
@@ -80,7 +48,7 @@ type NewTenantProfileInput struct {
 	TenantID    string
 	LegalName   *string
 	LogoURL     *string
-	Industry    Industry
+	Industry    string
 	CompanySize CompanySize
 	Country     *string
 	Timezone    *string
@@ -92,7 +60,7 @@ func NewTenantProfile(in NewTenantProfileInput) (*TenantProfile, error) {
 		return nil, ErrInvalidTenantID
 	}
 
-	if in.Industry != "" && !in.Industry.IsValid() {
+	if in.Industry == "" {
 		return nil, ErrInvalidIndustry
 	}
 
@@ -103,7 +71,6 @@ func NewTenantProfile(in NewTenantProfileInput) (*TenantProfile, error) {
 	now := time.Now()
 
 	return &TenantProfile{
-		ID:          "",
 		TenantID:    in.TenantID,
 		LegalName:   in.LegalName,
 		LogoURL:     in.LogoURL,
@@ -123,11 +90,8 @@ func (tp *TenantProfile) UpdateBranding(legalName, logoURL *string) {
 	tp.UpdatedAt = time.Now()
 }
 
-func (tp *TenantProfile) UpdateBusinessInfo(
-	industry Industry,
-	companySize CompanySize,
-) error {
-	if industry != "" && !industry.IsValid() {
+func (tp *TenantProfile) UpdateBusinessInfo(industry string, companySize CompanySize) error {
+	if industry == "" {
 		return ErrInvalidIndustry
 	}
 

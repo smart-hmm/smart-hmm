@@ -56,6 +56,41 @@ func (r *TenantPostgresRepository) GetByID(ctx context.Context, id string) (*dom
 	return &t, nil
 }
 
+func (r *TenantPostgresRepository) GetBySlug(ctx context.Context, slug string) (*domain.Tenant, error) {
+	var t domain.Tenant
+
+	err := r.db.QueryRow(ctx,
+		`SELECT
+			id,
+			name,
+			workspace_slug,
+			owner_id,
+			created_at,
+			updated_at,
+			deleted_at
+		FROM tenants
+		WHERE workspace_slug = $1`,
+		slug,
+	).Scan(
+		&t.ID,
+		&t.Name,
+		&t.WorkspaceSlug,
+		&t.OwnerID,
+		&t.CreatedAt,
+		&t.UpdatedAt,
+		&t.DeletedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, tenantrepository.ErrTenantNotFound
+		}
+		return nil, err
+	}
+
+	return &t, nil
+}
+
 func (r *TenantPostgresRepository) Save(ctx context.Context, tenant *domain.Tenant) error {
 	if tenant.ID == "" {
 		err := r.db.QueryRow(ctx,

@@ -90,6 +90,7 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.RefreshToken,
 			uc.LogoutRefreshToken,
 			uc.ForceLogoutAllUsecase,
+			uc.GetTenantsByUserId,
 		),
 		Upload: uploadhandler.NewUploadHandler(
 			uc.GenPresignedURLUsecase,
@@ -108,6 +109,9 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.UpdateTenantUseCase,
 			uc.DeleteTenantUseCase,
 			uc.GetTenantByIdUseCase,
+			uc.CreateTenantWithOwner,
+			uc.CreateNewTenantProfile,
+			uc.GetTenantBySlugUseCase,
 		),
 	}
 }

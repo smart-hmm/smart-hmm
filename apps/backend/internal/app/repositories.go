@@ -60,3 +60,7 @@ func buildRepositories(pool *pgxpool.Pool) Repositories {
 		TenantProfile:  pgrepository.NewTenantProfilePostgresRepository(pool),
 	}
 }
+
+func provideDBPool(infras *Infrastructures) *pgxpool.Pool {
+	return infras.DB
+}

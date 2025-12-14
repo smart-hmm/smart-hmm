@@ -8,6 +8,7 @@ import (
 	authhandler "github.com/smart-hmm/smart-hmm/internal/interface/http/handler/auth/dto"
 	authusecase "github.com/smart-hmm/smart-hmm/internal/modules/auth/usecase"
 	refreshtokenusecase "github.com/smart-hmm/smart-hmm/internal/modules/refresh_token/usecase"
+	tenantmemberusecase "github.com/smart-hmm/smart-hmm/internal/modules/tenant_member/usecase"
 	"github.com/smart-hmm/smart-hmm/internal/pkg/authctx"
 	"github.com/smart-hmm/smart-hmm/internal/pkg/httpx"
 )
@@ -18,6 +19,7 @@ type AuthHandler struct {
 	RefreshTokenUsecase       *authusecase.RefreshTokenUsecase
 	LogoutRefreshTokenUsecase *refreshtokenusecase.LogoutRefreshTokenUsecase
 	ForceLogoutAllUsecase     *refreshtokenusecase.ForceLogoutAllUsecase
+	GetTenantsByUserIdUsecase *tenantmemberusecase.GetTenantsByUserIdUsecase
 }
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
@@ -28,6 +30,7 @@ func NewAuthHandler(
 	refreshTokenUsecase *authusecase.RefreshTokenUsecase,
 	logoutRefreshTokenUsecase *refreshtokenusecase.LogoutRefreshTokenUsecase,
 	forceLogoutAllUsecase *refreshtokenusecase.ForceLogoutAllUsecase,
+	getTenantsByUserIdUsecase *tenantmemberusecase.GetTenantsByUserIdUsecase,
 ) *AuthHandler {
 	return &AuthHandler{
 		LoginUsecase:              loginUsecase,
@@ -35,6 +38,7 @@ func NewAuthHandler(
 		RefreshTokenUsecase:       refreshTokenUsecase,
 		LogoutRefreshTokenUsecase: logoutRefreshTokenUsecase,
 		ForceLogoutAllUsecase:     forceLogoutAllUsecase,
+		GetTenantsByUserIdUsecase: getTenantsByUserIdUsecase,
 	}
 }
 
@@ -96,9 +100,13 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	tenants, err := h.GetTenantsByUserIdUsecase.Execute(r.Context(), userID)
+
 	httpx.WriteJSON(w, map[string]any{
 		"user":     user,
-		"employee": employee}, http.StatusOK)
+		"employee": employee,
+		"tenants":  tenants,
+	}, http.StatusOK)
 }
 
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {

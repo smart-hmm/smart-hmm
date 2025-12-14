@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrTenantAlreadyDeleted = errors.New("tenant already deleted")
+	ErrUnauthorized         = errors.New("user dont have permissions to access this tenant")
 )
 
 var validate = validator.New(validator.WithRequiredStructEnabled())

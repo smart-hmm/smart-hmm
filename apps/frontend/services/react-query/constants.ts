@@ -19,4 +19,7 @@ export enum QueryKey {
   // Files
   GET_FILE = "GET_FILE",
   GET_FILES = "GET_FILES",
+
+  // Tenants
+  GET_TENANT_BY_SLUG = "GET_TENANT_BY_SLUG",
 }

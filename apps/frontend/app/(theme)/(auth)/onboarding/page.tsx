@@ -3,17 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as Flags from "country-flag-icons/react/3x2";
+import useOnboarding from "@/services/react-query/mutations/use-onboarding";
 
-function countryCodeToFlag(code: string) {
-  // ISO country code → emoji flag
-  return code
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
-}
-
-/* ----------------------------------------
- * Constants
- * --------------------------------------*/
 const INDUSTRIES = [
   "Technology",
   "Finance",
@@ -28,9 +19,6 @@ const INDUSTRIES = [
 
 type CompanySize = "small" | "medium" | "large";
 
-/* ----------------------------------------
- * Industry inference (heuristic)
- * --------------------------------------*/
 const INDUSTRY_KEYWORDS: Record<string, string[]> = {
   Technology: ["tech", "software", "ai", "cloud", "it"],
   Finance: ["bank", "finance", "capital", "investment", "fin"],
@@ -316,66 +304,6 @@ function GridSelectTrigger({
   );
 }
 
-function SearchableCountrySelect({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (code: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  const countries = Object.entries(COUNTRY_MAP).filter(([_, c]) =>
-    c.label.toLowerCase().includes(query.toLowerCase())
-  );
-
-  const selected = value ? COUNTRY_MAP[value] : null;
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full rounded-lg border px-3 py-2 text-left text-sm"
-      >
-        {selected ? `🌍 ${selected.label}` : "🌍 Select country"}
-      </button>
-
-      {open && (
-        <div className="absolute z-20 mt-1 w-full rounded-lg border bg-background shadow-lg">
-          <input
-            autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search country…"
-            className="w-full border-b px-3 py-2 text-sm focus:outline-none"
-          />
-
-          <div className="max-h-56 overflow-y-auto">
-            {countries.map(([code, c]) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => {
-                  onChange(code);
-                  setQuery("");
-                  setOpen(false);
-                }}
-                className={`block w-full px-3 py-2 text-left text-sm hover:bg-muted
-                  ${value === code ? "bg-primary/10 text-primary" : ""}
-                `}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function TenantOnboardingPage() {
   const [screen, setScreen] = useState<"intro" | "form" | "success">("intro");
 
@@ -400,6 +328,9 @@ export default function TenantOnboardingPage() {
   const [openCountry, setOpenCountry] = useState(false);
   const [openTimezone, setOpenTimezone] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
+
+  const { mutateAsync: onboarding, isPending: isPendingOnboarding } =
+    useOnboarding();
 
   const countryConfig = country ? COUNTRY_MAP[country] : null;
 
@@ -458,15 +389,10 @@ export default function TenantOnboardingPage() {
 
     const cfg = COUNTRY_MAP[country];
     if (!cfg) return;
-
-    // only auto-fill if user hasn't chosen manually
     if (!timezone) setTimezone(cfg.defaultTimezone);
     if (!currency) setCurrency(cfg.currency);
   }, [country]);
 
-  /* ----------------------------------------
-   * Slug availability
-   * --------------------------------------*/
   useEffect(() => {
     if (!slug) {
       setSlugAvailable(null);
@@ -491,9 +417,6 @@ export default function TenantOnboardingPage() {
     return () => clearTimeout(t);
   }, [slug]);
 
-  /* ----------------------------------------
-   * Submit
-   * --------------------------------------*/
   async function submit() {
     if (!companySize) return;
 
@@ -501,28 +424,21 @@ export default function TenantOnboardingPage() {
     setError(null);
 
     try {
-      // await fetch("/api/tenants/onboard", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     name,
-      //     workspaceSlug: slug,
-      //     industry: industry === "Other" ? customIndustry : industry,
-      //     companySize,
-      //     country,
-      //     timezone,
-      //     currency,
-      //     defaults: COMPANY_SIZE_DEFAULTS[companySize],
-      //     featureFlags: FEATURE_FLAGS_BY_SIZE[companySize],
-      //     isFirstRun: true,
-      //   }),
-      // });
+      await onboarding({
+        companySize,
+        country,
+        currency,
+        industry,
+        name,
+        slug,
+        timezone,
+      });
 
       localStorage.removeItem("tenant_onboarding");
       setScreen("success");
 
       setTimeout(() => {
-        window.location.href = `/${slug}?firstRun=1`;
+        window.location.href = `/guide`;
       }, 900);
     } catch (e) {
       setError((e as Error).message);
@@ -530,9 +446,6 @@ export default function TenantOnboardingPage() {
     }
   }
 
-  /* ----------------------------------------
-   * Progress bar
-   * --------------------------------------*/
   const progress =
     screen === "intro"
       ? "20%"
@@ -542,9 +455,6 @@ export default function TenantOnboardingPage() {
         : "60%"
       : "100%";
 
-  /* ----------------------------------------
-   * Render
-   * --------------------------------------*/
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
       <div className="w-full max-w-2xl">
@@ -558,7 +468,6 @@ export default function TenantOnboardingPage() {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* INTRO */}
           {screen === "intro" && (
             <motion.div
               key="intro"
@@ -582,7 +491,6 @@ export default function TenantOnboardingPage() {
             </motion.div>
           )}
 
-          {/* FORM */}
           {screen === "form" && (
             <motion.div
               key="form"
@@ -600,7 +508,6 @@ export default function TenantOnboardingPage() {
               )}
 
               <div className="mt-6 space-y-6">
-                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium">
                     Tenant name
@@ -632,7 +539,6 @@ export default function TenantOnboardingPage() {
                   />
                 </div>
 
-                {/* Tenant URL */}
                 <div>
                   <label className="block text-sm font-medium">
                     Tenant URL
@@ -681,7 +587,6 @@ export default function TenantOnboardingPage() {
                   </div>
                 </div>
 
-                {/* Industry */}
                 <div>
                   <label className="block text-sm font-medium">Industry</label>
                   <p className="mb-2 text-xs text-slate-500">
@@ -716,7 +621,6 @@ export default function TenantOnboardingPage() {
                   )}
                 </div>
 
-                {/* Company size */}
                 <div>
                   <label className="block text-sm font-medium">
                     Company size
@@ -749,7 +653,6 @@ export default function TenantOnboardingPage() {
                   </div>
                 </div>
 
-                {/* 🌍 Locale */}
                 <div className="grid grid-cols-3 gap-4">
                   <GridSelectTrigger
                     label="Country"
@@ -831,7 +734,11 @@ export default function TenantOnboardingPage() {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   disabled={
-                    !name || !slug || !companySize || slugAvailable === false
+                    !name ||
+                    !slug ||
+                    !companySize ||
+                    slugAvailable === false ||
+                    !country
                   }
                   onClick={submit}
                   className="mt-4 w-full rounded-lg bg-primary py-2 text-sm text-white disabled:opacity-50"
@@ -842,7 +749,6 @@ export default function TenantOnboardingPage() {
             </motion.div>
           )}
 
-          {/* SUCCESS */}
           {screen === "success" && (
             <motion.div
               key="success"

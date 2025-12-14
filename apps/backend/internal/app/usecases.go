@@ -17,6 +17,7 @@ import (
 	storageusecase "github.com/smart-hmm/smart-hmm/internal/modules/storage/usecase"
 	systemsettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/system/usecase"
 	tenantusecase "github.com/smart-hmm/smart-hmm/internal/modules/tenant/usecase"
+	tenantmemberusecase "github.com/smart-hmm/smart-hmm/internal/modules/tenant_member/usecase"
 	tenantprofileusecase "github.com/smart-hmm/smart-hmm/internal/modules/tenant_profile/usecase"
 	usersettingsusecase "github.com/smart-hmm/smart-hmm/internal/modules/user-setting/usecase"
 	userusecase "github.com/smart-hmm/smart-hmm/internal/modules/user/usecase"
@@ -77,9 +78,11 @@ type Usecases struct {
 	CreateTenantUseCase          *tenantusecase.CreateTenantUsecase
 	UpdateTenantUseCase          *tenantusecase.UpdateTenantUsecase
 	GetTenantByIdUseCase         *tenantusecase.GetTenantByIdUsecase
+	GetTenantBySlugUseCase       *tenantusecase.GetTenantBySlugUsecase
 	DeleteTenantUseCase          *tenantusecase.DeleteTenantUsecase
 	CreateTenantWithOwner        *tenantusecase.CreateTenantWithOwnerUseCase
 	CreateNewTenantProfile       *tenantprofileusecase.CreateNewTenantProfileUsecase
+	GetTenantsByUserId           *tenantmemberusecase.GetTenantsByUserIdUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -89,6 +92,7 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 	registerUser := userusecase.NewRegisterUserUsecase(repo.User)
 	chunkTextUsecase := documentusecase.NewChunkTextUseCase()
 	embedChuckUsecase := aiusecase.NewEmbedChunkUseCase(infras.OllamaClient)
+	getTenantsByUserId := tenantmemberusecase.NewGetTenantsByUserIdUsecase(repo.TenantMember)
 	createRefreshToken := refreshtokenusecase.NewCreateRefreshTokenUsecase(repo.RefreshToken)
 	rotateRefreshToken := refreshtokenusecase.NewRotateRefreshTokenUsecase(repo.RefreshToken)
 	txManager := txmanager.NewPgxTxManager(infras.DB)
@@ -151,5 +155,7 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		DeleteTenantUseCase:          tenantusecase.NewDeleteTenantUsecase(repo.Tenant),
 		CreateTenantWithOwner:        tenantusecase.NewCreateTenantWithOwnerUseCase(repo.Tenant, repo.TenantMember, txManager),
 		CreateNewTenantProfile:       tenantprofileusecase.NewCreateNewTenantProfileUsecase(repo.TenantProfile),
+		GetTenantsByUserId:           getTenantsByUserId,
+		GetTenantBySlugUseCase:       tenantusecase.NewGetTenantBySlugUsecase(repo.Tenant, getTenantsByUserId),
 	}
 }

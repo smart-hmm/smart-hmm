@@ -14,6 +14,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useLogout } from "@/services/react-query/mutations/use-logout";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useSelector } from "react-redux";
+import { RootState } from "@/services/redux/store";
 
 export default function Header() {
   const router = useRouter();
@@ -21,6 +23,9 @@ export default function Header() {
   const { mutateAsync: logout } = useLogout();
   const pathname = usePathname();
   const { data: settings } = useSysSettings();
+  const selectedTenant = useSelector(
+    (state: RootState) => state.tenants.selectedTenant
+  );
 
   const name = (settings?.find((ele) => ele.key === "general")?.value.name ??
     "") as string;
@@ -84,7 +89,7 @@ export default function Header() {
               <Link
                 id={item.id}
                 key={item.href}
-                href={item.href}
+                href={`/${selectedTenant?.workspaceSlug}${item.href}`}
                 className={`
                 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all
                 ${
