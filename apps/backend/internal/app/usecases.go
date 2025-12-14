@@ -85,6 +85,7 @@ type Usecases struct {
 	CreateNewTenantProfile       *tenantprofileusecase.CreateNewTenantProfileUsecase
 	GetTenantsByUserId           *tenantmemberusecase.GetTenantsByUserIdUsecase
 	GetTenantMetadata            *metadatausecase.GetTenantMetadataUseCase
+	CheckIfSlugExisted           *tenantusecase.CheckIfSlugExistedUsecase
 }
 
 func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
@@ -160,5 +161,6 @@ func buildUsecases(repo Repositories, infras *Infrastructures) Usecases {
 		GetTenantsByUserId:           getTenantsByUserId,
 		GetTenantBySlugUseCase:       tenantusecase.NewGetTenantBySlugUsecase(repo.Tenant, getTenantsByUserId),
 		GetTenantMetadata:            metadatausecase.NewGetTenantMetadataUseCase(),
+		CheckIfSlugExisted:           tenantusecase.NewCheckIfSlugExistedUsecase(repo.Tenant),
 	}
 }

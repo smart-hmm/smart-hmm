@@ -19,6 +19,7 @@ type TenantHandler struct {
 	GetTenantByIdUC          *tenantusecase.GetTenantByIdUsecase
 	GetTenantBySlugUC        *tenantusecase.GetTenantBySlugUsecase
 	CreateWithOwnerUC        *tenantusecase.CreateTenantWithOwnerUseCase
+	CheckIfSlugExistedUC     *tenantusecase.CheckIfSlugExistedUsecase
 	CreateNewTenantProfileUC *tenantprofileusecase.CreateNewTenantProfileUsecase
 }
 
@@ -30,6 +31,7 @@ func NewTenantHandler(
 	createWithOwnerUC *tenantusecase.CreateTenantWithOwnerUseCase,
 	createNewTenantProfileUC *tenantprofileusecase.CreateNewTenantProfileUsecase,
 	getTenantBySlugUC *tenantusecase.GetTenantBySlugUsecase,
+	checkIfSlugExistedUC *tenantusecase.CheckIfSlugExistedUsecase,
 ) *TenantHandler {
 	return &TenantHandler{
 		CreateUC:                 createUC,
@@ -39,6 +41,7 @@ func NewTenantHandler(
 		CreateWithOwnerUC:        createWithOwnerUC,
 		CreateNewTenantProfileUC: createNewTenantProfileUC,
 		GetTenantBySlugUC:        getTenantBySlugUC,
+		CheckIfSlugExistedUC:     checkIfSlugExistedUC,
 	}
 }
 
@@ -236,4 +239,27 @@ func (h *TenantHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpx.WriteJSON(w, tenant, http.StatusOK)
+}
+
+func (h *TenantHandler) CheckIfSlugAvailable(w http.ResponseWriter, r *http.Request) {
+	slug := r.URL.Query().Get("slug")
+	if slug == "" {
+		httpx.WriteJSON(w, "missing slug query param", http.StatusBadRequest)
+		return
+	}
+
+	existed, err := h.CheckIfSlugExistedUC.Execute(r.Context(), slug)
+	if err != nil {
+		httpx.WriteJSON(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if existed {
+		httpx.WriteJSON(w, map[string]any{
+			"error": "slug was already taken",
+		}, http.StatusConflict)
+		return
+	}
+
+	httpx.WriteJSON(w, true, http.StatusOK)
 }

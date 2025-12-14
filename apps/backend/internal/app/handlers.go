@@ -114,6 +114,7 @@ func buildHandlers(uc Usecases, repo Repositories) Handlers {
 			uc.CreateTenantWithOwner,
 			uc.CreateNewTenantProfile,
 			uc.GetTenantBySlugUseCase,
+			uc.CheckIfSlugExisted,
 		),
 		Metadata: metadatahandler.NewMetadataHandler(uc.GetTenantMetadata),
 	}

@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import * as Flags from "country-flag-icons/react/3x2";
 import useOnboarding from "@/services/react-query/mutations/use-onboarding";
-import { useRouter } from "next/navigation";
 import useTenantMetadata from "@/services/react-query/queries/use-tenant-metadata";
 import Loading from "@/app/loading";
+import api from "@/lib/http";
+import { AxiosError } from "axios";
 
 function MachineAssemblyAnimation() {
   const docLabels = ["Departments", "Employees", "Payrolls"];
@@ -202,7 +203,6 @@ function GridSelectTrigger({
 }
 
 export default function TenantOnboardingPage() {
-  const router = useRouter();
   const [screen, setScreen] = useState<
     "intro" | "form" | "preview" | "success"
   >("intro");
@@ -227,7 +227,6 @@ export default function TenantOnboardingPage() {
   const [openTimezone, setOpenTimezone] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
   const { data: metadata, isLoading: isLoadingMetadata } = useTenantMetadata();
-  const [typedMessage, setTypedMessage] = useState("");
 
   const [expanded, setExpanded] = useState(false);
   const visibleIndustries = useMemo(() => {
@@ -237,8 +236,7 @@ export default function TenantOnboardingPage() {
       : metadata.industries.slice(0, DEFAULT_VISIBLE);
   }, [expanded, metadata]);
 
-  const { mutateAsync: onboarding, isPending: isPendingOnboarding } =
-    useOnboarding();
+  const { mutateAsync: onboarding } = useOnboarding();
 
   const countryConfig = metadata?.countries
     ? metadata.countries.find((ele) => ele.code === country) || null
@@ -317,12 +315,14 @@ export default function TenantOnboardingPage() {
     const t = setTimeout(async () => {
       setCheckingSlug(true);
       try {
-        const res = await fetch(
-          `/api/tenants/check-slug?slug=${encodeURIComponent(slug)}`
-        );
-        const data = await res.json();
-        setSlugAvailable(data.available);
-      } catch {
+        await api.get(`/tenants/check-slug?slug=${encodeURIComponent(slug)}`);
+        setSlugAvailable(true);
+      } catch (e) {
+        const _e = e as AxiosError;
+        if (_e.response?.status === 409) {
+          setSlugAvailable(false);
+          return;
+        }
         setSlugAvailable(null);
       } finally {
         setCheckingSlug(false);
@@ -334,7 +334,6 @@ export default function TenantOnboardingPage() {
 
   useEffect(() => {
     if (screen !== "success") {
-      setTypedMessage("");
       return;
     }
 
@@ -343,11 +342,9 @@ export default function TenantOnboardingPage() {
 
     const startTyping = (direction: "forward" | "backward") => {
       let i = direction === "forward" ? 0 : successMessage.length;
-      setTypedMessage(direction === "forward" ? "" : successMessage);
 
       typingTimer = setInterval(() => {
         i = direction === "forward" ? i + 1 : i - 1;
-        setTypedMessage(successMessage.slice(0, Math.max(i, 0)));
 
         if (direction === "forward" && i >= successMessage.length) {
           if (typingTimer) clearInterval(typingTimer);

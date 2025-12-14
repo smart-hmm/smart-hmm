@@ -6,6 +6,7 @@ import (
 
 func (h *TenantHandler) Routes(r chi.Router) {
 	r.Post("/onboarding", h.Onboarding)
+	r.Get("/check-slug", h.CheckIfSlugAvailable)
 	r.Get("/{slug}", h.GetBySlug)
 	r.Post("/", h.Create)
 	r.Get("/", h.GetByID)
