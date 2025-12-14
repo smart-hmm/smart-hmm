@@ -8,6 +8,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	pgxvector "github.com/pgvector/pgvector-go/pgx"
+
 	"github.com/smart-hmm/smart-hmm/internal/config"
 	databaseport "github.com/smart-hmm/smart-hmm/internal/interface/core/ports/database"
 )
@@ -43,8 +45,7 @@ func (db *PostgresDatabase) Open(ctx context.Context) error {
 	cfg.MaxConnLifetime = time.Hour
 
 	cfg.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		// return pgxvector.RegisterTypes(ctx, conn)
-		return nil
+		return pgxvector.RegisterTypes(ctx, conn)
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)

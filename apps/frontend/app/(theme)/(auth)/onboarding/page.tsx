@@ -8,6 +8,92 @@ import { useRouter } from "next/navigation";
 import useTenantMetadata from "@/services/react-query/queries/use-tenant-metadata";
 import Loading from "@/app/loading";
 
+function MachineAssemblyAnimation() {
+  const docLabels = ["Departments", "Employees", "Payrolls"];
+
+  return (
+    <div className="mt-6 flex flex-col items-center gap-5">
+      <div className="relative h-32 w-56 overflow-hidden rounded-xl bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* tray */}
+        <motion.div
+          animate={{ y: [0, -2, 0] }}
+          transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+          className="absolute bottom-6 left-6 right-6 h-14 rounded-lg bg-gradient-to-br from-primary/12 to-primary/28 shadow-inner"
+        />
+
+        {/* incoming labeled documents with folded corner + lines */}
+        {docLabels.map((label, i) => (
+          <motion.div
+            key={i}
+            initial={{ x: -90, y: 12 + i * 7, rotate: -10, opacity: 0 }}
+            animate={{
+              x: [-90, 10, 30],
+              y: [12 + i * 7, -8, 0],
+              rotate: [-10, 0, 5],
+              opacity: [0, 1, 1],
+            }}
+            transition={{
+              repeat: Infinity,
+              repeatDelay: 1.7,
+              duration: 1.6,
+              delay: i * 0.22,
+              ease: "easeInOut",
+            }}
+            className="absolute left-0 top-5 h-12 w-32 rounded-md border border-slate-200 bg-white shadow-sm"
+          >
+            <div className="absolute right-0 top-0 h-4 w-6 rounded-bl bg-slate-100" />
+            <div className="absolute inset-0 flex flex-col justify-center px-3 py-2">
+              <div className="text-[10px] font-semibold text-slate-600">
+                {label}
+              </div>
+              <div className="mt-1 space-y-1">
+                <div className="h-[2px] w-3/4 rounded bg-slate-200" />
+                <div className="h-[2px] w-1/2 rounded bg-slate-200" />
+              </div>
+            </div>
+          </motion.div>
+        ))}
+
+        {/* stacked result */}
+        <motion.div
+          animate={{ y: [0, -3, 0], scale: [1, 1.02, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+          className="absolute bottom-6 right-6 flex flex-col gap-1"
+        >
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-7 w-28 rounded-md border border-slate-200 bg-white shadow-sm"
+              style={{ marginLeft: i * 5 }}
+            >
+              <div className="absolute right-0 top-0 h-3 w-5 rounded-bl bg-slate-100" />
+              <div className="px-3 py-1">
+                <div className="h-[2px] w-3/4 rounded bg-slate-200" />
+                <div className="mt-1 h-[2px] w-2/4 rounded bg-slate-200" />
+              </div>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* completion pulse */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: [0.6, 1, 0.6], opacity: [0, 1, 0] }}
+          transition={{
+            repeat: Infinity,
+            repeatDelay: 1.7,
+            duration: 1.1,
+            ease: "easeOut",
+          }}
+          className="absolute bottom-9 right-4 flex h-6 w-6 items-center justify-center rounded-full bg-primary/30 text-[10px] font-bold text-white"
+        >
+          ✓
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_VISIBLE = 9;
 
 function GridSelectModal<T extends string>({
@@ -37,9 +123,11 @@ function GridSelectModal<T extends string>({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* backdrop */}
-      <div className="absolute inset-0 bg-black/40"
-        onKeyDown={() => { }}
-        onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40"
+        onKeyDown={() => {}}
+        onClick={onClose}
+      />
 
       {/* modal */}
       <motion.div
@@ -51,7 +139,7 @@ function GridSelectModal<T extends string>({
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">{title}</h3>
           <button
-            type='button'
+            type="button"
             onClick={onClose}
             className="rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-muted"
           >
@@ -65,7 +153,7 @@ function GridSelectModal<T extends string>({
         >
           {options.map(({ value, label, Flag }) => (
             <button
-              type='button'
+              type="button"
               key={value}
               onClick={() => {
                 onSelect(value);
@@ -114,8 +202,10 @@ function GridSelectTrigger({
 }
 
 export default function TenantOnboardingPage() {
-  const router = useRouter()
-  const [screen, setScreen] = useState<"intro" | "form" | "success">("intro");
+  const router = useRouter();
+  const [screen, setScreen] = useState<
+    "intro" | "form" | "preview" | "success"
+  >("intro");
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -136,18 +226,26 @@ export default function TenantOnboardingPage() {
   const [openCountry, setOpenCountry] = useState(false);
   const [openTimezone, setOpenTimezone] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
-  const { data: metadata, isLoading: isLoadingMetadata } = useTenantMetadata()
+  const { data: metadata, isLoading: isLoadingMetadata } = useTenantMetadata();
+  const [typedMessage, setTypedMessage] = useState("");
 
   const [expanded, setExpanded] = useState(false);
   const visibleIndustries = useMemo(() => {
-    if (expanded) return metadata?.industries;
-    return metadata?.industries.slice(0, DEFAULT_VISIBLE);
+    if (!metadata) return [];
+    return expanded
+      ? metadata.industries
+      : metadata.industries.slice(0, DEFAULT_VISIBLE);
   }, [expanded, metadata]);
 
   const { mutateAsync: onboarding, isPending: isPendingOnboarding } =
     useOnboarding();
 
-  const countryConfig = metadata?.countries ? (metadata.countries.find(ele => ele.code === country) || null) : null;
+  const countryConfig = metadata?.countries
+    ? metadata.countries.find((ele) => ele.code === country) || null
+    : null;
+  const canContinue =
+    Boolean(name && slug && companySize && country) && slugAvailable !== false;
+  const successMessage = "Setting things up for you...";
 
   useEffect(() => {
     const saved = localStorage.getItem("tenant_onboarding");
@@ -165,7 +263,7 @@ export default function TenantOnboardingPage() {
       if (d.country) setCountry(d.country);
       if (d.timezone) setTimezone(d.timezone);
       if (d.currency) setCurrency(d.currency);
-    } catch { }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -202,7 +300,9 @@ export default function TenantOnboardingPage() {
   useEffect(() => {
     if (!country) return;
 
-    const cfg = metadata?.countries ? (metadata.countries.find(ele => ele.code === country) || null) : null;
+    const cfg = metadata?.countries
+      ? metadata.countries.find((ele) => ele.code === country) || null
+      : null;
     if (!cfg) return;
     if (!timezone) setTimezone(cfg.defaultTimezone);
     if (!currency) setCurrency(cfg.currency);
@@ -232,6 +332,45 @@ export default function TenantOnboardingPage() {
     return () => clearTimeout(t);
   }, [slug]);
 
+  useEffect(() => {
+    if (screen !== "success") {
+      setTypedMessage("");
+      return;
+    }
+
+    let typingTimer: ReturnType<typeof setInterval> | null = null;
+    let loopTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const startTyping = (direction: "forward" | "backward") => {
+      let i = direction === "forward" ? 0 : successMessage.length;
+      setTypedMessage(direction === "forward" ? "" : successMessage);
+
+      typingTimer = setInterval(() => {
+        i = direction === "forward" ? i + 1 : i - 1;
+        setTypedMessage(successMessage.slice(0, Math.max(i, 0)));
+
+        if (direction === "forward" && i >= successMessage.length) {
+          if (typingTimer) clearInterval(typingTimer);
+          typingTimer = null;
+          loopTimer = setTimeout(() => startTyping("backward"), 800);
+        }
+
+        if (direction === "backward" && i <= 0) {
+          if (typingTimer) clearInterval(typingTimer);
+          typingTimer = null;
+          loopTimer = setTimeout(() => startTyping("forward"), 400);
+        }
+      }, 70);
+    };
+
+    startTyping("forward");
+
+    return () => {
+      if (typingTimer) clearInterval(typingTimer);
+      if (loopTimer) clearTimeout(loopTimer);
+    };
+  }, [screen, successMessage]);
+
   async function submit() {
     if (!companySize) return;
 
@@ -253,24 +392,25 @@ export default function TenantOnboardingPage() {
       setScreen("success");
 
       setTimeout(() => {
-        window.location.href = "/select-tenant"
-      }, 2000);
+        window.location.href = "/select-tenant";
+      }, 8000);
     } catch (e) {
       setError((e as Error).message);
       setLoading(false);
     }
   }
 
-  const progress =
-    screen === "intro"
-      ? "20%"
-      : screen === "form"
-        ? loading
-          ? "90%"
-          : "60%"
-        : "100%";
+  const progress = loading
+    ? "100%"
+    : screen === "intro"
+    ? "0%"
+    : screen === "form"
+    ? "50%"
+    : screen === "preview"
+    ? "80%"
+    : "100%";
 
-  if (isLoadingMetadata) return <Loading />
+  if (isLoadingMetadata) return <Loading />;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
@@ -278,6 +418,7 @@ export default function TenantOnboardingPage() {
         {/* Progress */}
         <div className="mb-6 h-1 w-full overflow-hidden rounded bg-slate-200">
           <motion.div
+            initial={{ width: 0 }}
             className="h-full bg-primary"
             animate={{ width: progress }}
             transition={{ duration: 0.4, ease: "easeOut" }}
@@ -293,9 +434,9 @@ export default function TenantOnboardingPage() {
               exit={{ opacity: 0, y: -16 }}
               className="rounded-2xl bg-background p-10 shadow-sm text-center"
             >
-              <h1 className="text-2xl font-semibold">Welcome</h1>
+              <h1 className="text-2xl font-semibold">First thing first</h1>
               <p className="mt-3 text-sm text-slate-500">
-                Create your company workspace in under a minute.
+                Tell us more about your company
               </p>
 
               <motion.button
@@ -316,7 +457,7 @@ export default function TenantOnboardingPage() {
               exit={{ opacity: 0, y: -16 }}
               className="rounded-2xl bg-background p-6 shadow-sm"
             >
-              <h2 className="text-lg font-semibold">Create your tenant</h2>
+              <h2 className="text-lg font-semibold">Register your company</h2>
 
               {error && (
                 <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
@@ -326,9 +467,7 @@ export default function TenantOnboardingPage() {
 
               <div className="mt-6 space-y-6">
                 <div>
-                  <div className="block text-sm font-medium">
-                    Tenant name
-                  </div>
+                  <div className="block text-sm font-medium">Company name</div>
                   <p className="mb-1 text-xs text-slate-500">
                     Visible to everyone in your workspace.
                   </p>
@@ -352,18 +491,17 @@ export default function TenantOnboardingPage() {
                 </div>
 
                 <div>
-                  <div className="block text-sm font-medium">
-                    Tenant URL
-                  </div>
+                  <div className="block text-sm font-medium">Workspace URL</div>
                   <p className="mb-1 text-xs text-slate-500">
                     This will be your workspace address.
                   </p>
 
                   <div
                     className={`flex items-center rounded-lg border px-3 py-2
-                      ${slugAvailable === false
-                        ? "border-red-400"
-                        : slugAvailable === true
+                      ${
+                        slugAvailable === false
+                          ? "border-red-400"
+                          : slugAvailable === true
                           ? "border-green-400"
                           : "border-muted"
                       }`}
@@ -413,24 +551,36 @@ export default function TenantOnboardingPage() {
                     Used to tailor defaults for your business.
                   </p>
 
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {visibleIndustries?.map((item) => (
-                      <button
-                        key={item.name}
-                        type="button"
-                        onClick={() => setIndustry(item.name)}
-                        className={`rounded-lg border px-3 py-2 text-sm transition
-          ${industry === item.name
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-muted hover:border-slate-300"
-                          }`}
-                      >
-                        {item.name}
-                      </button>
-                    ))}
-                  </div>
+                  <AnimatePresence initial={false}>
+                    <motion.div
+                      key={expanded ? "expanded" : "collapsed"}
+                      layout
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {visibleIndustries.map((item) => (
+                          <button
+                            key={item.name}
+                            type="button"
+                            onClick={() => setIndustry(item.name)}
+                            className={`rounded-lg border px-3 py-2 text-sm transition
+                            ${
+                              industry === item.name
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-muted hover:border-slate-300"
+                            }`}
+                          >
+                            {item.name}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
 
-                  {/* Expand / Collapse */}
                   {metadata && metadata.industries.length > DEFAULT_VISIBLE && (
                     <button
                       type="button"
@@ -439,7 +589,9 @@ export default function TenantOnboardingPage() {
                     >
                       {expanded
                         ? "Show less"
-                        : `Show ${metadata.industries.length - DEFAULT_VISIBLE} more`}
+                        : `Show ${
+                            metadata.industries.length - DEFAULT_VISIBLE
+                          } more`}
                     </button>
                   )}
 
@@ -449,16 +601,13 @@ export default function TenantOnboardingPage() {
                       value={customIndustry}
                       onChange={(e) => setCustomIndustry(e.target.value)}
                       placeholder="Your industry"
-                      className="mt-3 w-full rounded-lg border px-3 py-2 text-sm"
+                      className="mt-3 w-full rounded-lg border px-3 py-2 text-sm box-border"
                     />
                   )}
                 </div>
 
-
                 <div>
-                  <div className="block text-sm font-medium">
-                    Company size
-                  </div>
+                  <div className="block text-sm font-medium">Company size</div>
                   <p className="mb-2 text-xs text-slate-500">
                     Used to configure permissions and features.
                   </p>
@@ -474,9 +623,10 @@ export default function TenantOnboardingPage() {
                         type="button"
                         onClick={() => setCompanySize(o.key)}
                         className={`rounded-xl border p-4 text-left
-                          ${companySize === o.key
-                            ? "border-primary bg-primary/10"
-                            : "border-muted"
+                          ${
+                            companySize === o.key
+                              ? "border-primary bg-primary/10"
+                              : "border-muted"
                           }`}
                       >
                         <div className="font-medium">{o.label}</div>
@@ -491,12 +641,18 @@ export default function TenantOnboardingPage() {
                     label="Country"
                     placeholder="Select country"
                     valueLabel={
-                      country && metadata?.countries ? (metadata.countries.find(ele => ele.code === country) || undefined)?.label : undefined
+                      country && metadata?.countries
+                        ? (
+                            metadata.countries.find(
+                              (ele) => ele.code === country
+                            ) || undefined
+                          )?.label
+                        : undefined
                     }
                     onClick={() => setOpenCountry(true)}
                   />
 
-                  {metadata?.countries && metadata.countries.length > 0 &&
+                  {metadata?.countries && metadata.countries.length > 0 && (
                     <GridSelectModal
                       open={openCountry}
                       title="Select country"
@@ -504,7 +660,9 @@ export default function TenantOnboardingPage() {
                       columns={3}
                       onClose={() => setOpenCountry(false)}
                       onSelect={(code) => {
-                        const country = metadata?.countries.find(ele => ele.code === code)
+                        const country = metadata?.countries.find(
+                          (ele) => ele.code === code
+                        );
                         if (!country) return;
                         setCountry(code);
                         setTimezone(country.defaultTimezone);
@@ -515,7 +673,8 @@ export default function TenantOnboardingPage() {
                         label: c.label,
                         Flag: Flags[c.code as keyof typeof Flags],
                       }))}
-                    />}
+                    />
+                  )}
 
                   <GridSelectTrigger
                     label="Timezone"
@@ -535,9 +694,9 @@ export default function TenantOnboardingPage() {
                     options={
                       countryConfig
                         ? countryConfig.timezones.map((tz) => ({
-                          value: tz,
-                          label: tz,
-                        }))
+                            value: tz,
+                            label: tz,
+                          }))
                         : []
                     }
                   />
@@ -549,7 +708,7 @@ export default function TenantOnboardingPage() {
                     onClick={() => setOpenCurrency(true)}
                   />
 
-                  {metadata?.countries && metadata.countries.length > 0 &&
+                  {metadata?.countries && metadata.countries.length > 0 && (
                     <GridSelectModal
                       open={openCurrency}
                       title="Select currency"
@@ -558,29 +717,114 @@ export default function TenantOnboardingPage() {
                       onClose={() => setOpenCurrency(false)}
                       onSelect={setCurrency}
                       options={[
-                        ...new Set(
-                          metadata.countries.map((c) => c.currency)
-                        ),
+                        ...new Set(metadata.countries.map((c) => c.currency)),
                       ].map((cur) => ({
                         value: cur,
                         label: cur,
                       }))}
-                    />}
+                    />
+                  )}
                 </div>
 
                 <motion.button
                   whileTap={{ scale: 0.97 }}
-                  disabled={
-                    !name ||
-                    !slug ||
-                    !companySize ||
-                    slugAvailable === false ||
-                    !country
-                  }
-                  onClick={submit}
+                  disabled={!canContinue}
+                  onClick={() => {
+                    setError(null);
+                    setScreen("preview");
+                  }}
                   className="mt-4 w-full rounded-lg bg-primary py-2 text-sm text-white disabled:opacity-50"
                 >
-                  Create tenant
+                  Review details
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {screen === "preview" && (
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              className="rounded-2xl bg-background p-6 shadow-sm"
+            >
+              <h2 className="text-lg font-semibold">Confirm details</h2>
+
+              {error && (
+                <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
+              <div className="mt-6 space-y-4 text-sm">
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-slate-500">Company name</div>
+                  <div className="font-medium">{name || "Not set"}</div>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-slate-500">Workspace URL</div>
+                  <div className="font-medium">app.yourhrm.com/{slug}</div>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-slate-500">Industry</div>
+                  <div className="font-medium">
+                    {industry === "Other" && customIndustry
+                      ? customIndustry
+                      : industry || "Not set"}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-slate-500">Company size</div>
+                  <div className="font-medium">
+                    {companySize ? companySize : "Not set"}
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-slate-500">Country</div>
+                    <div className="font-medium">
+                      {country && metadata?.countries
+                        ? (
+                            metadata.countries.find(
+                              (ele) => ele.code === country
+                            ) || { label: country }
+                          ).label
+                        : "Not set"}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-slate-500">Timezone</div>
+                    <div className="font-medium">{timezone || "Not set"}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-slate-500">Currency</div>
+                    <div className="font-medium">{currency || "Not set"}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => setScreen("form")}
+                  className="w-full rounded-lg border px-4 py-2 text-sm sm:w-auto"
+                >
+                  Back to edit
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  type="button"
+                  disabled={loading || !canContinue}
+                  onClick={submit}
+                  className="w-full rounded-lg bg-primary px-4 py-2 text-sm text-white disabled:opacity-50 sm:w-auto"
+                >
+                  {loading ? "Creating..." : "Create your company"}
                 </motion.button>
               </div>
             </motion.div>
@@ -593,10 +837,8 @@ export default function TenantOnboardingPage() {
               animate={{ opacity: 1 }}
               className="rounded-2xl bg-background p-10 shadow-sm text-center"
             >
-              <h2 className="text-lg font-semibold">Welcome to {name}</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Setting things up for you…
-              </p>
+              <h2 className="text-lg font-semibold">{`You're almost done`}</h2>
+              <MachineAssemblyAnimation />
             </motion.div>
           )}
         </AnimatePresence>
