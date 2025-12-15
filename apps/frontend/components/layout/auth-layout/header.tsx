@@ -146,15 +146,16 @@ export default function Header() {
       className={`
         sticky top-0 z-40 w-full
         transition-all duration-300
-        ${scrolled
-          ? "bg-muted/60 backdrop-blu shadow-sm"
-          : "bg-linear-to-b from-primary/40 to-transparent"
+        ${
+          scrolled
+            ? "bg-muted/60 backdrop-blu shadow-sm"
+            : "bg-linear-to-b from-primary/40 to-transparent"
         }
       `}
     >
       <div
         className={`
-          max-w-7xl mx-auto px-6
+          max-w-[1440px] mx-auto px-6
           flex items-center justify-between
           transition-all duration-300
           ${scrolled ? "h-16 backdrop-blur-lg" : "h-[72px]"}
@@ -182,7 +183,7 @@ export default function Header() {
               item.href === "/"
                 ? cleanPath === "/"
                 : cleanPath === item.href ||
-                cleanPath.startsWith(`${item.href}/`);
+                  cleanPath.startsWith(`${item.href}/`);
 
             return (
               <Link
@@ -192,7 +193,8 @@ export default function Header() {
                 className={`
                 relative px-4 py-2 rounded-xl text-sm font-medium
                 transition-all duration-200
-                ${isActive
+                ${
+                  isActive
                     ? `
                       bg-background
                       text-foreground
@@ -201,7 +203,7 @@ export default function Header() {
                       text-foreground/70
                       hover:text-foreground
                       hover:bg-muted/60`
-                  }`}
+                }`}
               >
                 {item.label}
               </Link>
@@ -303,7 +305,7 @@ export default function Header() {
 
                   <div className="border-t border-muted/80 px-2 py-2">
                     <button
-                      type='button'
+                      type="button"
                       onClick={handleLogout}
                       className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-danger transition hover:bg-danger/10"
                     >
@@ -333,9 +335,10 @@ export default function Header() {
       </div>
       {isSearchOpen && (
         <div
-          onKeyDown={() => { }}
+          onKeyDown={() => {}}
           onClick={(e) => e.target === e.currentTarget && setSearchOpen(false)}
-          className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 px-4 pt-24 backdrop-blur-[2px]">
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 px-4 pt-24 backdrop-blur-[2px]"
+        >
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -343,7 +346,10 @@ export default function Header() {
             className="w-full max-w-5xl rounded-full bg-white px-4 py-2 shadow-2xl shadow-black/20"
           >
             <div className="flex items-center gap-3">
-              <Search className="h-5 w-5 text-muted-foreground" strokeWidth={2.2} />
+              <Search
+                className="h-5 w-5 text-muted-foreground"
+                strokeWidth={2.2}
+              />
               <input
                 ref={searchInputRef}
                 placeholder="Search for people, pages or ask Deel AI"

@@ -3,6 +3,7 @@
 import Card from "@/components/ui/card";
 import SummaryCard from "@/components/ui/summary-card";
 import Field from "@/components/ui/field";
+import { Select } from "@/components/ui/select";
 import { useState } from "react";
 
 
@@ -220,16 +221,16 @@ export function RequestLeaveDashboard() {
             </p>
 
             <Field label="Leave Type">
-              <select
+              <Select
                 value={leaveType}
-                onChange={(e) => setLeaveType(e.target.value)}
-                className="w-full rounded-md border px-3 py-2"
-              >
-                <option>Annual Leave</option>
-                <option>Sick Leave</option>
-                <option>Unpaid Leave</option>
-                <option>Other</option>
-              </select>
+                onValueChange={(value) => setLeaveType(value)}
+                options={[
+                  { value: "Annual Leave", label: "Annual Leave" },
+                  { value: "Sick Leave", label: "Sick Leave" },
+                  { value: "Unpaid Leave", label: "Unpaid Leave" },
+                  { value: "Other", label: "Other" },
+                ]}
+              />
             </Field>
 
             <Field label="Leave Duration">

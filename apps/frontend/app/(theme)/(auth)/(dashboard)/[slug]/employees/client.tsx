@@ -13,6 +13,7 @@ import { DateTime } from "luxon";
 import useDebounce from "@/hooks/use-debounce";
 import { SearchInput } from "@/components/ui/search-input";
 import Table from "@/components/ui/table/table";
+import { Select } from "@/components/ui/select";
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -116,23 +117,21 @@ export default function EmployeesClient() {
           setSearch={(value) => setSearch(value)}
         />
 
-        <select
+        <Select
           value={departmentFilter}
-          onChange={(e) => {
-            setDepartmentFilter(e.target.value);
+          onValueChange={(value) => {
+            setDepartmentFilter(value);
             setCurrentPage(1);
           }}
-          className="w-full md:w-[300px] rounded-md border border-muted px-3 py-2 text-sm bg-surface"
-        >
-          <option value="">All Departments</option>
-          {departments &&
-            departments.length > 0 &&
-            departments.map((dept) => (
-              <option key={dept.id} value={dept.id}>
-                {dept.name}
-              </option>
-            ))}
-        </select>
+          className="w-full md:w-[300px]"
+          options={[
+            { value: "", label: "All Departments" },
+            ...(departments?.map((dept) => ({
+              value: dept.id,
+              label: dept.name,
+            })) ?? []),
+          ]}
+        />
       </div>
 
       <div className="bg-background border border-[var(--color-muted)] rounded-xl overflow-hidden">
@@ -274,45 +273,33 @@ export default function EmployeesClient() {
 
               {/* Department (SELECT) ✅ */}
               <div>
-                <div className="block text-xs font-semibold mb-1">
-                  Department
-                </div>
-                <select
+                <Select
+                  label="Department"
                   {...register("department")}
-                  className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2 bg-background"
-                >
-                  <option value="">Select department</option>
-                  <option value="Human Resources">Human Resources</option>
-                  <option value="Product">Product</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Design">Design</option>
-                </select>
-                {errors.department && (
-                  <p className="text-xs text-[var(--color-danger)]">
-                    {errors.department.message}
-                  </p>
-                )}
+                  options={[
+                    { value: "Human Resources", label: "Human Resources" },
+                    { value: "Product", label: "Product" },
+                    { value: "Engineering", label: "Engineering" },
+                    { value: "Design", label: "Design" },
+                  ]}
+                  error={errors.department?.message}
+                  className="bg-background"
+                />
               </div>
 
               {/* Role */}
               <div>
-                <div className="block text-xs font-semibold mb-1">
-                  System Role
-                </div>
-                <select
+                <Select
+                  label="System Role"
                   {...register("role")}
-                  className="w-full rounded-md border border-[var(--color-muted)] px-3 py-2 bg-background"
-                >
-                  <option value="">Select role</option>
-                  <option value="HR">HR</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Employee">Employee</option>
-                </select>
-                {errors.role && (
-                  <p className="text-xs text-[var(--color-danger)]">
-                    {errors.role.message}
-                  </p>
-                )}
+                  options={[
+                    { value: "HR", label: "HR" },
+                    { value: "Manager", label: "Manager" },
+                    { value: "Employee", label: "Employee" },
+                  ]}
+                  error={errors.role?.message}
+                  className="bg-background"
+                />
               </div>
 
               {/* Actions */}

@@ -11,7 +11,7 @@ export default function AuthLayout({
     <div className="w-screen min-h-screen bg-surface">
       <Header />
       <main>
-        <div className="w-full max-w-7xl mx-auto min-h-screen bg-surface px-0 box-border">
+        <div className="w-full max-w-[1440px] mx-auto min-h-screen bg-surface px-0 box-border">
           {children}
         </div>
       </main>

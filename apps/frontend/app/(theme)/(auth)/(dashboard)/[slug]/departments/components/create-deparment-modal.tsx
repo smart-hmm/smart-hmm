@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
+import { Select } from "@/components/ui/select";
 
 const departmentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -101,17 +102,18 @@ export default function CreateDepartmentModal({
                 Manager
               </label>
               {employees && employees.length > 0 && (
-                <select
+                <Select
+                  placeholder="Select manager"
                   {...register("manager")}
-                  className="w-full rounded-md border border-muted px-3 py-2 bg-background"
-                >
-                  <option value="">Select manager</option>
-                  {employees.map((emp) => (
-                    <option value={emp.id} key={emp.id}>
-                      {emp.firstName}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    ...employees.map((emp) => ({
+                      value: emp.id,
+                      label: emp.firstName,
+                    })),
+                  ]}
+                  error={errors.manager?.message}
+                  className="bg-background"
+                />
               )}
               {/* <input
                 type="text"

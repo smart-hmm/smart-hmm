@@ -28,6 +28,32 @@ type TableProps<T extends object> = {
   onPageChange?: (page: number) => void;
 };
 
+function SortIndicator({
+  active,
+  direction,
+}: {
+  active: boolean;
+  direction: SortDirection;
+}) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-flex h-4 w-4 items-center justify-center ${active ? "text-primary" : "text-muted-foreground"}`}
+    >
+      <svg
+        viewBox="0 0 12 12"
+        className="h-3 w-3"
+        style={{ transform: direction === "asc" ? "rotate(180deg)" : "rotate(0deg)" }}
+      >
+        <path
+          d="M6 8 2.5 4.5h7L6 8Z"
+          className={`${active ? "fill-current" : "fill-current opacity-60"}`}
+        />
+      </svg>
+    </span>
+  );
+}
+
 function HoverTooltip({
   content,
   children,
@@ -160,6 +186,37 @@ export default function Table<T extends object>({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const goToPage = (next: number) => {
+    const nextPage = Math.min(Math.max(next, 1), totalPages);
+    setInternalPage(nextPage);
+    onPageChange?.(nextPage);
+  };
+
+  const renderPageNumbers = () => {
+    const pages: number[] = [];
+    const windowSize = 2;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= page - windowSize && i <= page + windowSize)
+      ) {
+        pages.push(i);
+      }
+    }
+
+    const result: (number | string)[] = [];
+    pages.forEach((p, idx) => {
+      result.push(p);
+      if (idx < pages.length - 1 && pages[idx + 1] - p > 1) {
+        result.push("...");
+      }
+    });
+
+    return result;
+  };
+
   if (!data || data.length === 0) {
     return (
       <div className="w-full rounded-2xl border border-muted bg-white py-12 text-center text-sm text-foreground shadow-sm">
@@ -169,88 +226,115 @@ export default function Table<T extends object>({
   }
 
   return (
-    <div className="relative w-full overflow-visible rounded-2xl border border-muted/50 bg-background shadow-sm">
-      <div className="divide-y divide-muted/70">
-        {paginatedData.map((row, rowIndex) => (
-          <div
-            key={rowIndex}
-            className="px-4 py-4 transition hover:bg-[color-mix(in_srgb,var(--color-primary),transparent_94%)] md:px-6"
-          >
-            <div
-              className="grid gap-4 md:grid-cols-[repeat(auto-fit,minmax(140px,1fr))]"
-              style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
-            >
+    <div className="relative w-full overflow-hidden rounded-2xl border border-muted/60 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
+          <thead className="bg-muted/60">
+            <tr className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {columns.map((col) => {
-                const rawValue = col.mapToField ? row[col.mapToField] : "";
                 const isSorted = sortKey === col.mapToField;
-                const tooltip =
-                  typeof rawValue === "string" || typeof rawValue === "number"
-                    ? String(rawValue)
-                    : undefined;
-
                 return (
-                  <button
-                    type="button"
+                  <th
                     key={String(col.mapToField)}
-                    onClick={() =>
-                      col.sortable && col.mapToField && onSort(col.mapToField)
-                    }
-                    className={`group flex min-w-0 flex-col items-start text-left ${col.sortable ? "cursor-pointer" : "cursor-default"
-                      }`}
+                    className="px-4 py-3 text-left md:px-5"
                   >
-                    <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {col.label}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        col.sortable && col.mapToField && onSort(col.mapToField)
+                      }
+                      className={`group inline-flex items-center gap-2 rounded-full px-2 py-1 transition ${col.sortable
+                        ? "cursor-pointer hover:bg-white"
+                        : "cursor-default"
+                        }`}
+                    >
+                      <span>{col.label}</span>
                       {col.sortable && (
-                        <span className="text-[10px] text-muted-foreground group-hover:text-foreground">
-                          {isSorted ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
-                        </span>
+                        <SortIndicator
+                          active={isSorted}
+                          direction={isSorted ? sortDir : "asc"}
+                        />
                       )}
-                    </div>
-                    <div className="mt-2 w-full text-[13px] font-normal text-foreground">
-                      <HoverTooltip content={tooltip}>
-                        {col.render
-                          ? col.render(rawValue, row)
-                          : String(rawValue ?? "")}
-                      </HoverTooltip>
-                    </div>
-                  </button>
+                    </button>
+                  </th>
                 );
               })}
-            </div>
-          </div>
-        ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-muted/60 text-sm text-foreground">
+            {paginatedData.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className="bg-white transition hover:bg-[color-mix(in_srgb,var(--color-primary),transparent_95%)]"
+              >
+                {columns.map((col) => {
+                  const rawValue = col.mapToField ? row[col.mapToField] : "";
+                  const tooltip =
+                    typeof rawValue === "string" || typeof rawValue === "number"
+                      ? String(rawValue)
+                      : undefined;
+
+                  return (
+                    <td
+                      key={String(col.mapToField)}
+                      className="px-4 py-4 align-middle md:px-5"
+                    >
+                      <HoverTooltip content={tooltip}>
+                        <div className="min-w-0 truncate text-[13px] font-medium text-foreground">
+                          {col.render
+                            ? col.render(rawValue, row)
+                            : String(rawValue ?? "")}
+                        </div>
+                      </HoverTooltip>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-muted px-4 py-3 text-sm md:flex-row md:items-center md:justify-between">
-        <span className="text-muted-foreground">
-          Page {page} of {totalPages}
-        </span>
+      <div className="flex items-center justify-between gap-4 border-t border-muted/60 bg-white px-4 py-4 text-sm text-muted-foreground md:px-6">
+        <button
+          type="button"
+          onClick={() => goToPage(page - 1)}
+          disabled={page === 1}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-muted text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {"<"}
+        </button>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={page === 1}
-            onClick={() => {
-              setInternalPage((p) => Math.max(1, p - 1));
-              onPageChange?.(page - 1);
-            }}
-            className="rounded-full border border-muted px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Prev
-          </button>
-
-          <button
-            type="button"
-            disabled={page === totalPages}
-            onClick={() => {
-              setInternalPage((p) => Math.min(totalPages, p + 1));
-              onPageChange?.(page + 1);
-            }}
-            className="rounded-full border border-muted px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Next
-          </button>
+        <div className="flex items-center gap-2 text-foreground">
+          {renderPageNumbers().map((item, idx) =>
+            typeof item === "number" ? (
+              <button
+                key={`${item}-${idx}`}
+                type="button"
+                onClick={() => goToPage(item)}
+                className={`h-9 min-w-[36px] rounded-lg border px-3 text-sm font-semibold transition ${item === page
+                  ? "border-primary/40 bg-[color-mix(in_srgb,var(--color-primary),transparent_88%)] text-foreground shadow-sm"
+                  : "border-transparent hover:border-muted hover:bg-muted"
+                  }`}
+              >
+                {item}
+              </button>
+            ) : (
+              <span key={`ellipsis-${idx}`} className="px-2 text-base">
+                {item}
+              </span>
+            )
+          )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => goToPage(page + 1)}
+          disabled={page === totalPages}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-muted text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {">"}
+        </button>
       </div>
     </div>
   );

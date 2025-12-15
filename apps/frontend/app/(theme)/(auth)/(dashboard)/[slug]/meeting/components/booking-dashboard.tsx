@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Select } from "@/components/ui/select";
 
 interface Booking {
   id: string;
@@ -628,16 +629,14 @@ export default function BookingDashboard() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block mb-1 font-semibold text-foreground">
-                  Meeting Method
-                </label>
-                <select
+                <Select
+                  label="Meeting Method"
                   {...register("method")}
-                  className="w-full rounded-md border px-3 py-2 bg-background text-foreground"
-                >
-                  <option value="office">Office</option>
-                  <option value="remote">Remote</option>
-                </select>
+                  options={[
+                    { value: "office", label: "Office" },
+                    { value: "remote", label: "Remote" },
+                  ]}
+                />
               </div>
 
               {watch("method") === "remote" && (
@@ -661,42 +660,28 @@ export default function BookingDashboard() {
               {watch("method") === "office" && (
                 <>
                   <div>
-                    <label className="block mb-1 font-semibold text-foreground">
-                      Branch Location
-                    </label>
-                    <select
+                    <Select
+                      label="Branch Location"
                       {...register("branch")}
-                      className="w-full rounded-md border px-3 py-2 bg-background text-foreground"
-                    >
-                      <option value="">Select branch</option>
-                      <option value="Ho Chi Minh">Ho Chi Minh</option>
-                      <option value="Ha Noi">Ha Noi</option>
-                    </select>
-                    {errors.branch && (
-                      <p className="text-xs text-danger">
-                        {errors.branch.message}
-                      </p>
-                    )}
+                      options={[
+                        { value: "Ho Chi Minh", label: "Ho Chi Minh" },
+                        { value: "Ha Noi", label: "Ha Noi" },
+                      ]}
+                      error={errors.branch?.message}
+                    />
                   </div>
 
                   <div>
-                    <label className="block mb-1 font-semibold text-foreground">
-                      Meeting Room
-                    </label>
-                    <select
+                    <Select
+                      label="Meeting Room"
                       {...register("room")}
-                      className="w-full rounded-md border px-3 py-2 bg-background text-foreground"
-                    >
-                      <option value="">Select room</option>
-                      <option value="Room 01">Room 01</option>
-                      <option value="Room 02">Room 02</option>
-                      <option value="Room 03">Room 03</option>
-                    </select>
-                    {errors.room && (
-                      <p className="text-xs text-danger">
-                        {errors.room.message}
-                      </p>
-                    )}
+                      options={[
+                        { value: "Room 01", label: "Room 01" },
+                        { value: "Room 02", label: "Room 02" },
+                        { value: "Room 03", label: "Room 03" },
+                      ]}
+                      error={errors.room?.message}
+                    />
                   </div>
                 </>
               )}
