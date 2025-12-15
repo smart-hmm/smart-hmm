@@ -34,7 +34,7 @@ export default function Documents({
     <DocumentsGrid
       isLoading={isLoading}
       onUploadBtnClicked={() =>
-        router.push(`/departments/${params.id}/documents/upload`)
+        router.push(`/${selectedTenant?.workspaceSlug}/departments/${params.id}/documents/upload`)
       }
       onItemClicked={(item) =>
         router.push(`/${selectedTenant?.workspaceSlug}/departments/${params.id}/documents/${item.id}`)

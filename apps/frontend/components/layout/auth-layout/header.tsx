@@ -27,6 +27,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useLogout } from "@/services/react-query/mutations/use-logout";
 import { useMe } from "@/services/react-query/queries/use-me";
 import type { RootState } from "@/services/redux/store";
+import { NAV_ITEMS } from "./nav-items";
 
 export default function Header() {
   const router = useRouter();
@@ -140,14 +141,6 @@ export default function Header() {
     },
   ];
 
-  const navItems = [
-    { id: "nav-home", href: "/", label: "Home" },
-    { id: "nav-departments", href: "/departments", label: "Departments" },
-    { id: "nav-employees", href: "/employees", label: "Employees" },
-    { id: "nav-meeting", href: "/meeting", label: "Meeting" },
-    { id: "nav-settings", href: "/company-settings", label: "Settings" },
-  ];
-
   return (
     <header
       className={`
@@ -180,7 +173,7 @@ export default function Header() {
         </div>
 
         <nav className="hidden md:flex items-center gap-2">
-          {navItems.map((item) => {
+          {NAV_ITEMS.map((item) => {
             const cleanPath =
               pathname.replace(`/${selectedTenant?.workspaceSlug ?? ""}`, "") ||
               "/";
@@ -194,6 +187,7 @@ export default function Header() {
             return (
               <Link
                 key={item.id}
+                id={item.id}
                 href={`/${selectedTenant?.workspaceSlug}${item.href}`}
                 className={`
                 relative px-4 py-2 rounded-xl text-sm font-medium
@@ -219,6 +213,7 @@ export default function Header() {
           <div className="flex items-center gap-2 rounded-full bg-primary/10 px-2 py-1.5 text-primary">
             <button
               type="button"
+              id="nav-search"
               onClick={() => setSearchOpen(true)}
               className="flex items-center gap-2 rounded-full bg-white/60 px-3 py-2 text-sm font-semibold text-primary shadow-inner transition hover:bg-white/80"
             >
@@ -231,6 +226,7 @@ export default function Header() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                id="nav-notifications"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15 text-primary transition hover:bg-primary/20"
                 aria-label="Notifications"
               >

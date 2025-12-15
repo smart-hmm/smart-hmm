@@ -2,32 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { NAV_ITEMS } from "@/components/layout/auth-layout/nav-items";
 import Spotlight from "./spotlight";
 
+const NAV_TOUR_STEPS = NAV_ITEMS.filter(
+  (item) => !!item.tourContent
+).map((item) => ({
+  id: item.id,
+  target: `#${item.id}`,
+  title: item.label,
+  content: item.tourContent as string,
+}));
+
 const TOUR_STEPS = [
+  ...NAV_TOUR_STEPS,
   {
-    id: "departments",
-    target: "#nav-departments",
-    title: "Departments",
-    content: "Organize teams and reporting structure.",
+    id: "search",
+    target: "#nav-search",
+    title: "Search",
+    content: "Quickly find people, pages, or open search with ⌘K / Ctrl+K.",
   },
   {
-    id: "employees",
-    target: "#nav-employees",
-    title: "Employees",
-    content: "Manage employee profiles and contracts.",
-  },
-  {
-    id: "meeting",
-    target: "#nav-meeting",
-    title: "Meetings",
-    content: "Schedule and manage meetings.",
-  },
-  {
-    id: "settings",
-    target: "#nav-settings",
-    title: "Company settings",
-    content: "Configure company policies and preferences.",
+    id: "notifications",
+    target: "#nav-notifications",
+    title: "Notifications",
+    content: "See recent updates and alerts for your workspace.",
   },
   {
     id: "profile",
@@ -54,7 +53,7 @@ export default function WorkspaceTour() {
 
   // wait for DOM targets
   useEffect(() => {
-    if (seen) return;
+    if (seen || !TOUR_STEPS.length) return;
 
     let tries = 0;
     const interval = setInterval(() => {
@@ -68,7 +67,7 @@ export default function WorkspaceTour() {
     return () => clearInterval(interval);
   }, [seen]);
 
-  if (seen || !ready) return null;
+  if (seen || !ready || !TOUR_STEPS.length) return null;
 
   const current = TOUR_STEPS[step];
   const target = document.querySelector(current.target) as HTMLElement | null;

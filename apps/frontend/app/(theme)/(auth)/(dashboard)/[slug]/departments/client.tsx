@@ -11,7 +11,7 @@ import useEmployees from "@/services/react-query/queries/use-employees";
 import Table from "@/components/ui/table/table";
 import Link from "next/link";
 import { useSelector } from "react-redux";
-import { RootState } from "@/services/redux/store";
+import type { RootState } from "@/services/redux/store";
 
 export default function DepartmentsClient() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function DepartmentsClient() {
   const selectedTenant = useSelector((state:RootState) => state.tenants.selectedTenant)
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 space-y-6">
+    <div className="min-h-screentext-foreground p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button

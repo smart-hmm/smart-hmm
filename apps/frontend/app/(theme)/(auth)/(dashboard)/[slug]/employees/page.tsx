@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import EmployeesClient from "./client";
 
 export function generateMetadata(): Metadata {

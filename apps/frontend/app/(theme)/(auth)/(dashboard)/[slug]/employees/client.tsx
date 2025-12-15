@@ -84,7 +84,7 @@ export default function EmployeesClient() {
   }, [search, debounce]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] text-[var(--color-foreground)] p-6 space-y-6">
+    <div className="min-h-screentext-foreground p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button
