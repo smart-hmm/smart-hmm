@@ -1,6 +1,6 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import DepartmentDetailsClient from "./client";
-import { Department } from "@/types";
+import type { Department } from "@/types";
 import api from "@/lib/http";
 
 type Props = {

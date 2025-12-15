@@ -11,7 +11,9 @@ import {
 import { QueryKey } from "@/services/react-query/constants";
 import useUpsertUserSetting from "@/services/react-query/mutations/use-upsert-user-setting";
 import useUserSettings from "@/services/react-query/queries/use-user-settings";
+import useTenantMetadata from "@/services/react-query/queries/use-tenant-metadata";
 import type { AppearanceSettings, LocalizationSettings } from "@/types";
+import type { Country } from "@/types/metadata";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -43,6 +45,7 @@ export default function AccountSettingsPage() {
 
   const { data: settings, isLoading: isLoadingSettings } = useUserSettings();
   const { mutateAsync: upsertSetting, isPending } = useUpsertUserSetting();
+  const { data: metadata, isLoading: isLoadingMetadata } = useTenantMetadata();
   const queryClient = useQueryClient();
 
   const { register, setValue, handleSubmit, control } =
@@ -232,10 +235,12 @@ export default function AccountSettingsPage() {
 
       <div className="mx-auto -mt-2 max-w-5xl pb-12">
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Card title={`${activeTab} settings`}>
+          <Card title={`${activeTab.charAt(0).toUpperCase()}${activeTab.substring(1)} settings`}>
             {activeTab === "localization" ? (
               <LocalizationFields
                 localization={localization}
+                countries={metadata?.countries ?? []}
+                loadingCountries={isLoadingMetadata}
                 register={register}
                 setValue={setValue}
                 openLocale={openLocale}
@@ -287,6 +292,7 @@ function LocalizationFields({
   openTimezone,
   setOpenLocale,
   setOpenTimezone,
+  countries,
 }: {
   localization: LocalizationSettings;
   register: FormRegister;
@@ -295,7 +301,21 @@ function LocalizationFields({
   openTimezone: boolean;
   setOpenLocale: (v: boolean) => void;
   setOpenTimezone: (v: boolean) => void;
+  countries: Country[];
+  loadingCountries: boolean;
 }) {
+  const timezoneOptions = useMemo(
+    () =>
+      countries.flatMap((country) =>
+        country.timezones.map((tz) => ({
+          parent: country.label,
+          label: tz,
+          value: tz,
+        }))
+      ),
+    [countries]
+  );
+
   return (
     <div className="space-y-5">
       <Field
@@ -327,9 +347,9 @@ function LocalizationFields({
         label="Timezone"
         value={
           <SearchableSelect
-            value={localization.timezone}
+            value={localization.timezone.split("/")[1].replaceAll("_", " ")}
             placeholder="Select timezone"
-            options={TIMEZONES}
+            options={timezoneOptions}
             open={openTimezone}
             onOpenChange={setOpenTimezone}
             onSelect={(val) => setValue("localization.timezone", val)}
@@ -350,7 +370,7 @@ function LocalizationFields({
                   type="radio"
                   value={format.value}
                   {...register("localization.timeFormat")}
-                  className="h-4 w-4 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                  className="h-4 w-4 text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-primary"
                 />
                 <span>{format.label}</span>
               </label>
@@ -520,6 +540,7 @@ function GridSelectModal<T extends string>({
       <div
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
+        onKeyDown={() => onClose()}
         aria-hidden
       />
 
@@ -578,7 +599,11 @@ function SearchableSelect({
 }: {
   value: string;
   placeholder: string;
-  options: string[];
+  options: {
+    parent: string;
+    label: string;
+    value: string;
+  }[];
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSelect: (v: string) => void;
@@ -587,10 +612,24 @@ function SearchableSelect({
 
   const filtered = useMemo(() => {
     if (!query) return options;
-    return options.filter((opt) =>
-      opt.toLowerCase().includes(query.toLowerCase())
+    const normalized = query.toLowerCase();
+    return options.filter(
+      (opt) =>
+        opt.label.split("/")[1].replaceAll("_", " ").toLowerCase().includes(normalized) ||
+        opt.parent.toLowerCase().includes(normalized)
     );
   }, [options, query]);
+
+  const groupedOptions = useMemo(() => {
+    return filtered.reduce<Record<string, { label: string; value: string }[]>>(
+      (acc, opt) => {
+        if (!acc[opt.parent]) acc[opt.parent] = [];
+        acc[opt.parent].push({ label: opt.label, value: opt.value });
+        return acc;
+      },
+      {}
+    );
+  }, [filtered]);
 
   return (
     <div className="relative min-w-[220px] text-right">
@@ -608,7 +647,7 @@ function SearchableSelect({
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search timezone"
+            placeholder="Search timezone or country"
             className="mb-3 w-full rounded-md border border-[var(--color-muted)] bg-[var(--color-surface)] px-3 py-2 text-sm focus:border-[var(--color-primary)] focus:outline-none"
           />
           <div className="max-h-64 overflow-auto pr-1">
@@ -617,26 +656,33 @@ function SearchableSelect({
                 No results
               </div>
             ) : (
-              filtered.map((opt) => (
-                <button
-                  type="button"
-                  key={opt}
-                  onClick={() => {
-                    onSelect(opt);
-                    setQuery("");
-                    onOpenChange(false);
-                  }}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[var(--color-muted)] ${
-                    opt === value
-                      ? "bg-[var(--color-muted)] text-[var(--color-primary)]"
-                      : "text-[var(--color-foreground)]"
-                  }`}
-                >
-                  <span className="truncate">{opt}</span>
-                  {opt === value && (
-                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
-                  )}
-                </button>
+              Object.entries(groupedOptions).map(([parent, children]) => (
+                <div key={parent} className="mb-2 rounded-lg">
+                  <div className="px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    {parent}
+                  </div>
+                  {children.map((opt) => (
+                    <button
+                      type="button"
+                      key={`${parent}-${opt.value}`}
+                      onClick={() => {
+                        onSelect(opt.value);
+                        setQuery("");
+                        onOpenChange(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition hover:bg-[var(--color-muted)] ${
+                        opt.value === value
+                          ? "bg-[var(--color-muted)] text-[var(--color-primary)]"
+                          : "text-[var(--color-foreground)]"
+                      }`}
+                    >
+                      <span className="truncate">{opt.label.split("/")[1].replaceAll("_", " ")}</span>
+                      {opt.value === value && (
+                        <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
               ))
             )}
           </div>

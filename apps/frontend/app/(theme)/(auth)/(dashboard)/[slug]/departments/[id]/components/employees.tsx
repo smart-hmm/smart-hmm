@@ -1,7 +1,7 @@
 "use client";
 
 import Table from "@/components/ui/table/table";
-import { EmployeeInfo } from "@/types";
+import type { EmployeeInfo } from "@/types";
 import { DateTime } from "luxon";
 import Link from "next/link";
 
@@ -11,7 +11,7 @@ export default function Employees({
   employees: EmployeeInfo[];
 }) {
   return (
-    <div className="rounded-xl border border-muted overflow-hidden">
+    <div className="rounded-xl w-full relative">
       <Table
         columns={[
           {
@@ -35,20 +35,6 @@ export default function Employees({
           {
             label: "Email",
             mapToField: "email",
-          },
-          {
-            label: "Department",
-            render: (_, row) => {
-              if (!row.departmentID) return "-";
-              return (
-                <Link
-                  href={`/departments/${row.departmentID}`}
-                  className="font-bold text-primary hover:underline cursor-pointer"
-                >
-                  {row.departmentName}
-                </Link>
-              );
-            },
           },
           {
             label: "Position",

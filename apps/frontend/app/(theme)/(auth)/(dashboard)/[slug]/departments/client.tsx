@@ -10,6 +10,8 @@ import CreateDepartmentModal from "./components/create-deparment-modal";
 import useEmployees from "@/services/react-query/queries/use-employees";
 import Table from "@/components/ui/table/table";
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import { RootState } from "@/services/redux/store";
 
 export default function DepartmentsClient() {
   const router = useRouter();
@@ -19,6 +21,7 @@ export default function DepartmentsClient() {
   const { can } = useRBAC();
   const { data: departments, isLoading, error } = useDepartments();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const selectedTenant = useSelector((state:RootState) => state.tenants.selectedTenant)
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 space-y-6">
@@ -58,7 +61,7 @@ export default function DepartmentsClient() {
                 value ? (
                   <Link
                     className="font-bold text-primary hover:underline cursor-pointer"
-                    href={`/departments/${row.id}`}
+                    href={`/${selectedTenant?.workspaceSlug}/departments/${row.id}`}
                   >
                     {String(value)}
                   </Link>

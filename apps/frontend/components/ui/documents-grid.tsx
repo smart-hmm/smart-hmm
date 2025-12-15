@@ -330,7 +330,7 @@ const DocumentsGrid = ({
               showUpload
               onUploadClick={() => onUploadBtnClicked?.()}
             />}
-          <div className="w-full grid xl:grid-cols-6 lg:grid-cols-4 md:grid-cols-4 sm:grid-cols-2 gap-4">
+          <div className="w-full grid xl:grid-cols-4 lg:grid-cols-4 md:grid-cols-4 sm:grid-cols-2 gap-4">
             {!isLoading && filteredDocuments.length > 0 &&
               <button
                 type="button"
@@ -413,13 +413,13 @@ const DocumentsGrid = ({
                 label: "Name",
                 mapToField: "name",
                 render: (_, row) => (
-                  <button
-                    type="button"
+                  <div
                     className="cursor-pointer text-primary font-medium hover:underline"
+                    onKeyDown={() => onItemClicked?.(row)}
                     onClick={() => onItemClicked?.(row)}
                   >
                     {row.name}
-                  </button>
+                  </div>
                 ),
               },
               {

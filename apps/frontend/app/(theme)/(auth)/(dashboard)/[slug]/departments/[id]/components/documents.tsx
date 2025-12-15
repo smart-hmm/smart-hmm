@@ -1,8 +1,10 @@
 "use client";
 
 import DocumentsGrid from "@/components/ui/documents-grid";
+import type { RootState } from "@/services/redux/store";
 import type { extensions, FileInfo } from "@/types";
 import { useParams, useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 export default function Documents({
   isLoading,
@@ -11,6 +13,7 @@ export default function Documents({
   isLoading: boolean;
   files: FileInfo[];
 }) {
+  const selectedTenant = useSelector((state:RootState) => state.tenants.selectedTenant)
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
@@ -34,7 +37,7 @@ export default function Documents({
         router.push(`/departments/${params.id}/documents/upload`)
       }
       onItemClicked={(item) =>
-        router.push(`/departments/${params.id}/documents/${item.id}`)
+        router.push(`/${selectedTenant?.workspaceSlug}/departments/${params.id}/documents/${item.id}`)
       }
       documents={files ? files.map((file) => mapFileToDocument(file)) : []}
     />
