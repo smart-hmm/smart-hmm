@@ -89,13 +89,13 @@ export default function Header() {
       id: "language",
       label: "Language and region",
       icon: Globe2,
-      onClick: () => handleNavigate("/account/settings"),
+      onClick: () => handleNavigate("/account/settings?tab=localization"),
     },
     {
       id: "appearance",
       label: "Appearance",
       icon: Palette,
-      onClick: () => handleNavigate("/account/settings"),
+      onClick: () => handleNavigate("/account/settings?tab=appearance"),
     },
   ];
 
@@ -114,8 +114,8 @@ export default function Header() {
         transition-all duration-300
         ${
           scrolled
-            ? "bg-background/80 backdrop-blur border-b border-muted shadow-sm"
-            : "bg-gradient-to-b from-primary/10 to-transparent"
+            ? "bg-muted/60 backdrop-blu shadow-sm"
+            : "bg-linear-to-b from-primary/40 to-transparent"
         }
       `}
     >
@@ -124,7 +124,7 @@ export default function Header() {
           max-w-7xl mx-auto px-6
           flex items-center justify-between
           transition-all duration-300
-          ${scrolled ? "h-[56px]" : "h-[72px]"}
+          ${scrolled ? "h-16 backdrop-blur-lg" : "h-[72px]"}
         `}
       >
         <div className="flex items-center gap-3">
@@ -161,8 +161,8 @@ export default function Header() {
                 ${
                   isActive
                     ? `
-                      bg-primary/15
-                      text-primary
+                      bg-background
+                      text-foreground
                     `
                     : `
                       text-foreground/70
