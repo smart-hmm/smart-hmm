@@ -2,7 +2,7 @@ import api from "@/lib/http";
 import type { EmployeeInfo, UserInfo } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
-import { TenantInfo } from "@/types/tenant";
+import type { TenantInfo } from "@/types/tenant";
 
 const getMe = async () => {
   const resp = await api.get("/auth/me");
