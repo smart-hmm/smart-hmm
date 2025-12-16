@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
@@ -177,24 +178,52 @@ func (h *EmployeeHandler) ListByDepartment(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *EmployeeHandler) Find(w http.ResponseWriter, r *http.Request) {
-	deptID := r.URL.Query().Get("departmentId")
-	name := r.URL.Query().Get("name")
-	email := r.URL.Query().Get("email")
-	code := r.URL.Query().Get("code")
-	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
+	q := r.URL.Query()
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
+	tenantId := q.Get("tenantId")
+	if tenantId == "" {
+		httpx.WriteJSON(w, "missing tenantId query", http.StatusBadRequest)
+		return
+	}
+
+	name := q.Get("name")
+	email := q.Get("email")
+	code := q.Get("code")
+
+	var departmentIds []string
+
+	if values, ok := q["departmentId"]; ok {
+		departmentIds = append(departmentIds, values...)
+	}
+
+	if v := q.Get("departmentIds"); v != "" {
+		for id := range strings.SplitSeq(v, ",") {
+			id = strings.TrimSpace(id)
+			if id != "" {
+				departmentIds = append(departmentIds, id)
+			}
+		}
+	}
+
+	page, err := strconv.Atoi(q.Get("page"))
+	if err != nil || page <= 0 {
 		page = 1
 	}
 
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		limit = 1
+	limit, err := strconv.Atoi(q.Get("limit"))
+	if err != nil || limit <= 0 {
+		limit = 20
 	}
 
-	employees, totalPages, totalItems, err := h.Repo.Find(name, email, code, deptID, page, limit)
+	employees, totalPages, totalItems, err := h.Repo.Find(
+		tenantId,
+		name,
+		email,
+		code,
+		departmentIds,
+		page,
+		limit,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

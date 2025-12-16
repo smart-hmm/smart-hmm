@@ -16,7 +16,9 @@ type EmployeePostgresRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewEmployeePostgresRepository(db *pgxpool.Pool) employeerepository.EmployeeRepository {
+var _ employeerepository.EmployeeRepository = (*EmployeePostgresRepository)(nil)
+
+func NewEmployeePostgresRepository(db *pgxpool.Pool) *EmployeePostgresRepository {
 	return &EmployeePostgresRepository{db: db}
 }
 
@@ -76,11 +78,12 @@ func ScanEmployee(row pgx.Row) (*domain.Employee, error) {
 }
 
 func (r *EmployeePostgresRepository) Find(
-	name,
-	email,
-	code,
-	departmentID string,
-	page,
+	tenantId string,
+	name string,
+	email string,
+	code string,
+	departmentIds []string,
+	page int,
 	limit int,
 ) ([]*domain.Employee, int, int, error) {
 
@@ -94,12 +97,12 @@ func (r *EmployeePostgresRepository) Find(
 	if name != "" {
 		orClauses = append(orClauses,
 			fmt.Sprintf(`
-				(
-					e.first_name ILIKE $%d OR 
-					e.last_name ILIKE $%d OR 
-					(e.first_name || ' ' || e.last_name) ILIKE $%d
-				)
-			`, idx, idx+1, idx+2),
+					(
+						e.first_name ILIKE $%d OR
+						e.last_name ILIKE $%d OR
+						(e.first_name || ' ' || e.last_name) ILIKE $%d
+					)
+				`, idx, idx+1, idx+2),
 		)
 
 		pattern := "%" + name + "%"
@@ -127,54 +130,70 @@ func (r *EmployeePostgresRepository) Find(
 		andClauses = append(andClauses, "("+strings.Join(orClauses, " OR ")+")")
 	}
 
-	if departmentID != "" {
+	if len(departmentIds) > 0 {
 		andClauses = append(andClauses,
-			fmt.Sprintf("e.department_id = $%d", idx),
+			fmt.Sprintf("e.department_id = ANY($%d)", idx),
 		)
-		args = append(args, departmentID)
+		args = append(args, departmentIds)
 		idx++
 	}
 
-	countQuery := `SELECT COUNT(*) AS total FROM employees e LEFT JOIN departments d ON e.department_id = d.id`
+	countQuery := `
+			SELECT COUNT(*)
+			FROM employees e
+			LEFT JOIN departments d ON e.department_id = d.id
+		`
+
 	query := `
-		SELECT e.id, e.code, e.first_name, e.last_name, e.email, e.phone, e.date_of_birth,
-		       e.department_id, e.manager_id, e.position, e.employment_type,
-		       e.employment_status, e.join_date, e.base_salary,
-		       e.created_at, e.updated_at, d.name
-		FROM employees e
-		LEFT JOIN departments d ON e.department_id = d.id
-	`
+			SELECT
+				e.id,
+				e.code,
+				e.first_name,
+				e.last_name,
+				e.email,
+				e.phone,
+				e.date_of_birth,
+				e.department_id,
+				e.manager_id,
+				e.position,
+				e.employment_type,
+				e.employment_status,
+				e.join_date,
+				e.base_salary,
+				e.created_at,
+				e.updated_at,
+				d.name
+			FROM employees e
+			LEFT JOIN departments d ON e.department_id = d.id
+		`
 
 	if len(andClauses) > 0 {
-		countQuery += " WHERE " + strings.Join(andClauses, " AND ")
-		query += " WHERE " + strings.Join(andClauses, " AND ")
+		where := strings.Join(andClauses, " AND ")
+		countQuery += " WHERE " + where
+		query += " WHERE " + where
 	}
 
-	countRows, err := r.db.Query(context.Background(), countQuery, args...)
+	if len(andClauses) > 0 {
+		countQuery += fmt.Sprintf(" AND e.tenant_id = $%d", idx)
+		query += fmt.Sprintf(" AND e.tenant_id = $%d", idx)
+	} else {
+		countQuery += fmt.Sprintf(" WHERE e.tenant_id = $%d", idx)
+		query += fmt.Sprintf(" WHERE e.tenant_id = $%d", idx)
+	}
+
+	args = append(args, tenantId)
+	idx++
+
+	var totalItems int
+	err := r.db.QueryRow(context.Background(), countQuery, args...).Scan(&totalItems)
 	if err != nil {
 		return nil, 0, 0, err
 	}
-	defer countRows.Close()
 
-	type Count struct {
-		Total int
-	}
-
-	totalPages := 0
-	totalItems := 0
-
-	for countRows.Next() {
-		var count Count
-		err := countRows.Scan(&count.Total)
-		if err == nil {
-			totalItems = count.Total
-			totalPages = int(math.Ceil(float64(count.Total) / float64(limit)))
-		}
-	}
+	totalPages := int(math.Ceil(float64(totalItems) / float64(limit)))
 
 	offset := (page - 1) * limit
 	query += fmt.Sprintf(" OFFSET $%d LIMIT $%d", idx, idx+1)
-	idx++
 	args = append(args, offset, limit)
 
 	rows, err := r.db.Query(context.Background(), query, args...)

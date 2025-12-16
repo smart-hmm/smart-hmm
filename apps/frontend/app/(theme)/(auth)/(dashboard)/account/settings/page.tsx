@@ -235,7 +235,11 @@ export default function AccountSettingsPage() {
 
       <div className="mx-auto -mt-2 max-w-5xl pb-12">
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Card title={`${activeTab.charAt(0).toUpperCase()}${activeTab.substring(1)} settings`}>
+          <Card
+            title={`${activeTab.charAt(0).toUpperCase()}${activeTab.substring(
+              1
+            )} settings`}
+          >
             {activeTab === "localization" ? (
               <LocalizationFields
                 localization={localization}
@@ -615,8 +619,11 @@ function SearchableSelect({
     const normalized = query.toLowerCase();
     return options.filter(
       (opt) =>
-        opt.label.split("/")[1].replaceAll("_", " ").toLowerCase().includes(normalized) ||
-        opt.parent.toLowerCase().includes(normalized)
+        opt.label
+          .split("/")[1]
+          .replaceAll("_", " ")
+          .toLowerCase()
+          .includes(normalized) || opt.parent.toLowerCase().includes(normalized)
     );
   }, [options, query]);
 
@@ -676,7 +683,9 @@ function SearchableSelect({
                           : "text-[var(--color-foreground)]"
                       }`}
                     >
-                      <span className="truncate">{opt.label.split("/")[1].replaceAll("_", " ")}</span>
+                      <span className="truncate">
+                        {opt.label.split("/")[1].replaceAll("_", " ")}
+                      </span>
                       {opt.value === value && (
                         <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-primary)]" />
                       )}

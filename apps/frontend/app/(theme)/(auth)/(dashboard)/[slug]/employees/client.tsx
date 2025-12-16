@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,8 @@ import useDebounce from "@/hooks/use-debounce";
 import { SearchInput } from "@/components/ui/search-input";
 import Table from "@/components/ui/table/table";
 import { Select } from "@/components/ui/select";
+import { useSelector } from "react-redux";
+import { RootState } from "@/services/redux/store";
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -38,14 +40,19 @@ export default function EmployeesClient() {
   const [search, setSearch] = useState("");
   const [debounceSearch, setDebounceSearch] = useState("");
   const { debounce } = useDebounce();
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [departmentsFilter, setDepartmentsFilter] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 1;
+  const selectedTenant = useSelector(
+    (state: RootState) => state.tenants.selectedTenant
+  );
+
   const { data: employeeList } = useEmployees({
+    tenantId: selectedTenant?.id,
     email: debounceSearch,
     name: debounceSearch,
     code: debounceSearch,
-    departmentId: departmentFilter,
+    departmentIds: departmentsFilter,
     page: currentPage,
     limit: pageSize,
   });
@@ -118,18 +125,19 @@ export default function EmployeesClient() {
         />
 
         <Select
-          value={departmentFilter}
-          onValueChange={(value) => {
-            setDepartmentFilter(value);
+          values={departmentsFilter}
+          onValuesChange={(values) => {
             setCurrentPage(1);
+            setDepartmentsFilter(values);
           }}
           className="w-full md:w-[300px]"
           options={[
-            { value: "", label: "All Departments" },
-            ...(departments?.map((dept) => ({
-              value: dept.id,
-              label: dept.name,
-            })) ?? []),
+            ...(departments
+              ?.sort((a, b) => a.name.localeCompare(b.name))
+              .map((dept) => ({
+                value: dept.id,
+                label: dept.name,
+              })) ?? []),
           ]}
         />
       </div>
@@ -275,7 +283,6 @@ export default function EmployeesClient() {
               <div>
                 <Select
                   label="Department"
-                  {...register("department")}
                   options={[
                     { value: "Human Resources", label: "Human Resources" },
                     { value: "Product", label: "Product" },
@@ -291,7 +298,7 @@ export default function EmployeesClient() {
               <div>
                 <Select
                   label="System Role"
-                  {...register("role")}
+                  onChange={(e) => {}}
                   options={[
                     { value: "HR", label: "HR" },
                     { value: "Manager", label: "Manager" },

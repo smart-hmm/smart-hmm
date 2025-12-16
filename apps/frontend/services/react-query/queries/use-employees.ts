@@ -1,3 +1,4 @@
+import qs from "qs";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
 import api from "@/lib/http";
@@ -10,9 +11,10 @@ const getEmployees = async ({
   queryKey: [
     string,
     {
+      tenantId?: string;
       name?: string;
       email?: string;
-      departmentId?: string;
+      departmentIds: string[];
       code?: string;
       page?: number;
       limit?: number;
@@ -22,7 +24,10 @@ const getEmployees = async ({
   const [, params] = queryKey;
   const response = await api.get("/employees", {
     params: {
-      ...(params.departmentId ? { departmentId: params.departmentId } : {}),
+      ...(params.tenantId ? { tenantId: params.tenantId } : {}),
+      ...(params.departmentIds.length > 0
+        ? { departmentId: params.departmentIds }
+        : {}),
       ...(params.name ? { name: params.name } : {}),
       ...(params.email ? { email: params.email } : {}),
       ...(params.code ? { code: params.code } : {}),
@@ -35,16 +40,19 @@ const getEmployees = async ({
 };
 
 const useEmployees = (params: {
+  tenantId?: string;
   name?: string;
   email?: string;
   code?: string;
-  departmentId?: string;
+  departmentIds: string[];
   page?: number;
   limit?: number;
 }) => {
+  console.log({ params });
   const { data, isLoading, error } = useQuery({
     queryKey: [QueryKey.GET_EMPLOYEES, params],
     queryFn: getEmployees,
+    enabled: !!params.tenantId,
   });
 
   return {

@@ -15,13 +15,15 @@ import type { RootState } from "@/services/redux/store";
 
 export default function DepartmentsClient() {
   const router = useRouter();
-  const { data: employeesList, isLoading: isLoadingEmployees } = useEmployees(
-    {}
+  const selectedTenant = useSelector(
+    (state: RootState) => state.tenants.selectedTenant
   );
+  const { data: employeesList, isLoading: isLoadingEmployees } = useEmployees({
+    tenantId: selectedTenant?.id,
+  });
   const { can } = useRBAC();
   const { data: departments, isLoading, error } = useDepartments();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const selectedTenant = useSelector((state:RootState) => state.tenants.selectedTenant)
 
   return (
     <div className="min-h-screentext-foreground p-6 space-y-6">
